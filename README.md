@@ -186,6 +186,7 @@
 
 > 지도교수: 황의원 교수님 · 이화여자대학교 컴퓨터공학전공
 
+<!--
 <br/>
 
 ## 📁 Repository Structure
@@ -209,6 +210,7 @@ sudo-capstone-project/
 ├── infra/                  # Docker, CI/CD (GitHub Actions)
 └── docs/                   # 설계 문서, API 명세
 ```
+-->
 
 <br/>
 

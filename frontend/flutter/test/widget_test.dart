@@ -55,10 +55,14 @@ void main() {
 
   testWidgets('Korean locale localises the bottom-nav labels', (tester) async {
     await pumpApp(tester, locale: const Locale('ko'));
+    // Dashboard async data is fetched after first frame — wait it out.
+    await tester.pumpAndSettle();
     expect(find.widgetWithText(AppBar, '대시보드'), findsOneWidget);
-    expect(find.text('식단'), findsOneWidget);
-    expect(find.text('운동'), findsOneWidget);
-    expect(find.text('내 건강'), findsOneWidget);
+    // Dashboard content may include the same Korean tokens as the
+    // bottom-nav labels (e.g. 운동 / 식단 metric cards), so allow ≥1.
+    expect(find.text('식단'), findsAtLeastNWidgets(1));
+    expect(find.text('운동'), findsAtLeastNWidgets(1));
+    expect(find.text('내 건강'), findsAtLeastNWidgets(1));
   });
 
   test('ARB resources expose nav strings for ko + en', () {

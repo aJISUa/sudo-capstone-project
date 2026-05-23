@@ -5,7 +5,9 @@ import 'package:oncare/core/config/app_config.dart';
 import 'package:oncare/core/logging/app_logger.dart';
 import 'package:oncare/core/network/interceptors/api_logging_interceptor.dart';
 import 'package:oncare/core/network/interceptors/auth_interceptor.dart';
+import 'package:oncare/core/network/interceptors/local_api_interceptor.dart';
 import 'package:oncare/core/network/interceptors/mock_api_interceptor.dart';
+import 'package:oncare/core/storage/app_database.dart';
 
 /// App-wide `Dio` instance, wired with logging/auth/mock interceptors
 /// based on the current [AppConfig]. Feature data sources should read
@@ -24,10 +26,12 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // Order matters: mock should fire first so it can short-circuit
-  // before any auth/logging interceptor is exercised.
+  // Order matters: LocalApi (drift-backed) and the legacy in-memory
+  // MockApi both short-circuit before auth/logging fire.
   if (config.useMockApi) {
-    dio.interceptors.add(MockApiInterceptor(logger));
+    dio.interceptors
+      ..add(LocalApiInterceptor(ref.watch(appDatabaseProvider), logger))
+      ..add(MockApiInterceptor(logger));
   }
   dio.interceptors.add(AuthInterceptor(ref));
   if (!config.isProd) {

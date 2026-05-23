@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart'
+    show OrderClauseGenerator, OrderingMode, OrderingTerm, Value;
 import 'package:logger/logger.dart';
 
 import 'package:oncare/core/storage/app_database.dart';
@@ -30,6 +32,13 @@ class LocalApiInterceptor extends Interceptor {
     'GET /healthz': _healthz,
     'GET /version': _version,
     'GET /diet/days/today': _dietToday,
+    // Vitals — three fixed kinds (weight | blood-pressure | blood-sugar).
+    'POST /vitals/weight': _vitalsSubmit,
+    'POST /vitals/blood-pressure': _vitalsSubmit,
+    'POST /vitals/blood-sugar': _vitalsSubmit,
+    'GET /vitals/weight/latest': _vitalsLatest,
+    'GET /vitals/blood-pressure/latest': _vitalsLatest,
+    'GET /vitals/blood-sugar/latest': _vitalsLatest,
   };
 
   @override
@@ -145,6 +154,91 @@ class LocalApiInterceptor extends Interceptor {
         '${now.day.toString().padLeft(2, '0')}';
   }
 
+  // ---- Vitals ----
+
+  /// Path tail → drift `kind` value. Centralised so POST and GET
+  /// agree on the same string.
+  String? _kindFromPath(String path) {
+    if (path.startsWith('/vitals/weight')) return 'weight';
+    if (path.startsWith('/vitals/blood-pressure')) return 'blood-pressure';
+    if (path.startsWith('/vitals/blood-sugar')) return 'blood-sugar';
+    return null;
+  }
+
+  Future<Response<Object?>> _vitalsSubmit(RequestOptions options) async {
+    final kind = _kindFromPath(options.path);
+    if (kind == null) {
+      return _badRequest(options, 'unknown vital kind: ${options.path}');
+    }
+
+    final body = options.data;
+    Map<String, Object?> payload;
+    if (body is Map) {
+      payload = body.cast<String, Object?>();
+    } else if (body is String && body.isNotEmpty) {
+      payload = (jsonDecode(body) as Map<Object?, Object?>)
+          .cast<String, Object?>();
+    } else {
+      payload = <String, Object?>{};
+    }
+
+    // Pluck `recorded_at` off the payload (if provided) and store the
+    // rest as the value blob.
+    final recordedAtRaw = payload.remove('recorded_at');
+    final recordedAt = recordedAtRaw is String && recordedAtRaw.isNotEmpty
+        ? DateTime.parse(recordedAtRaw)
+        : DateTime.now();
+
+    final id = 'v-${DateTime.now().microsecondsSinceEpoch}';
+    await _db
+        .into(_db.vitals)
+        .insert(
+          VitalsCompanion(
+            id: Value<String>(id),
+            kind: Value<String>(kind),
+            valueJson: Value<String>(jsonEncode(payload)),
+            recordedAt: Value<DateTime>(recordedAt),
+          ),
+        );
+
+    return _ok(options, <String, Object?>{
+      'id': id,
+      'kind': kind,
+      'value': payload,
+      'recorded_at': recordedAt.toIso8601String(),
+    });
+  }
+
+  Future<Response<Object?>> _vitalsLatest(RequestOptions options) async {
+    final kind = _kindFromPath(options.path);
+    if (kind == null) {
+      return _badRequest(options, 'unknown vital kind: ${options.path}');
+    }
+
+    final query = _db.select(_db.vitals)
+      ..where((t) => t.kind.equals(kind))
+      ..orderBy(<OrderClauseGenerator<$VitalsTable>>[
+        (t) => OrderingTerm(expression: t.recordedAt, mode: OrderingMode.desc),
+      ])
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+
+    if (row == null) {
+      // No reading yet — return a 200 with empty body so the client
+      // can treat null as "no data". (FastAPI will mirror this with
+      // an explicit nullable response model.)
+      return _ok(options, <String, Object?>{});
+    }
+
+    return _ok(options, <String, Object?>{
+      'id': row.id,
+      'kind': row.kind,
+      'value': (jsonDecode(row.valueJson) as Map<Object?, Object?>)
+          .cast<String, Object?>(),
+      'recorded_at': row.recordedAt.toIso8601String(),
+    });
+  }
+
   // ---- helpers ----
 
   /// Build a 200 OK response carrying [body]. Subclasses of handlers
@@ -155,6 +249,14 @@ class LocalApiInterceptor extends Interceptor {
       requestOptions: options,
       statusCode: 200,
       data: body,
+    );
+  }
+
+  Response<Object?> _badRequest(RequestOptions options, String message) {
+    return Response<Object?>(
+      requestOptions: options,
+      statusCode: 400,
+      data: <String, Object?>{'code': 'bad_request', 'message': message},
     );
   }
 

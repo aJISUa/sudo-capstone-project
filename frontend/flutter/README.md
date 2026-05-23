@@ -3,7 +3,7 @@
 [Oncare Prototype (React/TS)](https://github.com/subin21cc/Oncareprototype) 를 Flutter로 재구성하는 프로젝트입니다.
 **Android / iOS / Web** 3개 타깃을 단일 코드베이스로 빌드하며, 웹은 GitHub Pages에 CI 배포됩니다.
 
-> 현재 상태: **Stage 6 — Quality 완료** → Stage 7 (Release) 진입 예정
+> 현재 상태: **모든 Stage 0–7 완료** — v0.1.0+1 (mock-data MVP)
 
 ## 문서
 
@@ -11,6 +11,8 @@
 - [docs/STRUCTURE.md](./docs/STRUCTURE.md) — Flutter 디렉토리 구조 및 아키텍처 의존성 규칙
 - [docs/DESIGN_TOKENS.md](./docs/DESIGN_TOKENS.md) — 디자인 토큰 초안 (Figma 접근 후 보강)
 - [docs/CONTRIBUTING_NOTES.md](./docs/CONTRIBUTING_NOTES.md) — 커밋 컨벤션, AI co-author trailer 미사용 정책, Phase/Stage 커밋·푸시 케이던스
+- [docs/RELEASE.md](./docs/RELEASE.md) — Web/Android/iOS 수동 릴리즈 절차, SemVer 정책
+- [CHANGELOG.md](./CHANGELOG.md) — 버전별 변경 이력
 
 ## 빌드 / 실행
 
@@ -65,4 +67,4 @@ flutter build ios --release      # Xcode에서 archive
 - [x] **Stage 4 — Features MVP** (Dashboard / Diet / Exercise / MyHealth / AICoach / Notification / Place / Auth — 모두 mock 데이터)
 - [x] **Stage 5 — Integration & Polish** (nav logger, dashboard animation, MetricCard a11y, dashboard responsive layout, dashboard i18n)
 - [x] **Stage 6 — Quality** (model/widget tests, golden infra w/ tag, integration smoke)
-- [ ] Stage 7 — Release
+- [x] **Stage 7 — Release** (RELEASE.md guides, CHANGELOG v0.1.0+1, web Pages live)

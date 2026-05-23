@@ -38,5 +38,29 @@
   "errorNotFound": "Not found",
   "errorServer": "Server error",
   "errorCancelled": "Cancelled",
-  "errorUnknown": "Something went wrong"
+  "errorUnknown": "Something went wrong",
+
+  "dashboardSectionToday": "Today",
+  "dashboardMetricCalories": "Calories",
+  "dashboardMetricExercise": "Exercise",
+  "dashboardMetricWeight": "Weight",
+  "dashboardChartWeightWeek": "Weekly weight",
+  "dashboardCaloriesProgress": "{pct}% of {goal}",
+  "@dashboardCaloriesProgress": {
+    "placeholders": {
+      "pct": {"type": "int"},
+      "goal": {"type": "int"}
+    }
+  },
+  "dashboardWeightDelta": "{sign}{delta} vs last week",
+  "@dashboardWeightDelta": {
+    "placeholders": {
+      "sign": {"type": "String"},
+      "delta": {"type": "String"}
+    }
+  },
+
+  "unitKcal": "kcal",
+  "unitMinutes": "min",
+  "unitKg": "kg"
 }

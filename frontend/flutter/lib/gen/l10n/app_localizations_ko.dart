@@ -100,4 +100,38 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get errorUnknown => '알 수 없는 오류';
+
+  @override
+  String get dashboardSectionToday => '오늘의 요약';
+
+  @override
+  String get dashboardMetricCalories => '칼로리';
+
+  @override
+  String get dashboardMetricExercise => '운동';
+
+  @override
+  String get dashboardMetricWeight => '체중';
+
+  @override
+  String get dashboardChartWeightWeek => '주간 체중';
+
+  @override
+  String dashboardCaloriesProgress(int pct, int goal) {
+    return '$pct% / $goal';
+  }
+
+  @override
+  String dashboardWeightDelta(String sign, String delta) {
+    return '$sign$delta (지난주 대비)';
+  }
+
+  @override
+  String get unitKcal => 'kcal';
+
+  @override
+  String get unitMinutes => '분';
+
+  @override
+  String get unitKg => 'kg';
 }

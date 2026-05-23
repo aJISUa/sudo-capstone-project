@@ -10,6 +10,7 @@ import 'package:oncare/design_system/responsive/responsive_builder.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/dashboard/domain/entities/dashboard_summary.dart';
+import 'package:oncare/gen/l10n/app_localizations.dart';
 
 class DashboardContent extends StatelessWidget {
   const DashboardContent({required this.summary, super.key});
@@ -28,28 +29,31 @@ class DashboardContent extends StatelessWidget {
     final lastWeight = summary.weeklyWeight.last;
     final weightDelta = lastWeight - firstWeight;
 
+    final l = AppLocalizations.of(context);
+
     final caloriesCard = MetricCard(
-      title: '칼로리',
+      title: l.dashboardMetricCalories,
       value: summary.caloriesToday.toString(),
-      unit: 'kcal',
-      delta: '$caloriesPct% of ${summary.caloriesGoal}',
+      unit: l.unitKcal,
+      delta: l.dashboardCaloriesProgress(caloriesPct, summary.caloriesGoal),
       icon: Icons.restaurant,
       accentColor: AppColors.domainDiet,
     );
     final exerciseCard = MetricCard(
-      title: '운동',
+      title: l.dashboardMetricExercise,
       value: summary.exerciseMinutesToday.toString(),
-      unit: '분',
+      unit: l.unitMinutes,
       icon: Icons.fitness_center,
       accentColor: AppColors.domainExercise,
     );
     final weightCard = MetricCard(
-      title: '체중',
+      title: l.dashboardMetricWeight,
       value: summary.weightKg.toStringAsFixed(1),
-      unit: 'kg',
-      delta:
-          '${weightDelta >= 0 ? '+' : ''}${weightDelta.toStringAsFixed(1)} '
-          'vs 지난주',
+      unit: l.unitKg,
+      delta: l.dashboardWeightDelta(
+        weightDelta >= 0 ? '+' : '',
+        weightDelta.toStringAsFixed(1),
+      ),
       deltaTone: weightDelta <= 0
           ? MetricDeltaTone.positive
           : MetricDeltaTone.negative,
@@ -57,7 +61,7 @@ class DashboardContent extends StatelessWidget {
       accentColor: AppColors.domainHealth,
     );
     final chartCard = ChartCard(
-      title: '주간 체중',
+      title: l.dashboardChartWeightWeek,
       height: 160,
       child: AppLineChart(color: AppColors.domainHealth, spots: weightSpots),
     );
@@ -94,10 +98,11 @@ class _MobileLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: <Widget>[
-        const SectionHeader('오늘의 요약'),
+        SectionHeader(l.dashboardSectionToday),
         for (int i = 0; i < tiles.length; i++) ...<Widget>[
           tiles[i]
               .animate()
@@ -121,6 +126,7 @@ class _WideLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     Widget column(List<Widget> items) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,7 +144,7 @@ class _WideLayout extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const SectionHeader('오늘의 요약'),
+          SectionHeader(l.dashboardSectionToday),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[

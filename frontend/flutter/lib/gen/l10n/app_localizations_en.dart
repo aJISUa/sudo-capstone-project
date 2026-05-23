@@ -101,4 +101,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorUnknown => 'Something went wrong';
+
+  @override
+  String get dashboardSectionToday => 'Today';
+
+  @override
+  String get dashboardMetricCalories => 'Calories';
+
+  @override
+  String get dashboardMetricExercise => 'Exercise';
+
+  @override
+  String get dashboardMetricWeight => 'Weight';
+
+  @override
+  String get dashboardChartWeightWeek => 'Weekly weight';
+
+  @override
+  String dashboardCaloriesProgress(int pct, int goal) {
+    return '$pct% of $goal';
+  }
+
+  @override
+  String dashboardWeightDelta(String sign, String delta) {
+    return '$sign$delta vs last week';
+  }
+
+  @override
+  String get unitKcal => 'kcal';
+
+  @override
+  String get unitMinutes => 'min';
+
+  @override
+  String get unitKg => 'kg';
 }

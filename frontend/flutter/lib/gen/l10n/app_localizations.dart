@@ -283,6 +283,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong'**
   String get errorUnknown;
+
+  /// No description provided for @dashboardSectionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dashboardSectionToday;
+
+  /// No description provided for @dashboardMetricCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories'**
+  String get dashboardMetricCalories;
+
+  /// No description provided for @dashboardMetricExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get dashboardMetricExercise;
+
+  /// No description provided for @dashboardMetricWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get dashboardMetricWeight;
+
+  /// No description provided for @dashboardChartWeightWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly weight'**
+  String get dashboardChartWeightWeek;
+
+  /// No description provided for @dashboardCaloriesProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% of {goal}'**
+  String dashboardCaloriesProgress(int pct, int goal);
+
+  /// No description provided for @dashboardWeightDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'{sign}{delta} vs last week'**
+  String dashboardWeightDelta(String sign, String delta);
+
+  /// No description provided for @unitKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal'**
+  String get unitKcal;
+
+  /// No description provided for @unitMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get unitMinutes;
+
+  /// No description provided for @unitKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
 }
 
 class _AppLocalizationsDelegate

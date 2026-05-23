@@ -1,0 +1,6 @@
+# Tag definitions. CI excludes `golden` because pixel snapshots are
+# platform-sensitive (macOS host vs. Linux runner). Run locally with:
+#   flutter test --tags golden            # check
+#   flutter test --tags golden --update-goldens   # refresh
+tags:
+  golden:

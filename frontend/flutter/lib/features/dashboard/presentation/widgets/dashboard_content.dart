@@ -6,6 +6,7 @@ import 'package:oncare/design_system/charts/app_line_chart.dart';
 import 'package:oncare/design_system/molecules/chart_card.dart';
 import 'package:oncare/design_system/molecules/metric_card.dart';
 import 'package:oncare/design_system/molecules/section_header.dart';
+import 'package:oncare/design_system/responsive/responsive_builder.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/dashboard/domain/entities/dashboard_summary.dart';
@@ -27,51 +28,72 @@ class DashboardContent extends StatelessWidget {
     final lastWeight = summary.weeklyWeight.last;
     final weightDelta = lastWeight - firstWeight;
 
-    final tiles = <Widget>[
+    final caloriesCard = MetricCard(
+      title: '칼로리',
+      value: summary.caloriesToday.toString(),
+      unit: 'kcal',
+      delta: '$caloriesPct% of ${summary.caloriesGoal}',
+      icon: Icons.restaurant,
+      accentColor: AppColors.domainDiet,
+    );
+    final exerciseCard = MetricCard(
+      title: '운동',
+      value: summary.exerciseMinutesToday.toString(),
+      unit: '분',
+      icon: Icons.fitness_center,
+      accentColor: AppColors.domainExercise,
+    );
+    final weightCard = MetricCard(
+      title: '체중',
+      value: summary.weightKg.toStringAsFixed(1),
+      unit: 'kg',
+      delta:
+          '${weightDelta >= 0 ? '+' : ''}${weightDelta.toStringAsFixed(1)} '
+          'vs 지난주',
+      deltaTone: weightDelta <= 0
+          ? MetricDeltaTone.positive
+          : MetricDeltaTone.negative,
+      icon: Icons.favorite_outline,
+      accentColor: AppColors.domainHealth,
+    );
+    final chartCard = ChartCard(
+      title: '주간 체중',
+      height: 160,
+      child: AppLineChart(color: AppColors.domainHealth, spots: weightSpots),
+    );
+
+    final mobileTiles = <Widget>[
       Row(
         children: <Widget>[
-          Expanded(
-            child: MetricCard(
-              title: '칼로리',
-              value: summary.caloriesToday.toString(),
-              unit: 'kcal',
-              delta: '$caloriesPct% of ${summary.caloriesGoal}',
-              icon: Icons.restaurant,
-              accentColor: AppColors.domainDiet,
-            ),
-          ),
+          Expanded(child: caloriesCard),
           const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: MetricCard(
-              title: '운동',
-              value: summary.exerciseMinutesToday.toString(),
-              unit: '분',
-              icon: Icons.fitness_center,
-              accentColor: AppColors.domainExercise,
-            ),
-          ),
+          Expanded(child: exerciseCard),
         ],
       ),
-      MetricCard(
-        title: '체중',
-        value: summary.weightKg.toStringAsFixed(1),
-        unit: 'kg',
-        delta:
-            '${weightDelta >= 0 ? '+' : ''}${weightDelta.toStringAsFixed(1)} '
-            'vs 지난주',
-        deltaTone: weightDelta <= 0
-            ? MetricDeltaTone.positive
-            : MetricDeltaTone.negative,
-        icon: Icons.favorite_outline,
-        accentColor: AppColors.domainHealth,
-      ),
-      ChartCard(
-        title: '주간 체중',
-        height: 160,
-        child: AppLineChart(color: AppColors.domainHealth, spots: weightSpots),
-      ),
+      weightCard,
+      chartCard,
     ];
 
+    return ResponsiveBuilder(
+      mobile: (_) => _MobileLayout(tiles: mobileTiles),
+      tablet: (_) => _WideLayout(
+        leftColumn: <Widget>[caloriesCard, exerciseCard, weightCard],
+        rightColumn: <Widget>[chartCard],
+      ),
+      desktop: (_) => _WideLayout(
+        leftColumn: <Widget>[caloriesCard, exerciseCard, weightCard],
+        rightColumn: <Widget>[chartCard],
+      ),
+    );
+  }
+}
+
+class _MobileLayout extends StatelessWidget {
+  const _MobileLayout({required this.tiles});
+  final List<Widget> tiles;
+
+  @override
+  Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: <Widget>[
@@ -86,9 +108,47 @@ class DashboardContent extends StatelessWidget {
               .slideY(begin: 0.06, end: 0, curve: Curves.easeOutCubic),
           if (i < tiles.length - 1) const SizedBox(height: AppSpacing.md),
         ],
-        const SizedBox(height: AppSpacing.md),
-        const SectionHeader('체중 추이 (7일)'),
       ],
+    );
+  }
+}
+
+class _WideLayout extends StatelessWidget {
+  const _WideLayout({required this.leftColumn, required this.rightColumn});
+
+  final List<Widget> leftColumn;
+  final List<Widget> rightColumn;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget column(List<Widget> items) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          for (int i = 0; i < items.length; i++) ...<Widget>[
+            items[i],
+            if (i < items.length - 1) const SizedBox(height: AppSpacing.md),
+          ],
+        ],
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SectionHeader('오늘의 요약'),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(child: column(leftColumn)),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(child: column(rightColumn)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

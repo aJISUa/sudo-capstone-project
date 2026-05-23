@@ -36,9 +36,7 @@ void main() {
     expect(res.data?['recorded_at'], '2026-05-20T08:00:00.000Z');
 
     // Round-trip through GET /vitals/weight/latest.
-    final latest = await dio.get<Map<String, Object?>>(
-      '/vitals/weight/latest',
-    );
+    final latest = await dio.get<Map<String, Object?>>('/vitals/weight/latest');
     expect(latest.statusCode, 200);
     final latestValue = latest.data?['value']! as Map<Object?, Object?>;
     expect(latestValue['kg'], 70.3);

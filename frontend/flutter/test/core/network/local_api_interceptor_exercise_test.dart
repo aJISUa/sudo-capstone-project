@@ -99,9 +99,7 @@ void main() {
             calories: 9999,
           ),
         );
-    final res = await dio.get<Map<String, Object?>>(
-      '/exercise/weeks/current',
-    );
+    final res = await dio.get<Map<String, Object?>>('/exercise/weeks/current');
     final daily = (res.data!['daily_minutes']! as List<Object?>)
         .cast<num>()
         .toList();

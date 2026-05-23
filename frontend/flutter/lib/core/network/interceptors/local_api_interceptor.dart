@@ -132,10 +132,11 @@ class LocalApiInterceptor extends Interceptor {
     final todayLabel = _weekdayLabels[DateTime.now().weekday - 1];
     final weekStart = _mondayOfThisWeekString();
     // Two chained .where() calls are AND-joined by drift.
-    final exerciseRows = await (_db.select(_db.exerciseSessions)
-          ..where((t) => t.weekStart.equals(weekStart))
-          ..where((t) => t.dayLabel.equals(todayLabel)))
-        .get();
+    final exerciseRows =
+        await (_db.select(_db.exerciseSessions)
+              ..where((t) => t.weekStart.equals(weekStart))
+              ..where((t) => t.dayLabel.equals(todayLabel)))
+            .get();
     int exerciseMinutes = 0;
     for (final r in exerciseRows) {
       exerciseMinutes += r.minutes;
@@ -166,11 +167,7 @@ class LocalApiInterceptor extends Interceptor {
     )..where((t) => t.date.equals(today))).get();
     final schedJson = <Map<String, Object?>>[
       for (final r in schedRows)
-        <String, Object?>{
-          'time': r.time,
-          'title': r.title,
-          'emoji': r.emoji,
-        },
+        <String, Object?>{'time': r.time, 'title': r.title, 'emoji': r.emoji},
     ];
 
     // Heuristic "week score": stretch diet+exercise into a 0..100 band
@@ -292,9 +289,7 @@ class LocalApiInterceptor extends Interceptor {
 
     // Aggregate minutes per day-label so the bar chart can render even
     // when a day is missing (React mock left Tue=0).
-    final perDay = <String, int>{
-      for (final l in _weekdayLabels) l: 0,
-    };
+    final perDay = <String, int>{for (final l in _weekdayLabels) l: 0};
     int totalMinutes = 0;
     int totalCalories = 0;
     final sessionsJson = <Map<String, Object?>>[];
@@ -316,9 +311,7 @@ class LocalApiInterceptor extends Interceptor {
       });
     }
 
-    final dailyMinutes = <num>[
-      for (final l in _weekdayLabels) perDay[l] ?? 0,
-    ];
+    final dailyMinutes = <num>[for (final l in _weekdayLabels) perDay[l] ?? 0];
 
     // "Streak" = consecutive non-zero days ending at today's weekday
     // (or simply the count of non-zero days for the simple mock).
@@ -429,10 +422,7 @@ class LocalApiInterceptor extends Interceptor {
 
   Future<Response<Object?>> _usersMeHealth(RequestOptions options) async {
     return _ok(options, <String, Object?>{
-      'profile': <String, Object?>{
-        'name': '김민수',
-        'email': 'minsu@oncare.com',
-      },
+      'profile': <String, Object?>{'name': '김민수', 'email': 'minsu@oncare.com'},
       'risk': <String, Object?>{
         'title': '고혈압·당뇨 위험 주의',
         'body': '최근 혈압과 혈당 추세가 다소 높습니다. 식단·운동 관리에 신경 써주세요.',

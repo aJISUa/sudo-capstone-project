@@ -25,11 +25,14 @@ void main() {
     final res = await dio.get<Map<String, Object?>>('/ai-coach/feedback');
     expect(res.statusCode, 200);
     expect(res.data!['greeting'], isNotEmpty);
-    final suggestions =
-        (res.data!['suggestions']! as List<Object?>).cast<Map<String, Object?>>();
+    final suggestions = (res.data!['suggestions']! as List<Object?>)
+        .cast<Map<String, Object?>>();
     expect(suggestions.length, 4);
     final tags = suggestions.map((s) => s['tag']! as String).toSet();
-    expect(tags, containsAll(<String>['diet', 'exercise', 'sleep', 'hydration']));
+    expect(
+      tags,
+      containsAll(<String>['diet', 'exercise', 'sleep', 'hydration']),
+    );
   });
 
   test('GET /users/me returns the demo profile', () async {
@@ -44,8 +47,8 @@ void main() {
     final body = res.data!;
     expect((body['profile']! as Map)['name'], '김민수');
     expect((body['risk']! as Map)['level'], 'medium');
-    final indicators =
-        (body['indicators']! as List<Object?>).cast<Map<String, Object?>>();
+    final indicators = (body['indicators']! as List<Object?>)
+        .cast<Map<String, Object?>>();
     expect(indicators.length, 3);
     expect(indicators.map((i) => i['kind']).toList(), <String>[
       'weight',

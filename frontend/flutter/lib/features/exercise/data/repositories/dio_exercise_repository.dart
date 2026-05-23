@@ -11,9 +11,7 @@ class DioExerciseRepository implements ExerciseRepository {
 
   @override
   Future<ExerciseWeek> fetchThisWeek() async {
-    final res = await _dio.get<Map<String, Object?>>(
-      '/exercise/weeks/current',
-    );
+    final res = await _dio.get<Map<String, Object?>>('/exercise/weeks/current');
     return ExerciseWeek.fromJson(res.data!);
   }
 }

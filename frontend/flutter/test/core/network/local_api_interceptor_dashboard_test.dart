@@ -130,41 +130,44 @@ void main() {
     dio.close();
   });
 
-  test('GET /dashboard/summary aggregates diet + exercise + vital + schedule', () async {
-    final res = await dio.get<Map<String, Object?>>('/dashboard/summary');
-    expect(res.statusCode, 200);
-    final body = res.data!;
+  test(
+    'GET /dashboard/summary aggregates diet + exercise + vital + schedule',
+    () async {
+      final res = await dio.get<Map<String, Object?>>('/dashboard/summary');
+      expect(res.statusCode, 200);
+      final body = res.data!;
 
-    // Indicators — 4 rows, matching React mock totals.
-    final indicators = (body['indicators']! as List<Object?>)
-        .cast<Map<String, Object?>>();
-    expect(indicators.length, 4);
-    final byLabel = <String, Map<String, Object?>>{
-      for (final i in indicators) i['label']! as String: i,
-    };
-    expect(byLabel['칼로리']!['current'], 1420);
-    expect(byLabel['나트륨']!['current'], 2100);
-    expect(byLabel['나트륨']!['over_budget'], isTrue);
-    expect(byLabel['당류']!['current'], 45);
-    expect(byLabel['혈당']!['current'], 95);
+      // Indicators — 4 rows, matching React mock totals.
+      final indicators = (body['indicators']! as List<Object?>)
+          .cast<Map<String, Object?>>();
+      expect(indicators.length, 4);
+      final byLabel = <String, Map<String, Object?>>{
+        for (final i in indicators) i['label']! as String: i,
+      };
+      expect(byLabel['칼로리']!['current'], 1420);
+      expect(byLabel['나트륨']!['current'], 2100);
+      expect(byLabel['나트륨']!['over_budget'], isTrue);
+      expect(byLabel['당류']!['current'], 45);
+      expect(byLabel['혈당']!['current'], 95);
 
-    // Quick stats.
-    expect(body['diet_entries'], 3);
-    expect(body['exercise_minutes'], 45);
+      // Quick stats.
+      expect(body['diet_entries'], 3);
+      expect(body['exercise_minutes'], 45);
 
-    // Schedule.
-    final schedule = (body['today_schedule']! as List<Object?>)
-        .cast<Map<String, Object?>>();
-    expect(schedule.length, 2);
-    expect(schedule.first['title'], '병원 정기검진');
+      // Schedule.
+      final schedule = (body['today_schedule']! as List<Object?>)
+          .cast<Map<String, Object?>>();
+      expect(schedule.length, 2);
+      expect(schedule.first['title'], '병원 정기검진');
 
-    // Sodium warning is set when total > 2000.
-    expect(body['sodium_warning'], isNotNull);
+      // Sodium warning is set when total > 2000.
+      expect(body['sodium_warning'], isNotNull);
 
-    // Week score is in the 0..100 band.
-    final score = body['week_score']! as int;
-    expect(score, inInclusiveRange(0, 100));
-  });
+      // Week score is in the 0..100 band.
+      final score = body['week_score']! as int;
+      expect(score, inInclusiveRange(0, 100));
+    },
+  );
 
   test('sodium_warning is null when total stays under budget', () async {
     // Wipe and re-seed with a single low-sodium meal.

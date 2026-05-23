@@ -21,8 +21,10 @@ class ScheduleEvent {
   });
 
   final String id;
+
   /// `YYYY-MM-DD`.
   final String date;
+
   /// `HH:MM`.
   final String time;
   final String title;

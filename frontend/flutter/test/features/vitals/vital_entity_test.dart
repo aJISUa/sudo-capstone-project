@@ -27,10 +27,7 @@ void main() {
     test('BloodPressureSubmission encodes systolic + diastolic', () {
       const s = BloodPressureSubmission(systolic: 120, diastolic: 80);
       expect(s.kind, VitalKind.bloodPressure);
-      expect(
-        s.toJson(),
-        <String, Object?>{'systolic': 120, 'diastolic': 80},
-      );
+      expect(s.toJson(), <String, Object?>{'systolic': 120, 'diastolic': 80});
     });
 
     test('BloodSugarSubmission encodes mg_per_dl', () {

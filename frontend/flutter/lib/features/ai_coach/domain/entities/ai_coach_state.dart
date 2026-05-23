@@ -1,10 +1,9 @@
 enum AiSuggestionTag { diet, exercise, sleep, hydration }
 
-AiSuggestionTag _tagFromString(String s) =>
-    AiSuggestionTag.values.firstWhere(
-      (t) => t.name == s,
-      orElse: () => AiSuggestionTag.diet,
-    );
+AiSuggestionTag _tagFromString(String s) => AiSuggestionTag.values.firstWhere(
+  (t) => t.name == s,
+  orElse: () => AiSuggestionTag.diet,
+);
 
 class AiSuggestion {
   const AiSuggestion({

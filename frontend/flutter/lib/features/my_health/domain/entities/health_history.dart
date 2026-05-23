@@ -11,8 +11,10 @@ class UserProfile {
 
 enum RiskLevel { low, medium, high }
 
-RiskLevel _riskFromString(String s) =>
-    RiskLevel.values.firstWhere((r) => r.name == s, orElse: () => RiskLevel.low);
+RiskLevel _riskFromString(String s) => RiskLevel.values.firstWhere(
+  (r) => r.name == s,
+  orElse: () => RiskLevel.low,
+);
 
 class RiskAlert {
   const RiskAlert({

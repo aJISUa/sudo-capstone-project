@@ -132,10 +132,7 @@ class _QuickInputDialogState extends ConsumerState<_QuickInputDialog> {
             ..._fields(),
             if (_error != null) ...<Widget>[
               const SizedBox(height: AppSpacing.sm),
-              Text(
-                _error!,
-                style: const TextStyle(color: Colors.redAccent),
-              ),
+              Text(_error!, style: const TextStyle(color: Colors.redAccent)),
             ],
             const SizedBox(height: AppSpacing.lg),
             AppButton(

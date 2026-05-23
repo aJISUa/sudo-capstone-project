@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:oncare/design_system/atoms/app_badge.dart';
 import 'package:oncare/design_system/atoms/app_card.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
@@ -26,9 +25,30 @@ class MealCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              AppBadge(label: _mealLabel(entry.mealType)),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.all(Radius.circular(999)),
+                ),
+                child: Text(
+                  _mealLabel(entry.mealType),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Text(entry.timeLabel, style: theme.textTheme.bodySmall),
+              Text(
+                entry.timeLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.mutedForeground,
+                ),
+              ),
               const Spacer(),
               Text(
                 '${entry.totalCalories} kcal',
@@ -48,11 +68,69 @@ class MealCard extends StatelessWidget {
                   Expanded(
                     child: Text(f.name, style: theme.textTheme.bodyMedium),
                   ),
-                  Text('${f.calories} kcal', style: theme.textTheme.bodySmall),
+                  Text(
+                    '${f.calories} kcal',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.mutedForeground,
+                    ),
+                  ),
                 ],
               ),
             ),
+          if (entry.sodiumMg > 0 || entry.sugarG > 0) ...<Widget>[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: <Widget>[
+                _Pill(
+                  label: '나트륨 ${entry.sodiumMg}mg',
+                  tone: entry.sodiumMg > 800
+                      ? _PillTone.warning
+                      : _PillTone.muted,
+                ),
+                const SizedBox(width: 6),
+                _Pill(
+                  label: '당류 ${entry.sugarG}g',
+                  tone: _PillTone.muted,
+                ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+enum _PillTone { muted, warning }
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.label, required this.tone});
+  final String label;
+  final _PillTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (Color bg, Color fg) = switch (tone) {
+      _PillTone.warning => (
+        AppColors.warning.withValues(alpha: 0.12),
+        AppColors.warning,
+      ),
+      _PillTone.muted => (AppColors.muted, AppColors.mutedForeground),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: const BorderRadius.all(Radius.circular(999)),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w500,
+          fontSize: 11,
+        ),
       ),
     );
   }

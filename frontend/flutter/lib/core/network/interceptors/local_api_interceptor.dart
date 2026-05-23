@@ -36,6 +36,10 @@ class LocalApiInterceptor extends Interceptor {
     'GET /exercise/weeks/current': _exerciseCurrentWeek,
     'GET /schedule/events': _scheduleEvents,
     'GET /notifications': _notifications,
+    'GET /ai-coach/feedback': _aiCoachFeedback,
+    'GET /users/me': _usersMe,
+    'GET /users/me/health': _usersMeHealth,
+    'GET /places/nearby': _placesNearby,
     // Vitals — three fixed kinds (weight | blood-pressure | blood-sugar).
     'POST /vitals/weight': _vitalsSubmit,
     'POST /vitals/blood-pressure': _vitalsSubmit,
@@ -381,6 +385,140 @@ class LocalApiInterceptor extends Interceptor {
         },
     ];
     return _ok(options, list);
+  }
+
+  // ---- AI Coach ----
+
+  Future<Response<Object?>> _aiCoachFeedback(RequestOptions options) async {
+    return _ok(options, <String, Object?>{
+      'greeting': '안녕하세요, 오늘 컨디션은 어떠세요?',
+      'suggestions': <Map<String, Object?>>[
+        <String, Object?>{
+          'tag': 'diet',
+          'title': '점심에 단백질을 +10g 추가해 보세요',
+          'body': '오전 운동량을 보면 점심에 단백질을 조금 더 채우는 것이 좋아요.',
+        },
+        <String, Object?>{
+          'tag': 'exercise',
+          'title': '저녁 산책 15분',
+          'body': '저녁 시간대 가벼운 유산소는 수면의 질도 함께 끌어올립니다.',
+        },
+        <String, Object?>{
+          'tag': 'hydration',
+          'title': '수분 보충',
+          'body': '오늘 평소보다 활동량이 많았어요. 물 한 컵 더 마셔봐요.',
+        },
+        <String, Object?>{
+          'tag': 'sleep',
+          'title': '취침 1시간 전 화면 줄이기',
+          'body': '깊은 수면 비율이 낮은 패턴이 보입니다. 자극을 줄여보세요.',
+        },
+      ],
+    });
+  }
+
+  // ---- Users / Me ----
+
+  Future<Response<Object?>> _usersMe(RequestOptions options) async {
+    return _ok(options, <String, Object?>{
+      'id': 'user-demo',
+      'name': '김민수',
+      'email': 'minsu@oncare.com',
+    });
+  }
+
+  Future<Response<Object?>> _usersMeHealth(RequestOptions options) async {
+    return _ok(options, <String, Object?>{
+      'profile': <String, Object?>{
+        'name': '김민수',
+        'email': 'minsu@oncare.com',
+      },
+      'risk': <String, Object?>{
+        'title': '고혈압·당뇨 위험 주의',
+        'body': '최근 혈압과 혈당 추세가 다소 높습니다. 식단·운동 관리에 신경 써주세요.',
+        'level': 'medium',
+      },
+      'indicators': <Map<String, Object?>>[
+        <String, Object?>{
+          'kind': 'weight',
+          'label': '체중',
+          'latest_value': '68.2',
+          'unit': 'kg',
+          'delta_text': '-1.2kg (지난주 대비)',
+          'improving': true,
+          'last_7_days': <double>[0.95, 0.92, 0.90, 0.86, 0.83, 0.80, 0.76],
+        },
+        <String, Object?>{
+          'kind': 'blood-pressure',
+          'label': '혈압',
+          'latest_value': '124/82',
+          'unit': 'mmHg',
+          'delta_text': '+4 (지난주 대비)',
+          'improving': false,
+          'last_7_days': <double>[0.60, 0.62, 0.65, 0.70, 0.74, 0.78, 0.80],
+        },
+        <String, Object?>{
+          'kind': 'blood-sugar',
+          'label': '혈당',
+          'latest_value': '95',
+          'unit': 'mg/dL',
+          'delta_text': '-3 (지난주 대비)',
+          'improving': true,
+          'last_7_days': <double>[0.75, 0.74, 0.72, 0.71, 0.70, 0.69, 0.65],
+        },
+      ],
+      'activity_points': 1240,
+      'activity_rank': 14,
+      'settings': <Map<String, Object?>>[
+        <String, Object?>{'label': '개인 정보', 'icon': '👤'},
+        <String, Object?>{'label': '건강 데이터', 'icon': '📊'},
+        <String, Object?>{'label': '알림 설정', 'icon': '🔔'},
+        <String, Object?>{'label': '고객 지원', 'icon': '💬'},
+      ],
+    });
+  }
+
+  // ---- Places ----
+
+  Future<Response<Object?>> _placesNearby(RequestOptions options) async {
+    return _ok(options, <Map<String, Object?>>[
+      <String, Object?>{
+        'id': 'p1',
+        'name': '강남세브란스 가정의학과',
+        'category': 'medical',
+        'address': '서울특별시 강남구 테헤란로 123',
+        'distance_meters': 420,
+        'lat': 37.4979,
+        'lng': 127.0276,
+      },
+      <String, Object?>{
+        'id': 'p2',
+        'name': '온케어 피트니스',
+        'category': 'fitness',
+        'address': '서울특별시 강남구 역삼로 55',
+        'distance_meters': 680,
+        'lat': 37.5005,
+        'lng': 127.0319,
+      },
+      <String, Object?>{
+        'id': 'p3',
+        'name': '그린 샐러드 바',
+        'category': 'healthy_food',
+        'address': '서울특별시 강남구 강남대로 311',
+        'distance_meters': 250,
+        'lat': 37.4970,
+        'lng': 127.0270,
+      },
+      <String, Object?>{
+        'id': 'p4',
+        'name': '24시간 메디팜약국',
+        'category': 'pharmacy',
+        'address': '서울특별시 강남구 테헤란로 99',
+        'distance_meters': 800,
+        'lat': 37.4995,
+        'lng': 127.0263,
+      },
+    ]);
   }
 
   String _timeAgoKorean(Duration d) {

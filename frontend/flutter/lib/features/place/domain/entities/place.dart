@@ -1,5 +1,13 @@
 enum PlaceCategory { medical, fitness, healthyFood, pharmacy }
 
+/// Wire form: `medical | fitness | healthy_food | pharmacy`.
+PlaceCategory _categoryFromWire(String s) => switch (s) {
+  'healthy_food' => PlaceCategory.healthyFood,
+  'fitness' => PlaceCategory.fitness,
+  'pharmacy' => PlaceCategory.pharmacy,
+  _ => PlaceCategory.medical,
+};
+
 class Place {
   const Place({
     required this.id,
@@ -18,4 +26,14 @@ class Place {
   final int distanceMeters;
   final double lat;
   final double lng;
+
+  factory Place.fromJson(Map<String, Object?> json) => Place(
+    id: json['id']! as String,
+    name: json['name']! as String,
+    category: _categoryFromWire(json['category']! as String),
+    address: json['address']! as String,
+    distanceMeters: (json['distance_meters']! as num).toInt(),
+    lat: (json['lat']! as num).toDouble(),
+    lng: (json['lng']! as num).toDouble(),
+  );
 }

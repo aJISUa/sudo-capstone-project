@@ -3,7 +3,7 @@
 [Oncare Prototype (React/TS)](https://github.com/subin21cc/Oncareprototype) 를 Flutter로 재구성하는 프로젝트입니다.
 **Android / iOS / Web** 3개 타깃을 단일 코드베이스로 빌드하며, 웹은 GitHub Pages에 CI 배포됩니다.
 
-> 현재 상태: **Stage 3 — Design System 완료** → Stage 4 (Features) 진입 예정
+> 현재 상태: **Stage 4 — Features MVP 완료** → Stage 5 (Integration & Polish) 진입 예정
 
 ## 문서
 
@@ -62,7 +62,7 @@ flutter build ios --release      # Xcode에서 archive
 - [x] **Stage 1 — Bootstrap** (flutter create, deps, lint, AppConfig, CI/CD)
 - [x] **Stage 2 — Core Infrastructure** (router, theme, dio, drift, errors, l10n)
 - [x] **Stage 3 — Design System** (tokens / atoms / molecules / charts / responsive / UI 카탈로그)
-- [ ] Stage 4 — Features (Dashboard / Diet / Exercise / MyHealth / AICoach / Notification / Place / Auth)
+- [x] **Stage 4 — Features MVP** (Dashboard / Diet / Exercise / MyHealth / AICoach / Notification / Place / Auth — 모두 mock 데이터)
 - [ ] Stage 5 — Integration & Polish
 - [ ] Stage 6 — Quality
 - [ ] Stage 7 — Release

@@ -4,13 +4,23 @@ import 'package:drift/drift.dart';
 
 import 'package:oncare/core/storage/app_database.dart';
 
-/// Idempotent seeder. Runs at bootstrap; if the `seeded_v1` flag is
+/// Idempotent seeder. Runs at bootstrap; if the `seeded_v2` flag is
 /// already set in `AppKeyValues`, returns immediately. Otherwise it
 /// inserts the React prototype's mock data into the new resource
 /// tables.
+///
+/// v2 (vs v1) re-seeds the weekly exercise sessions with multi-type
+/// rows per day so the `WeeklyActivity` stacked-bar chart renders the
+/// 유산소 / 근력 / 스트레칭 breakdown the prototype shows.
 Future<void> seedIfEmpty(AppDatabase db) async {
-  final flag = await db.readValue('seeded_v1');
+  final flag = await db.readValue('seeded_v2');
   if (flag == 'true') return;
+
+  // Wipe v1 exercise rows so the new shape lands cleanly — keep
+  // anything the user added after upgrading.
+  await (db.delete(
+    db.exerciseSessions,
+  )..where((t) => t.id.like('seed-ex-%'))).go();
 
   final today = _fmtDate(DateTime.now());
   final weekStart = _fmtDate(_mondayOfThisWeek(DateTime.now()));
@@ -62,56 +72,145 @@ Future<void> seedIfEmpty(AppDatabase db) async {
       ]);
     });
 
-    // ---- Exercise sessions (6 sessions across this week) ----
+    // ---- Exercise sessions ----
+    // Per-day breakdown matches the prototype's WeeklyActivity stack:
+    // 월 40 (30+10), 화 60 (45+10+5), 수 50 (40+10),
+    // 목 65 (50+10+5), 금 55 (45+5+5), 토 80 (30+30+20), 일 0.
     await db.batch((Batch b) {
       b.insertAll(db.exerciseSessions, <ExerciseSessionsCompanion>[
+        // ---- Mon ----
         ExerciseSessionsCompanion.insert(
-          id: 'seed-ex-mon',
+          id: 'seed-ex-mon-c',
           weekStart: weekStart,
           dayLabel: '월',
           type: 'cardio',
           minutes: 30,
-          calories: 250,
+          calories: 225,
         ),
         ExerciseSessionsCompanion.insert(
-          id: 'seed-ex-wed',
+          id: 'seed-ex-mon-s',
+          weekStart: weekStart,
+          dayLabel: '월',
+          type: 'stretching',
+          minutes: 10,
+          calories: 30,
+        ),
+        // ---- Tue ----
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-tue-c',
+          weekStart: weekStart,
+          dayLabel: '화',
+          type: 'cardio',
+          minutes: 45,
+          calories: 337,
+        ),
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-tue-w',
+          weekStart: weekStart,
+          dayLabel: '화',
+          type: 'strength',
+          minutes: 10,
+          calories: 50,
+        ),
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-tue-s',
+          weekStart: weekStart,
+          dayLabel: '화',
+          type: 'stretching',
+          minutes: 5,
+          calories: 15,
+        ),
+        // ---- Wed ----
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-wed-c',
           weekStart: weekStart,
           dayLabel: '수',
-          type: 'strength',
-          minutes: 45,
-          calories: 320,
+          type: 'cardio',
+          minutes: 40,
+          calories: 300,
         ),
         ExerciseSessionsCompanion.insert(
-          id: 'seed-ex-thu',
+          id: 'seed-ex-wed-s',
+          weekStart: weekStart,
+          dayLabel: '수',
+          type: 'stretching',
+          minutes: 10,
+          calories: 30,
+        ),
+        // ---- Thu ----
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-thu-c',
           weekStart: weekStart,
           dayLabel: '목',
-          type: 'yoga',
-          minutes: 20,
-          calories: 100,
+          type: 'cardio',
+          minutes: 50,
+          calories: 375,
         ),
         ExerciseSessionsCompanion.insert(
-          id: 'seed-ex-fri',
+          id: 'seed-ex-thu-w',
+          weekStart: weekStart,
+          dayLabel: '목',
+          type: 'strength',
+          minutes: 10,
+          calories: 50,
+        ),
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-thu-s',
+          weekStart: weekStart,
+          dayLabel: '목',
+          type: 'stretching',
+          minutes: 5,
+          calories: 15,
+        ),
+        // ---- Fri ----
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-fri-c',
           weekStart: weekStart,
           dayLabel: '금',
           type: 'cardio',
-          minutes: 60,
-          calories: 480,
+          minutes: 45,
+          calories: 337,
         ),
         ExerciseSessionsCompanion.insert(
-          id: 'seed-ex-sat',
+          id: 'seed-ex-fri-w',
+          weekStart: weekStart,
+          dayLabel: '금',
+          type: 'strength',
+          minutes: 5,
+          calories: 25,
+        ),
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-fri-s',
+          weekStart: weekStart,
+          dayLabel: '금',
+          type: 'stretching',
+          minutes: 5,
+          calories: 15,
+        ),
+        // ---- Sat ----
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-sat-c',
           weekStart: weekStart,
           dayLabel: '토',
-          type: 'walking',
-          minutes: 35,
-          calories: 180,
+          type: 'cardio',
+          minutes: 30,
+          calories: 225,
         ),
         ExerciseSessionsCompanion.insert(
-          id: 'seed-ex-sun',
+          id: 'seed-ex-sat-w',
           weekStart: weekStart,
-          dayLabel: '일',
+          dayLabel: '토',
           type: 'strength',
-          minutes: 50,
-          calories: 360,
+          minutes: 30,
+          calories: 150,
+        ),
+        ExerciseSessionsCompanion.insert(
+          id: 'seed-ex-sat-s',
+          weekStart: weekStart,
+          dayLabel: '토',
+          type: 'stretching',
+          minutes: 20,
+          calories: 60,
         ),
       ]);
     });
@@ -190,7 +289,7 @@ Future<void> seedIfEmpty(AppDatabase db) async {
     });
   });
 
-  await db.putValue('seeded_v1', 'true');
+  await db.putValue('seeded_v2', 'true');
 }
 
 String _fmtDate(DateTime d) =>

@@ -78,7 +78,10 @@ class ExerciseWeek {
   final List<double> strengthMinutes;
   final List<double> stretchingMinutes;
 
-  int get workoutCount => sessions.length;
+  /// Count of distinct days on which the user worked out, matching
+  /// the prototype's "이번 주 N회" tile semantics. Multiple sessions
+  /// on the same day collapse to one.
+  int get workoutCount => sessions.map((s) => s.dayLabel).toSet().length;
 
   factory ExerciseWeek.fromJson(Map<String, Object?> json) {
     List<double> parseDoubleList(String key) {

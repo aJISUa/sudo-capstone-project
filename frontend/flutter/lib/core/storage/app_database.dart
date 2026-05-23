@@ -97,7 +97,19 @@ class NotificationItems extends Table {
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(driftDatabase(name: 'oncare'));
+  AppDatabase()
+    : super(
+        driftDatabase(
+          name: 'oncare',
+          // On web, drift needs the sqlite3 WASM module and a worker
+          // script. The release CI downloads both into `web/` so the
+          // bundled `index.html` can fetch them at the same origin.
+          web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+            driftWorker: Uri.parse('drift_worker.js'),
+          ),
+        ),
+      );
 
   /// Use in tests:
   ///   `AppDatabase.forTesting(NativeDatabase.memory())`

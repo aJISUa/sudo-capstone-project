@@ -1,3 +1,9 @@
+# drift web runtime — downloaded by CI (or tool/fetch_drift_wasm.sh
+# locally) before `flutter build web`. Not committed because the
+# version must match pubspec.lock's drift.
+/web/sqlite3.wasm
+/web/drift_worker.js
+
 # Miscellaneous
 *.class
 *.log

@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import 'package:oncare/design_system/atoms/app_avatar.dart';
@@ -5,6 +6,9 @@ import 'package:oncare/design_system/atoms/app_badge.dart';
 import 'package:oncare/design_system/atoms/app_button.dart';
 import 'package:oncare/design_system/atoms/app_card.dart';
 import 'package:oncare/design_system/atoms/app_input.dart';
+import 'package:oncare/design_system/charts/app_bar_chart.dart';
+import 'package:oncare/design_system/charts/app_donut_chart.dart';
+import 'package:oncare/design_system/charts/app_line_chart.dart';
 import 'package:oncare/design_system/molecules/chart_card.dart';
 import 'package:oncare/design_system/molecules/metric_card.dart';
 import 'package:oncare/design_system/molecules/section_header.dart';
@@ -80,8 +84,72 @@ class UiCatalogPage extends StatelessWidget {
 
           _SectionTitle('Molecules — ChartCard + SectionHeader'),
           _ChartCardSample(),
+          SizedBox(height: AppSpacing.xl),
+
+          _SectionTitle('Charts — Line / Bar / Donut'),
+          _ChartsGallery(),
         ],
       ),
+    );
+  }
+}
+
+class _ChartsGallery extends StatelessWidget {
+  const _ChartsGallery();
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        ChartCard(
+          title: '체중 추이',
+          height: 160,
+          child: AppLineChart(
+            color: AppColors.domainHealth,
+            spots: <FlSpot>[
+              FlSpot(0, 70.4),
+              FlSpot(1, 70.1),
+              FlSpot(2, 69.8),
+              FlSpot(3, 69.4),
+              FlSpot(4, 69.0),
+              FlSpot(5, 68.6),
+              FlSpot(6, 68.2),
+            ],
+          ),
+        ),
+        SizedBox(height: AppSpacing.md),
+        ChartCard(
+          title: '주간 운동 시간 (분)',
+          child: AppBarChart(
+            color: AppColors.domainExercise,
+            values: <double>[30, 0, 45, 20, 60, 35, 50],
+            labels: <String>['월', '화', '수', '목', '금', '토', '일'],
+          ),
+        ),
+        SizedBox(height: AppSpacing.md),
+        ChartCard(
+          title: '영양소 분포',
+          child: AppDonutChart(
+            segments: <AppDonutSegment>[
+              AppDonutSegment(
+                label: '탄수화물',
+                value: 50,
+                color: AppColors.domainDiet,
+              ),
+              AppDonutSegment(
+                label: '단백질',
+                value: 25,
+                color: AppColors.domainExercise,
+              ),
+              AppDonutSegment(
+                label: '지방',
+                value: 25,
+                color: AppColors.domainHealth,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

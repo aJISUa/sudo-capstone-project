@@ -20,6 +20,7 @@ class AppConfig {
   final bool useMockApi;
 
   bool get isProd => environment == Environment.prod;
+  bool get isDev => environment == Environment.dev;
 
   factory AppConfig.fromEnvironment() {
     const envStr = String.fromEnvironment('ENV', defaultValue: 'dev');

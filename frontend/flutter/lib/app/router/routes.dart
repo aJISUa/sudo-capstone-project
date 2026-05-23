@@ -16,4 +16,7 @@ class AppRoutes {
 
   // Auth
   static const String signIn = '/auth/sign-in';
+
+  // Dev-only routes (registered only in non-prod builds).
+  static const String uiCatalog = '/dev/ui-catalog';
 }

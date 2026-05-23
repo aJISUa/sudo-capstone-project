@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:oncare/app/router/routes.dart';
+import 'package:oncare/core/config/app_config.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
+    final config = ref.watch(appConfigProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(l.pageDashboardTitle),
@@ -45,6 +48,16 @@ class DashboardPage extends StatelessWidget {
               label: Text(l.actionSignInPlaceholder),
               onPressed: () => context.push(AppRoutes.signIn),
             ),
+            if (!config.isProd) ...<Widget>[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                icon: const Icon(Icons.palette_outlined),
+                label: const Text('UI Catalog (dev)'),
+                onPressed: () => context.push(AppRoutes.uiCatalog),
+              ),
+            ],
           ],
         ),
       ),

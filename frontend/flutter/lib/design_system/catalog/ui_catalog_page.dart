@@ -43,10 +43,10 @@ class UiCatalogPage extends StatelessWidget {
 
           _SectionTitle('Domain accents'),
           _ColorGrid(<_Swatch>[
-            _Swatch('domainDiet', AppColors.domainDiet),
-            _Swatch('domainExercise', AppColors.domainExercise),
-            _Swatch('domainHealth', AppColors.domainHealth),
-            _Swatch('domainAiCoach', AppColors.domainAiCoach),
+            _Swatch('domainDiet', AppColors.primary),
+            _Swatch('domainExercise', AppColors.primary),
+            _Swatch('domainHealth', AppColors.primary),
+            _Swatch('domainAiCoach', AppColors.primary),
           ]),
           SizedBox(height: AppSpacing.xl),
 
@@ -105,7 +105,7 @@ class _ChartsGallery extends StatelessWidget {
           title: '체중 추이',
           height: 160,
           child: AppLineChart(
-            color: AppColors.domainHealth,
+            color: AppColors.primary,
             spots: <FlSpot>[
               FlSpot(0, 70.4),
               FlSpot(1, 70.1),
@@ -121,7 +121,7 @@ class _ChartsGallery extends StatelessWidget {
         ChartCard(
           title: '주간 운동 시간 (분)',
           child: AppBarChart(
-            color: AppColors.domainExercise,
+            color: AppColors.primary,
             values: <double>[30, 0, 45, 20, 60, 35, 50],
             labels: <String>['월', '화', '수', '목', '금', '토', '일'],
           ),
@@ -134,18 +134,14 @@ class _ChartsGallery extends StatelessWidget {
               AppDonutSegment(
                 label: '탄수화물',
                 value: 50,
-                color: AppColors.domainDiet,
+                color: AppColors.primary,
               ),
               AppDonutSegment(
                 label: '단백질',
                 value: 25,
-                color: AppColors.domainExercise,
+                color: AppColors.primary,
               ),
-              AppDonutSegment(
-                label: '지방',
-                value: 25,
-                color: AppColors.domainHealth,
-              ),
+              AppDonutSegment(label: '지방', value: 25, color: AppColors.primary),
             ],
           ),
         ),
@@ -171,7 +167,7 @@ class _MetricGallery extends StatelessWidget {
             delta: '+12% vs 어제',
             deltaTone: MetricDeltaTone.positive,
             icon: Icons.restaurant,
-            accentColor: AppColors.domainDiet,
+            accentColor: AppColors.primary,
           ),
         ),
         SizedBox(
@@ -183,7 +179,7 @@ class _MetricGallery extends StatelessWidget {
             delta: '-5% vs 어제',
             deltaTone: MetricDeltaTone.negative,
             icon: Icons.fitness_center,
-            accentColor: AppColors.domainExercise,
+            accentColor: AppColors.primary,
           ),
         ),
         SizedBox(
@@ -195,7 +191,7 @@ class _MetricGallery extends StatelessWidget {
             delta: '-0.3 vs 지난주',
             deltaTone: MetricDeltaTone.positive,
             icon: Icons.favorite_outline,
-            accentColor: AppColors.domainHealth,
+            accentColor: AppColors.primary,
           ),
         ),
       ],

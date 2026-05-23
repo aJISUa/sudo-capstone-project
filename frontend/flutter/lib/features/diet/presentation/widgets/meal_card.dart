@@ -33,7 +33,7 @@ class MealCard extends StatelessWidget {
               Text(
                 '${entry.totalCalories} kcal',
                 style: theme.textTheme.titleSmall?.copyWith(
-                  color: AppColors.domainDiet,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w700,
                 ),
               ),

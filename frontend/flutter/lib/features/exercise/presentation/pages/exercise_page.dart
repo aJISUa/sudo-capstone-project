@@ -61,7 +61,7 @@ class _Body extends StatelessWidget {
                 value: week.totalMinutes.toString(),
                 unit: '분',
                 icon: Icons.timer_outlined,
-                accentColor: AppColors.domainExercise,
+                accentColor: AppColors.primary,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -71,7 +71,7 @@ class _Body extends StatelessWidget {
                 value: week.averageMinutes.toStringAsFixed(0),
                 unit: '분',
                 icon: Icons.show_chart,
-                accentColor: AppColors.domainExercise,
+                accentColor: AppColors.primary,
               ),
             ),
           ],
@@ -80,7 +80,7 @@ class _Body extends StatelessWidget {
         ChartCard(
           title: '주간 운동 시간',
           child: AppBarChart(
-            color: AppColors.domainExercise,
+            color: AppColors.primary,
             values: week.dailyMinutes,
             labels: week.dayLabels,
           ),

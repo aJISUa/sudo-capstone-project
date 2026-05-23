@@ -37,14 +37,14 @@ class DashboardContent extends StatelessWidget {
       unit: l.unitKcal,
       delta: l.dashboardCaloriesProgress(caloriesPct, summary.caloriesGoal),
       icon: Icons.restaurant,
-      accentColor: AppColors.domainDiet,
+      accentColor: AppColors.primary,
     );
     final exerciseCard = MetricCard(
       title: l.dashboardMetricExercise,
       value: summary.exerciseMinutesToday.toString(),
       unit: l.unitMinutes,
       icon: Icons.fitness_center,
-      accentColor: AppColors.domainExercise,
+      accentColor: AppColors.primary,
     );
     final weightCard = MetricCard(
       title: l.dashboardMetricWeight,
@@ -58,12 +58,12 @@ class DashboardContent extends StatelessWidget {
           ? MetricDeltaTone.positive
           : MetricDeltaTone.negative,
       icon: Icons.favorite_outline,
-      accentColor: AppColors.domainHealth,
+      accentColor: AppColors.primary,
     );
     final chartCard = ChartCard(
       title: l.dashboardChartWeightWeek,
       height: 160,
-      child: AppLineChart(color: AppColors.domainHealth, spots: weightSpots),
+      child: AppLineChart(color: AppColors.primary, spots: weightSpots),
     );
 
     final mobileTiles = <Widget>[

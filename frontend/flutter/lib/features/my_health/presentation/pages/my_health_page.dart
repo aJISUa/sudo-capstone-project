@@ -60,7 +60,7 @@ class _Body extends StatelessWidget {
               ? MetricDeltaTone.positive
               : MetricDeltaTone.negative,
           icon: Icons.monitor_weight_outlined,
-          accentColor: AppColors.domainHealth,
+          accentColor: AppColors.primary,
         ),
         const SizedBox(height: AppSpacing.md),
         Row(
@@ -71,7 +71,7 @@ class _Body extends StatelessWidget {
                 value: '${latest.systolic}/${latest.diastolic}',
                 unit: 'mmHg',
                 icon: Icons.favorite_outline,
-                accentColor: AppColors.domainHealth,
+                accentColor: AppColors.primary,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -81,7 +81,7 @@ class _Body extends StatelessWidget {
                 value: latest.heartRate.toString(),
                 unit: 'bpm',
                 icon: Icons.timeline,
-                accentColor: AppColors.domainHealth,
+                accentColor: AppColors.primary,
               ),
             ),
           ],
@@ -90,7 +90,7 @@ class _Body extends StatelessWidget {
         ChartCard(
           title: '체중 추이 (7일)',
           height: 180,
-          child: AppLineChart(color: AppColors.domainHealth, spots: spots),
+          child: AppLineChart(color: AppColors.primary, spots: spots),
         ),
       ],
     );

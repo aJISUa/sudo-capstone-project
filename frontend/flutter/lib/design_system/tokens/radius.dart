@@ -1,12 +1,15 @@
 import 'package:flutter/painting.dart';
 
-/// Border-radius tokens (see docs/DESIGN_TOKENS.md §4).
+/// Border-radius tokens aligned with the original prototype.
+/// `--radius` in the shadcn theme is `0.625rem` (10px). Cards in the
+/// React app use Tailwind `rounded-2xl` which renders ~20px.
 class AppRadius {
   AppRadius._();
-  static const Radius xs = Radius.circular(4);
+  static const Radius xs = Radius.circular(6);
   static const Radius sm = Radius.circular(8);
-  static const Radius md = Radius.circular(12);
-  static const Radius lg = Radius.circular(16);
-  static const Radius xl = Radius.circular(24);
+  static const Radius md = Radius.circular(10); // shadcn base radius
+  static const Radius lg = Radius.circular(14);
+  static const Radius xl = Radius.circular(16);
+  static const Radius card = Radius.circular(20); // tailwind rounded-2xl
   static const Radius pill = Radius.circular(999);
 }

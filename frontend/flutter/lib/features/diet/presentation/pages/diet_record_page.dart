@@ -45,17 +45,17 @@ class _Body extends StatelessWidget {
       AppDonutSegment(
         label: '탄수화물',
         value: day.macros.carbsPct.toDouble(),
-        color: AppColors.domainDiet,
+        color: AppColors.primary,
       ),
       AppDonutSegment(
         label: '단백질',
         value: day.macros.proteinPct.toDouble(),
-        color: AppColors.domainExercise,
+        color: AppColors.primary,
       ),
       AppDonutSegment(
         label: '지방',
         value: day.macros.fatPct.toDouble(),
-        color: AppColors.domainHealth,
+        color: AppColors.primary,
       ),
     ];
     return ListView(
@@ -66,7 +66,7 @@ class _Body extends StatelessWidget {
           value: day.totalCalories.toString(),
           unit: 'kcal',
           icon: Icons.restaurant,
-          accentColor: AppColors.domainDiet,
+          accentColor: AppColors.primary,
         ),
         const SizedBox(height: AppSpacing.md),
         ChartCard(

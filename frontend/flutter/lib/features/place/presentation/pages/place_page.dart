@@ -116,7 +116,7 @@ class _PlaceTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.domainAiCoach.withValues(alpha: 0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               borderRadius: const BorderRadius.all(AppRadius.md),
             ),
             child: const Icon(Icons.place_outlined),

@@ -51,14 +51,11 @@ class _Body extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       children: <Widget>[
         AppCard(
-          color: AppColors.domainAiCoach.withValues(alpha: 0.12),
+          color: AppColors.primary.withValues(alpha: 0.12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Icon(
-                Icons.smart_toy_outlined,
-                color: AppColors.domainAiCoach,
-              ),
+              const Icon(Icons.smart_toy_outlined, color: AppColors.primary),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(state.greeting, style: theme.textTheme.bodyLarge),

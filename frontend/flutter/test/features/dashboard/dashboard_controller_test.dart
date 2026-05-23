@@ -6,18 +6,23 @@ import 'package:oncare/features/dashboard/domain/entities/dashboard_summary.dart
 import 'package:oncare/features/dashboard/presentation/controllers/dashboard_controller.dart';
 
 void main() {
-  test('dashboardSummaryProvider returns the mock summary', () async {
+  test('dashboardSummaryProvider returns mock indicators + schedule', () async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final summary = await container.read(dashboardSummaryProvider.future);
     expect(summary, isA<DashboardSummary>());
-    expect(summary.caloriesGoal, 2000);
-    expect(summary.weeklyWeight.length, 7);
+    expect(summary.indicators.length, 4);
+    expect(summary.todaySchedule.length, 2);
+    expect(summary.weekScore, 85);
   });
 
-  test('MockDashboardRepository delivers a stable snapshot', () async {
+  test('MockDashboardRepository marks sodium as over-budget', () async {
     const repo = MockDashboardRepository();
     final s = await repo.fetchSummary();
-    expect(s.weeklyWeight.first, greaterThanOrEqualTo(s.weeklyWeight.last));
+    final sodium = s.indicators.firstWhere(
+      (HealthIndicator h) => h.label == '나트륨',
+    );
+    expect(sodium.overBudget, isTrue);
+    expect(sodium.progress, 1.0); // clamped
   });
 }

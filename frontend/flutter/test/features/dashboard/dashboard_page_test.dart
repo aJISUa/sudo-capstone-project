@@ -15,11 +15,17 @@ class _StubDashboardRepository implements DashboardRepository {
   const _StubDashboardRepository();
   @override
   Future<DashboardSummary> fetchSummary() async => const DashboardSummary(
-    caloriesToday: 1200,
-    caloriesGoal: 2000,
-    exerciseMinutesToday: 25,
-    weightKg: 70.0,
-    weeklyWeight: <double>[72, 71.8, 71.5, 71.2, 70.9, 70.4, 70.0],
+    indicators: <HealthIndicator>[
+      HealthIndicator(label: 'A', current: 1, max: 2, unit: 'u'),
+    ],
+    dietEntries: 2,
+    exerciseMinutes: 45,
+    todaySchedule: <ScheduleItem>[
+      ScheduleItem(time: '10:00', title: '병원 정기검진', emoji: '🏥'),
+    ],
+    weekScore: 85,
+    weekScoreDelta: 12,
+    sodiumWarning: null,
   );
 }
 
@@ -33,6 +39,10 @@ class _FailingDashboardRepository implements DashboardRepository {
 
 void main() {
   Future<void> pumpApp(WidgetTester tester, DashboardRepository repo) async {
+    // Five stacked dashboard cards — give the surface enough height so
+    // the bottom ones stay attached (ListView lazy-builds otherwise).
+    await tester.binding.setSurfaceSize(const Size(800, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     const config = AppConfig(
       environment: Environment.dev,
       apiBaseUrl: 'https://dev.api.test',
@@ -43,7 +53,7 @@ void main() {
         overrides: <Override>[
           appConfigProvider.overrideWithValue(config),
           appLoggerProvider.overrideWithValue(Logger(level: Level.off)),
-          localeProvider.overrideWith((ref) => const Locale('en')),
+          localeProvider.overrideWith((ref) => const Locale('ko')),
           dashboardRepositoryProvider.overrideWithValue(repo),
         ],
         child: const OncareApp(),
@@ -52,17 +62,20 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Dashboard data path renders metric cards', (tester) async {
+  testWidgets('Dashboard data path renders schedule + week score', (
+    tester,
+  ) async {
     await pumpApp(tester, const _StubDashboardRepository());
-    expect(find.text('1200'), findsOneWidget); // calories value
-    expect(find.text('25'), findsOneWidget); // exercise minutes
-    expect(find.text('70.0'), findsOneWidget); // weight (one decimal)
+    expect(find.text('오늘도 건강한 하루 되세요 ☀️'), findsOneWidget);
+    expect(find.text('오늘의 건강 기록'), findsOneWidget);
+    expect(find.text('병원 정기검진'), findsOneWidget);
+    expect(find.text('85점'), findsOneWidget);
   });
 
   testWidgets('Dashboard error path shows ErrorView retry button', (
     tester,
   ) async {
     await pumpApp(tester, const _FailingDashboardRepository());
-    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('다시 시도'), findsOneWidget);
   });
 }

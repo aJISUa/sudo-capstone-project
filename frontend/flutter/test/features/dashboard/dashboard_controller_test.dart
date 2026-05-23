@@ -7,7 +7,15 @@ import 'package:oncare/features/dashboard/presentation/controllers/dashboard_con
 
 void main() {
   test('dashboardSummaryProvider returns mock indicators + schedule', () async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: <Override>[
+        // Default impl is DioDashboardRepository (Stage 9.8). For
+        // this unit test the React-shaped mock is enough.
+        dashboardRepositoryProvider.overrideWithValue(
+          const MockDashboardRepository(),
+        ),
+      ],
+    );
     addTearDown(container.dispose);
     final summary = await container.read(dashboardSummaryProvider.future);
     expect(summary, isA<DashboardSummary>());

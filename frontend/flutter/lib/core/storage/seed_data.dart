@@ -140,6 +140,18 @@ Future<void> seedIfEmpty(AppDatabase db) async {
       ]);
     });
 
+    // ---- Vitals (latest blood sugar, matches React mock 95 mg/dL) ----
+    await db
+        .into(db.vitals)
+        .insert(
+          VitalsCompanion.insert(
+            id: 'seed-vital-bs',
+            kind: 'blood-sugar',
+            valueJson: jsonEncode(<String, Object?>{'mg_per_dl': 95}),
+            recordedAt: DateTime.now().subtract(const Duration(hours: 1)),
+          ),
+        );
+
     // ---- Notifications ----
     final now = DateTime.now();
     await db.batch((Batch b) {

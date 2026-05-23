@@ -20,6 +20,15 @@ class HealthIndicator {
 
   double get progress =>
       max == 0 ? 0 : (current / max).clamp(0.0, 1.0).toDouble();
+
+  factory HealthIndicator.fromJson(Map<String, Object?> json) =>
+      HealthIndicator(
+        label: json['label']! as String,
+        current: json['current']! as num,
+        max: json['max']! as num,
+        unit: json['unit']! as String,
+        overBudget: (json['over_budget'] as bool?) ?? false,
+      );
 }
 
 class ScheduleItem {
@@ -32,6 +41,12 @@ class ScheduleItem {
   final String time;
   final String title;
   final String emoji;
+
+  factory ScheduleItem.fromJson(Map<String, Object?> json) => ScheduleItem(
+    time: json['time']! as String,
+    title: json['title']! as String,
+    emoji: (json['emoji'] as String?) ?? '',
+  );
 }
 
 /// Snapshot displayed on the home dashboard. Mirrors the data the
@@ -67,4 +82,21 @@ class DashboardSummary {
   /// One-line warning shown above the indicator list when something
   /// is over budget (e.g. sodium intake).
   final String? sodiumWarning;
+
+  factory DashboardSummary.fromJson(Map<String, Object?> json) =>
+      DashboardSummary(
+        indicators: (json['indicators']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map(HealthIndicator.fromJson)
+            .toList(),
+        dietEntries: (json['diet_entries']! as num).toInt(),
+        exerciseMinutes: (json['exercise_minutes']! as num).toInt(),
+        todaySchedule: (json['today_schedule']! as List<Object?>)
+            .cast<Map<String, Object?>>()
+            .map(ScheduleItem.fromJson)
+            .toList(),
+        weekScore: (json['week_score']! as num).toInt(),
+        weekScoreDelta: (json['week_score_delta']! as num).toInt(),
+        sodiumWarning: json['sodium_warning'] as String?,
+      );
 }

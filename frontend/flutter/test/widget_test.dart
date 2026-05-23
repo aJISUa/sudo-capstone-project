@@ -6,6 +6,9 @@ import 'package:logger/logger.dart';
 import 'package:oncare/app/app.dart';
 import 'package:oncare/core/config/app_config.dart';
 import 'package:oncare/core/logging/app_logger.dart';
+import 'package:oncare/features/dashboard/data/repositories/mock_dashboard_repository.dart';
+import 'package:oncare/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:oncare/features/dashboard/presentation/controllers/dashboard_controller.dart';
 import 'package:oncare/features/diet/data/repositories/mock_diet_repository.dart';
 import 'package:oncare/features/diet/domain/repositories/diet_repository.dart';
 import 'package:oncare/features/diet/presentation/controllers/diet_controller.dart';
@@ -36,6 +39,12 @@ void main() {
           // (Stage 9.6); swap to the in-memory mock here.
           exerciseRepositoryProvider.overrideWithValue(
             const MockExerciseRepository() as ExerciseRepository,
+          ),
+          // Dashboard summary defaults to DioDashboardRepository (Stage
+          // 9.8); the smoke test only inspects the nav, so the mock is
+          // plenty.
+          dashboardRepositoryProvider.overrideWithValue(
+            const MockDashboardRepository() as DashboardRepository,
           ),
           if (locale != null) localeProvider.overrideWith((ref) => locale),
         ],

@@ -31,6 +31,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /ping': _ping,
     'GET /healthz': _healthz,
     'GET /version': _version,
+    'GET /dashboard/summary': _dashboardSummary,
     'GET /diet/days/today': _dietToday,
     'GET /exercise/weeks/current': _exerciseCurrentWeek,
     'GET /schedule/events': _scheduleEvents,
@@ -102,6 +103,116 @@ class LocalApiInterceptor extends Interceptor {
     return _ok(options, <String, Object?>{
       'api_version': 'v1',
       'app_version': '0.2.0+2',
+    });
+  }
+
+  // ---- Dashboard ----
+
+  Future<Response<Object?>> _dashboardSummary(RequestOptions options) async {
+    final today = _todayDateString();
+
+    // Diet aggregates.
+    final dietRows = await (_db.select(
+      _db.dietEntries,
+    )..where((t) => t.date.equals(today))).get();
+    int totalCalories = 0;
+    int totalSodium = 0;
+    int totalSugar = 0;
+    for (final r in dietRows) {
+      totalCalories += r.totalCalories;
+      totalSodium += r.sodiumMg;
+      totalSugar += r.sugarG;
+    }
+
+    // Exercise minutes for today's day-label.
+    final todayLabel = _weekdayLabels[DateTime.now().weekday - 1];
+    final weekStart = _mondayOfThisWeekString();
+    // Two chained .where() calls are AND-joined by drift.
+    final exerciseRows = await (_db.select(_db.exerciseSessions)
+          ..where((t) => t.weekStart.equals(weekStart))
+          ..where((t) => t.dayLabel.equals(todayLabel)))
+        .get();
+    int exerciseMinutes = 0;
+    for (final r in exerciseRows) {
+      exerciseMinutes += r.minutes;
+    }
+
+    // Latest blood sugar reading (mg/dL) — defaults to 0 when none.
+    int bloodSugar = 0;
+    final bsRow =
+        await (_db.select(_db.vitals)
+              ..where((t) => t.kind.equals('blood-sugar'))
+              ..orderBy(<OrderClauseGenerator<$VitalsTable>>[
+                (t) => OrderingTerm(
+                  expression: t.recordedAt,
+                  mode: OrderingMode.desc,
+                ),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    if (bsRow != null) {
+      final v = jsonDecode(bsRow.valueJson) as Map<Object?, Object?>;
+      final raw = v['mg_per_dl'];
+      if (raw is num) bloodSugar = raw.toInt();
+    }
+
+    // Today's schedule items.
+    final schedRows = await (_db.select(
+      _db.scheduleEvents,
+    )..where((t) => t.date.equals(today))).get();
+    final schedJson = <Map<String, Object?>>[
+      for (final r in schedRows)
+        <String, Object?>{
+          'time': r.time,
+          'title': r.title,
+          'emoji': r.emoji,
+        },
+    ];
+
+    // Heuristic "week score": stretch diet+exercise into a 0..100 band
+    // so the card always renders something even on an empty database.
+    final calRatio = (totalCalories / 2000.0).clamp(0.0, 1.0);
+    final exRatio = (exerciseMinutes / 60.0).clamp(0.0, 1.0);
+    final score = (50 + calRatio * 25 + exRatio * 25).round();
+
+    return _ok(options, <String, Object?>{
+      'indicators': <Map<String, Object?>>[
+        <String, Object?>{
+          'label': '칼로리',
+          'current': totalCalories,
+          'max': 2000,
+          'unit': 'kcal',
+        },
+        <String, Object?>{
+          'label': '나트륨',
+          'current': totalSodium,
+          'max': 2000,
+          'unit': 'mg',
+          'over_budget': totalSodium > 2000,
+        },
+        <String, Object?>{
+          'label': '당류',
+          'current': totalSugar,
+          'max': 50,
+          'unit': 'g',
+        },
+        <String, Object?>{
+          'label': '혈당',
+          'current': bloodSugar,
+          'max': 120,
+          'unit': 'mg/dL',
+        },
+      ],
+      'diet_entries': dietRows.length,
+      'exercise_minutes': exerciseMinutes,
+      'today_schedule': schedJson,
+      'week_score': score,
+      // Delta is a static demo number for now — full week-over-week
+      // diff lands in a later phase.
+      'week_score_delta': 12,
+      'sodium_warning': totalSodium > 2000
+          ? '오늘의 나트륨 섭취량이 높아요. 저녁에는 담백한 구이나 샐러드를 추천해요!'
+          : null,
     });
   }
 

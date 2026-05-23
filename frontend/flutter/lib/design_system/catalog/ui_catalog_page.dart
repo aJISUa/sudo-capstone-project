@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:oncare/design_system/atoms/app_avatar.dart';
+import 'package:oncare/design_system/atoms/app_badge.dart';
+import 'package:oncare/design_system/atoms/app_button.dart';
+import 'package:oncare/design_system/atoms/app_card.dart';
+import 'package:oncare/design_system/atoms/app_input.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
@@ -48,8 +53,116 @@ class UiCatalogPage extends StatelessWidget {
 
           _SectionTitle('Radius scale'),
           _RadiusScale(),
+          SizedBox(height: AppSpacing.xl),
+
+          _SectionTitle('Atoms — Buttons'),
+          _ButtonGallery(),
+          SizedBox(height: AppSpacing.xl),
+
+          _SectionTitle('Atoms — Card / Input'),
+          _CardAndInputSample(),
+          SizedBox(height: AppSpacing.xl),
+
+          _SectionTitle('Atoms — Badges'),
+          _BadgeGallery(),
+          SizedBox(height: AppSpacing.xl),
+
+          _SectionTitle('Atoms — Avatars'),
+          _AvatarGallery(),
         ],
       ),
+    );
+  }
+}
+
+class _ButtonGallery extends StatelessWidget {
+  const _ButtonGallery();
+  @override
+  Widget build(BuildContext context) {
+    return const Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: <Widget>[
+        AppButton(label: 'Primary', onPressed: _noop),
+        AppButton(
+          label: 'Secondary',
+          variant: AppButtonVariant.secondary,
+          onPressed: _noop,
+        ),
+        AppButton(
+          label: 'Ghost',
+          variant: AppButtonVariant.ghost,
+          onPressed: _noop,
+        ),
+        AppButton(
+          label: 'With icon',
+          icon: Icons.bolt,
+          onPressed: _noop,
+        ),
+        AppButton(label: 'Disabled', onPressed: null),
+      ],
+    );
+  }
+}
+
+void _noop() {}
+
+class _CardAndInputSample extends StatelessWidget {
+  const _CardAndInputSample();
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'AppCard surface',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          const AppInput(label: 'Email', hint: 'you@example.com'),
+          const SizedBox(height: AppSpacing.sm),
+          const AppInput(
+            label: 'Password',
+            obscure: true,
+            suffixIcon: Icons.visibility_off_outlined,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BadgeGallery extends StatelessWidget {
+  const _BadgeGallery();
+  @override
+  Widget build(BuildContext context) {
+    return const Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: <Widget>[
+        AppBadge(label: 'Neutral'),
+        AppBadge(label: 'Info', tone: AppBadgeTone.info),
+        AppBadge(label: 'Success', tone: AppBadgeTone.success),
+        AppBadge(label: 'Warning', tone: AppBadgeTone.warning),
+        AppBadge(label: 'Error', tone: AppBadgeTone.error),
+      ],
+    );
+  }
+}
+
+class _AvatarGallery extends StatelessWidget {
+  const _AvatarGallery();
+  @override
+  Widget build(BuildContext context) {
+    return const Wrap(
+      spacing: AppSpacing.md,
+      runSpacing: AppSpacing.md,
+      children: <Widget>[
+        AppAvatar(label: 'Subin Lee'),
+        AppAvatar(label: 'Demo User', size: 56),
+        AppAvatar(label: 'Bot', size: 32),
+      ],
     );
   }
 }

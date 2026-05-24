@@ -6,17 +6,25 @@ import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/diet/presentation/controllers/diet_controller.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_summary_card.dart';
+import 'package:oncare/features/diet/presentation/widgets/diet_week_strip.dart';
 import 'package:oncare/features/diet/presentation/widgets/meal_card.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
 import 'package:oncare/shared/widgets/ai_coach_card.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
 import 'package:oncare/shared/widgets/oncare_header.dart';
 
-class DietRecordPage extends ConsumerWidget {
+class DietRecordPage extends ConsumerStatefulWidget {
   const DietRecordPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DietRecordPage> createState() => _DietRecordPageState();
+}
+
+class _DietRecordPageState extends ConsumerState<DietRecordPage> {
+  late DateTime _selectedDay = DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final async = ref.watch(dietTodayProvider);
 
@@ -33,11 +41,21 @@ class DietRecordPage extends ConsumerWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.lg,
-                      AppSpacing.xl,
+                      AppSpacing.lg,
                       AppSpacing.lg,
                       AppSpacing.xxxl,
                     ),
                     children: <Widget>[
+                      DietWeekStrip(
+                        selectedDay: _selectedDay,
+                        onSelect: (d) => setState(() => _selectedDay = d),
+                        onShiftWeek: (delta) => setState(() {
+                          _selectedDay = _selectedDay.add(
+                            Duration(days: 7 * delta),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
                       DietSummaryCard(day: day),
                       const SizedBox(height: AppSpacing.lg),
                       AiCoachCard(message: day.aiCoachMessage),

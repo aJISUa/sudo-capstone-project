@@ -74,6 +74,7 @@ class _Body extends StatelessWidget {
             const _SectionTitle('설정'),
             const SizedBox(height: AppSpacing.sm),
             AppCard(
+              outlined: true,
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Column(
                 children: <Widget>[
@@ -116,6 +117,7 @@ class _ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
+      outlined: true,
       child: Row(
         children: <Widget>[
           Container(
@@ -220,6 +222,7 @@ class _IndicatorTile extends StatelessWidget {
     final theme = Theme.of(context);
     final color = trend.improving ? AppColors.success : AppColors.warning;
     return AppCard(
+      outlined: true,
       child: Row(
         children: <Widget>[
           SizedBox(

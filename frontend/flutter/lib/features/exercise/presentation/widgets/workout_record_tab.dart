@@ -89,6 +89,7 @@ class _Body extends ConsumerWidget {
 
         // Weekly chart.
         AppCard(
+          outlined: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -301,6 +302,7 @@ class _SessionCard extends StatelessWidget {
     final dateLabel = session.dateLabel ?? '${session.dayLabel}요일';
     final timeLabel = session.timeLabel;
     return AppCard(
+      outlined: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

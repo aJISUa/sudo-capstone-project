@@ -16,7 +16,7 @@ class MockExerciseRepository implements ExerciseRepository {
       totalMinutes: 240,
       totalCalories: 1450,
       streakDays: 3,
-      aiCoachMessage: '주간 운동 목표 80%를 달성했어요! 일요일에 가볍게 걷기를 더해 100%를 채워봐요.',
+      aiCoachMessage: '주간 운동 목표 80%를 달성했어요! 오늘 가볍게 걷기를 더해 100%를 채워봐요.',
       sessions: <ExerciseSession>[
         ExerciseSession(
           id: 's-today',

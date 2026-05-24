@@ -8,9 +8,12 @@ import 'package:oncare/features/diet/presentation/controllers/diet_controller.da
 import 'package:oncare/features/diet/presentation/widgets/diet_summary_card.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_week_strip.dart';
 import 'package:oncare/features/diet/presentation/widgets/meal_card.dart';
+import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
 import 'package:oncare/shared/widgets/ai_coach_card.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
+import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
+import 'package:oncare/shared/widgets/modals/schedule_calendar_sheet.dart';
 import 'package:oncare/shared/widgets/oncare_header.dart';
 
 class DietRecordPage extends ConsumerStatefulWidget {
@@ -32,7 +35,14 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
       backgroundColor: AppColors.background,
       body: Column(
         children: <Widget>[
-          OncareHeader(title: l.pageDietTitle),
+          OncareHeader(
+            title: l.pageDietTitle,
+            onNotificationTap: () => showRightSlidePanel<void>(
+              context,
+              content: const NotificationPanelBody(),
+            ),
+            onCalendarTap: () => showScheduleCalendarSheet(context),
+          ),
           Expanded(
             child: async.when(
               data: (day) => Center(

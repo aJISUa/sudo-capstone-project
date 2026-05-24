@@ -9,8 +9,11 @@ import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/my_health/domain/entities/health_history.dart';
 import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
+import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
+import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
+import 'package:oncare/shared/widgets/modals/schedule_calendar_sheet.dart';
 import 'package:oncare/shared/widgets/oncare_header.dart';
 
 class MyHealthPage extends ConsumerWidget {
@@ -24,7 +27,14 @@ class MyHealthPage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: Column(
         children: <Widget>[
-          OncareHeader(title: l.pageMyHealthTitle),
+          OncareHeader(
+            title: l.pageMyHealthTitle,
+            onNotificationTap: () => showRightSlidePanel<void>(
+              context,
+              content: const NotificationPanelBody(),
+            ),
+            onCalendarTap: () => showScheduleCalendarSheet(context),
+          ),
           Expanded(
             child: async.when(
               data: (s) => _Body(state: s),

@@ -7,7 +7,10 @@ import 'package:oncare/features/exercise/presentation/widgets/add_session_sheet.
 import 'package:oncare/features/exercise/presentation/widgets/exercise_tab_switcher.dart';
 import 'package:oncare/features/exercise/presentation/widgets/gym_tab.dart';
 import 'package:oncare/features/exercise/presentation/widgets/workout_record_tab.dart';
+import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
+import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
+import 'package:oncare/shared/widgets/modals/schedule_calendar_sheet.dart';
 import 'package:oncare/shared/widgets/oncare_header.dart';
 
 class ExercisePage extends ConsumerStatefulWidget {
@@ -27,7 +30,14 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
       backgroundColor: AppColors.background,
       body: Column(
         children: <Widget>[
-          OncareHeader(title: l.pageExerciseTitle),
+          OncareHeader(
+            title: l.pageExerciseTitle,
+            onNotificationTap: () => showRightSlidePanel<void>(
+              context,
+              content: const NotificationPanelBody(),
+            ),
+            onCalendarTap: () => showScheduleCalendarSheet(context),
+          ),
           Expanded(
             child: Center(
               child: ConstrainedBox(

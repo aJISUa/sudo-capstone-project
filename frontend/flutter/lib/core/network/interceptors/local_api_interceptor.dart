@@ -142,24 +142,8 @@ class LocalApiInterceptor extends Interceptor {
       exerciseMinutes += r.minutes;
     }
 
-    // Latest blood sugar reading (mg/dL) — defaults to 0 when none.
-    int bloodSugar = 0;
-    final bsRow =
-        await (_db.select(_db.vitals)
-              ..where((t) => t.kind.equals('blood-sugar'))
-              ..orderBy(<OrderClauseGenerator<$VitalsTable>>[
-                (t) => OrderingTerm(
-                  expression: t.recordedAt,
-                  mode: OrderingMode.desc,
-                ),
-              ])
-              ..limit(1))
-            .getSingleOrNull();
-    if (bsRow != null) {
-      final v = jsonDecode(bsRow.valueJson) as Map<Object?, Object?>;
-      final raw = v['mg_per_dl'];
-      if (raw is num) bloodSugar = raw.toInt();
-    }
+    // (혈당 row removed from the home summary per the latest design ref —
+    // the indicator list now ends at 당류.)
 
     // Today's schedule items.
     final schedRows = await (_db.select(
@@ -197,12 +181,6 @@ class LocalApiInterceptor extends Interceptor {
           'max': 50,
           'unit': 'g',
         },
-        <String, Object?>{
-          'label': '혈당',
-          'current': bloodSugar,
-          'max': 120,
-          'unit': 'mg/dL',
-        },
       ],
       'diet_entries': dietRows.length,
       'exercise_minutes': exerciseMinutes,
@@ -214,6 +192,9 @@ class LocalApiInterceptor extends Interceptor {
       'sodium_warning': totalSodium > 2000
           ? '오늘의 나트륨 섭취량이 높아요. 저녁에는 담백한 구이나 샐러드를 추천해요!'
           : null,
+      'exercise_feedback': exerciseMinutes >= 60
+          ? '오늘 운동 목표를 달성했어요! 마무리 스트레칭도 잊지 마세요.'
+          : '주간 운동 목표 80%를 달성했어요! 오늘 가볍게 걷기를 더해 100%를 채워봐요!',
     });
   }
 
@@ -366,7 +347,7 @@ class LocalApiInterceptor extends Interceptor {
       'total_calories': totalCalories,
       'streak_days': streak,
       'ai_coach_message': totalMinutes >= 240
-          ? '주간 운동 목표 80%를 달성했어요! 일요일에 가볍게 걷기를 더해 100%를 채워봐요.'
+          ? '주간 운동 목표 80%를 달성했어요! 오늘 가볍게 걷기를 더해 100%를 채워봐요.'
           : '이번 주는 운동량이 조금 부족해요. 가벼운 산책부터 다시 시작해 봐요.',
     });
   }

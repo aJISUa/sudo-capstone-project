@@ -5,8 +5,9 @@ import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 
 /// Inline AI coach card used by Diet / Exercise / MyHealth pages.
-/// Subtle blue tint to match the "온이의 피드백" panel in the React
-/// original.
+/// White surface with the design-system gray border, matching the
+/// "온이의 피드백" panel in the latest design ref. The icon slot uses
+/// the same robot face the prototype shows in its avatar circle.
 class AiCoachCard extends StatelessWidget {
   const AiCoachCard({required this.message, this.title = '온이의 피드백', super.key});
 
@@ -19,9 +20,9 @@ class AiCoachCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: AppColors.card,
         borderRadius: const BorderRadius.all(AppRadius.card),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +36,7 @@ class AiCoachCard extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: const Icon(
-              Icons.psychology_outlined,
+              Icons.smart_toy_outlined,
               color: AppColors.primary,
               size: 20,
             ),
@@ -49,7 +50,7 @@ class AiCoachCard extends StatelessWidget {
                   title,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: AppColors.foreground,
                   ),
                 ),
                 const SizedBox(height: 4),

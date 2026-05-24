@@ -18,7 +18,6 @@ class MockDashboardRepository implements DashboardRepository {
           overBudget: true,
         ),
         HealthIndicator(label: '당류', current: 45, max: 50, unit: 'g'),
-        HealthIndicator(label: '혈당', current: 95, max: 120, unit: 'mg/dL'),
       ],
       dietEntries: 2,
       exerciseMinutes: 45,
@@ -29,6 +28,7 @@ class MockDashboardRepository implements DashboardRepository {
       weekScore: 85,
       weekScoreDelta: 12,
       sodiumWarning: '오늘의 나트륨 섭취량이 높아요. 저녁에는 담백한 구이나 샐러드를 추천해요!',
+      exerciseFeedback: '주간 운동 목표 80%를 달성했어요! 오늘 가볍게 걷기를 더해 100%를 채워봐요!',
     );
   }
 }

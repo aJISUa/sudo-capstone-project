@@ -69,6 +69,7 @@ class _EmptyGym extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
+      outlined: true,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
         child: Column(
@@ -124,6 +125,7 @@ class _MyGymCardState extends State<_MyGymCard> {
     final theme = Theme.of(context);
     final gym = widget.gym;
     return AppCard(
+      outlined: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

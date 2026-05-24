@@ -137,10 +137,11 @@ void main() {
       expect(res.statusCode, 200);
       final body = res.data!;
 
-      // Indicators — 4 rows, matching React mock totals.
+      // Indicators — 3 rows after 혈당 row was removed per the latest
+      // design ref (Home summary now ends at 당류).
       final indicators = (body['indicators']! as List<Object?>)
           .cast<Map<String, Object?>>();
-      expect(indicators.length, 4);
+      expect(indicators.length, 3);
       final byLabel = <String, Map<String, Object?>>{
         for (final i in indicators) i['label']! as String: i,
       };
@@ -148,7 +149,7 @@ void main() {
       expect(byLabel['나트륨']!['current'], 2100);
       expect(byLabel['나트륨']!['over_budget'], isTrue);
       expect(byLabel['당류']!['current'], 45);
-      expect(byLabel['혈당']!['current'], 95);
+      expect(byLabel.containsKey('혈당'), isFalse);
 
       // Quick stats.
       expect(body['diet_entries'], 3);

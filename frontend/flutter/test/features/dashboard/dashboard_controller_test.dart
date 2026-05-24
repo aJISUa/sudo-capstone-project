@@ -19,7 +19,9 @@ void main() {
     addTearDown(container.dispose);
     final summary = await container.read(dashboardSummaryProvider.future);
     expect(summary, isA<DashboardSummary>());
-    expect(summary.indicators.length, 4);
+    // 혈당 row was dropped from the home summary; expect 3 rows
+    // (칼로리 / 나트륨 / 당류).
+    expect(summary.indicators.length, 3);
     expect(summary.todaySchedule.length, 2);
     expect(summary.weekScore, 85);
   });

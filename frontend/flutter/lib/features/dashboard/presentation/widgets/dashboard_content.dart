@@ -39,6 +39,11 @@ class DashboardContent extends StatelessWidget {
         onBloodPressure: onQuickInputBloodPressure,
         onBloodSugar: onQuickInputBloodSugar,
       ),
+      if (summary.sodiumWarning != null || summary.exerciseFeedback != null)
+        _DailyFeedbackCard(
+          dietLine: summary.sodiumWarning,
+          exerciseLine: summary.exerciseFeedback,
+        ),
       _HealthSummaryCard(summary: summary),
       _ScheduleCard(items: summary.todaySchedule, onOpenAll: onOpenSchedule),
       _WeekScoreCard(score: summary.weekScore, delta: summary.weekScoreDelta),
@@ -148,6 +153,66 @@ class _QuickInputCard extends StatelessWidget {
   }
 }
 
+/// Combined daily-feedback card — sits between 오늘의 건강 기록 and
+/// 오늘의 건강 요약. White surface with the design-system gray
+/// border, robot avatar on the left, and one bullet per available
+/// feedback line (diet / exercise).
+class _DailyFeedbackCard extends StatelessWidget {
+  const _DailyFeedbackCard({this.dietLine, this.exerciseLine});
+
+  final String? dietLine;
+  final String? exerciseLine;
+
+  String _withEmoji(String text, String emoji) {
+    final t = text.trimRight();
+    return t.endsWith(emoji) ? t : '$t $emoji';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lines = <({String text, String emoji})>[
+      if (dietLine != null) (text: dietLine!, emoji: '🥗'),
+      if (exerciseLine != null) (text: exerciseLine!, emoji: '🚶'),
+    ];
+
+    return AppCard(
+      outlined: true,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: const BorderRadius.all(AppRadius.lg),
+            ),
+            alignment: Alignment.center,
+            child: const Text('🤖', style: TextStyle(fontSize: 20)),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                for (int i = 0; i < lines.length; i++) ...<Widget>[
+                  Text(
+                    _withEmoji(lines[i].text, lines[i].emoji),
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  if (i < lines.length - 1)
+                    const SizedBox(height: AppSpacing.sm),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _QuickButton extends StatelessWidget {
   const _QuickButton({required this.emoji, required this.label, this.onTap});
 
@@ -192,6 +257,7 @@ class _HealthSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
+      outlined: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -202,24 +268,9 @@ class _HealthSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          if (summary.sodiumWarning != null)
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.warning.withValues(alpha: 0.10),
-                borderRadius: const BorderRadius.all(AppRadius.lg),
-                border: Border.all(
-                  color: AppColors.warning.withValues(alpha: 0.20),
-                ),
-              ),
-              child: Text(
-                '${summary.sodiumWarning!} 🥗',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.warning,
-                ),
-              ),
-            ),
-          const SizedBox(height: AppSpacing.md),
+          // Sodium-warning banner removed from this card per the new
+          // design ref; the same message now lives in the combined
+          // daily-feedback card above (see _DailyFeedbackCard).
           for (final i in summary.indicators) ...<Widget>[
             _IndicatorRow(indicator: i),
             const SizedBox(height: AppSpacing.md),
@@ -368,6 +419,7 @@ class _ScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
+      outlined: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

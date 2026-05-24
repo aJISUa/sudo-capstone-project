@@ -42,20 +42,24 @@ void main() {
     final week = ExerciseWeek.fromJson(res.data!);
     expect(week.dailyMinutes.length, 7);
     expect(week.dayLabels, <String>['월', '화', '수', '목', '금', '토', '일']);
-    // Seed totals: 30+45+20+60+35+50 = 240
-    expect(week.totalMinutes, 240);
+    // v2 seed has multi-type rows per day so the stacked chart fills.
+    // Sum: 월 40 + 화 60 + 수 50 + 목 65 + 금 55 + 토 80 + 일 0 = 350.
+    expect(week.totalMinutes, 350);
   });
 
   test('dio → LocalApi → DashboardSummary aggregates seeded data', () async {
     final res = await dio.get<Map<String, Object?>>('/dashboard/summary');
     final summary = DashboardSummary.fromJson(res.data!);
-    expect(summary.indicators.length, 4);
-    // Seeded diet totals.
+    // 혈당 row was removed from the home summary; indicator list now
+    // ends at 당류 (calories / sodium / sugar).
+    expect(summary.indicators.length, 3);
     final cal = summary.indicators.firstWhere((i) => i.label == '칼로리');
     expect(cal.current, 1420);
-    // Seeded blood sugar.
-    final bs = summary.indicators.firstWhere((i) => i.label == '혈당');
-    expect(bs.current, 95);
+    expect(
+      summary.indicators.any((i) => i.label == '혈당'),
+      isFalse,
+      reason: '혈당 row should no longer be in the home summary',
+    );
     // 3 seeded meals.
     expect(summary.dietEntries, 3);
     // Two seeded schedule events.

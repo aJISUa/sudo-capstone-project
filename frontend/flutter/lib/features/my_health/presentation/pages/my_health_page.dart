@@ -410,10 +410,10 @@ class _SettingsRow extends StatelessWidget {
 
   void _open(BuildContext context) {
     switch (item.kind) {
-      case SettingsKind.personalInfo:
-        showPersonalInfoModal(context);
-      case SettingsKind.healthData:
-        showHealthDataModal(context);
+      case SettingsKind.myProfile:
+        showMyProfileModal(context);
+      case SettingsKind.healthGoal:
+        showHealthGoalModal(context);
       case SettingsKind.notification:
         showNotificationSettingsModal(context);
       case SettingsKind.support:

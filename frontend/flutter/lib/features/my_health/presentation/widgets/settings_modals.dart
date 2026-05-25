@@ -105,8 +105,8 @@ class _RoundCloseButton extends StatelessWidget {
   }
 }
 
-/// Field-label + TextField pair used by the personal-info and
-/// health-data forms.
+/// Field-label + TextField pair used by the my-profile and
+/// health-goal forms.
 class _LabeledField extends StatelessWidget {
   const _LabeledField({
     required this.label,
@@ -163,23 +163,23 @@ class _LabeledField extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 개인 정보 modal
+// 내 프로필 modal
 // ---------------------------------------------------------------------------
 
-Future<void> showPersonalInfoModal(BuildContext context) {
+Future<void> showMyProfileModal(BuildContext context) {
   return showDialog<void>(
     context: context,
-    builder: (_) => const _PersonalInfoDialog(),
+    builder: (_) => const _MyProfileDialog(),
   );
 }
 
-class _PersonalInfoDialog extends StatefulWidget {
-  const _PersonalInfoDialog();
+class _MyProfileDialog extends StatefulWidget {
+  const _MyProfileDialog();
   @override
-  State<_PersonalInfoDialog> createState() => _PersonalInfoDialogState();
+  State<_MyProfileDialog> createState() => _MyProfileDialogState();
 }
 
-class _PersonalInfoDialogState extends State<_PersonalInfoDialog> {
+class _MyProfileDialogState extends State<_MyProfileDialog> {
   late final TextEditingController _name = TextEditingController(text: '김민수');
   late final TextEditingController _email = TextEditingController(
     text: 'minsu@oncare.com',
@@ -203,14 +203,14 @@ class _PersonalInfoDialogState extends State<_PersonalInfoDialog> {
   void _save() {
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('개인 정보가 저장되었어요')),
+      const SnackBar(content: Text('내 프로필이 저장되었어요')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return _SettingsDialog(
-      title: '개인 정보',
+      title: '내 프로필',
       footerLabel: '저장하기',
       onFooter: _save,
       body: Column(
@@ -242,23 +242,23 @@ class _PersonalInfoDialogState extends State<_PersonalInfoDialog> {
 }
 
 // ---------------------------------------------------------------------------
-// 건강 데이터 modal
+// 건강 목표 modal
 // ---------------------------------------------------------------------------
 
-Future<void> showHealthDataModal(BuildContext context) {
+Future<void> showHealthGoalModal(BuildContext context) {
   return showDialog<void>(
     context: context,
-    builder: (_) => const _HealthDataDialog(),
+    builder: (_) => const _HealthGoalDialog(),
   );
 }
 
-class _HealthDataDialog extends StatefulWidget {
-  const _HealthDataDialog();
+class _HealthGoalDialog extends StatefulWidget {
+  const _HealthGoalDialog();
   @override
-  State<_HealthDataDialog> createState() => _HealthDataDialogState();
+  State<_HealthGoalDialog> createState() => _HealthGoalDialogState();
 }
 
-class _HealthDataDialogState extends State<_HealthDataDialog> {
+class _HealthGoalDialogState extends State<_HealthGoalDialog> {
   late final TextEditingController _weight = TextEditingController(text: '70');
   late final TextEditingController _bp = TextEditingController(text: '120');
   late final TextEditingController _sugar = TextEditingController(text: '100');
@@ -280,7 +280,7 @@ class _HealthDataDialogState extends State<_HealthDataDialog> {
   void _save() {
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('건강 데이터가 저장되었어요')),
+      const SnackBar(content: Text('건강 목표가 저장되었어요')),
     );
   }
 
@@ -290,7 +290,7 @@ class _HealthDataDialogState extends State<_HealthDataDialog> {
       FilteringTextInputFormatter.digitsOnly,
     ];
     return _SettingsDialog(
-      title: '건강 데이터',
+      title: '건강 목표',
       footerLabel: '저장하기',
       onFooter: _save,
       body: Column(

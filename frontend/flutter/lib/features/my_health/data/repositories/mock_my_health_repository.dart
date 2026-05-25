@@ -77,14 +77,14 @@ class MockMyHealthRepository implements MyHealthRepository {
       activityRank: 14,
       settings: <SettingsItem>[
         SettingsItem(
-          label: '개인 정보',
+          label: '내 프로필',
           icon: '👤',
-          kind: SettingsKind.personalInfo,
+          kind: SettingsKind.myProfile,
         ),
         SettingsItem(
-          label: '건강 데이터',
+          label: '건강 목표',
           icon: '📊',
-          kind: SettingsKind.healthData,
+          kind: SettingsKind.healthGoal,
         ),
         SettingsItem(
           label: '알림 설정',

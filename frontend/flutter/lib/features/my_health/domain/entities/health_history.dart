@@ -109,13 +109,13 @@ class IndicatorTrend {
   );
 }
 
-enum SettingsKind { personalInfo, healthData, notification, support }
+enum SettingsKind { myProfile, healthGoal, notification, support }
 
 SettingsKind _settingsKindFromWire(String s) => switch (s) {
-  'health-data' => SettingsKind.healthData,
+  'health-goal' => SettingsKind.healthGoal,
   'notification' => SettingsKind.notification,
   'support' => SettingsKind.support,
-  _ => SettingsKind.personalInfo,
+  _ => SettingsKind.myProfile,
 };
 
 class SettingsItem {

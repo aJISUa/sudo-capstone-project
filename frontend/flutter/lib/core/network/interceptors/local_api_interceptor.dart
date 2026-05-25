@@ -540,14 +540,14 @@ class LocalApiInterceptor extends Interceptor {
       'activity_rank': 14,
       'settings': <Map<String, Object?>>[
         <String, Object?>{
-          'label': '개인 정보',
+          'label': '내 프로필',
           'icon': '👤',
-          'kind': 'personal-info',
+          'kind': 'my-profile',
         },
         <String, Object?>{
-          'label': '건강 데이터',
+          'label': '건강 목표',
           'icon': '📊',
-          'kind': 'health-data',
+          'kind': 'health-goal',
         },
         <String, Object?>{
           'label': '알림 설정',

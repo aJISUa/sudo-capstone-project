@@ -21,17 +21,17 @@ void main() {
     dio.close();
   });
 
-  test('GET /ai-coach/feedback returns greeting + 4 suggestions', () async {
+  test('GET /ai-coach/feedback returns greeting + 3 suggestions', () async {
     final res = await dio.get<Map<String, Object?>>('/ai-coach/feedback');
     expect(res.statusCode, 200);
     expect(res.data!['greeting'], isNotEmpty);
     final suggestions = (res.data!['suggestions']! as List<Object?>)
         .cast<Map<String, Object?>>();
-    expect(suggestions.length, 4);
+    expect(suggestions.length, 3);
     final tags = suggestions.map((s) => s['tag']! as String).toSet();
     expect(
       tags,
-      containsAll(<String>['diet', 'exercise', 'sleep', 'hydration']),
+      containsAll(<String>['diet', 'exercise', 'hydration']),
     );
   });
 

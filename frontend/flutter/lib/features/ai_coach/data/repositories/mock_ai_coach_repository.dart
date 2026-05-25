@@ -25,11 +25,6 @@ class MockAiCoachRepository implements AiCoachRepository {
           title: '수분 보충',
           body: '오늘 평소보다 활동량이 많았어요. 물 한 컵 더 마셔봐요.',
         ),
-        AiSuggestion(
-          tag: AiSuggestionTag.sleep,
-          title: '취침 1시간 전 화면 줄이기',
-          body: '깊은 수면 비율이 낮은 패턴이 보입니다. 자극을 줄여보세요.',
-        ),
       ],
     );
   }

@@ -185,11 +185,15 @@ class _DailyFeedbackCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.12),
+              color: AppColors.primary.withValues(alpha: 0.18),
               borderRadius: const BorderRadius.all(AppRadius.lg),
             ),
             alignment: Alignment.center,
-            child: const Text('🤖', style: TextStyle(fontSize: 20)),
+            child: const Icon(
+              Icons.smart_toy_outlined,
+              color: AppColors.primary,
+              size: 20,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

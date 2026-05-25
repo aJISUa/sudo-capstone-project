@@ -9,6 +9,7 @@ import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/my_health/domain/entities/health_history.dart';
 import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
+import 'package:oncare/features/my_health/presentation/widgets/indicator_trend_modal.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
@@ -233,6 +234,7 @@ class _IndicatorTile extends StatelessWidget {
     final color = trend.improving ? AppColors.success : AppColors.warning;
     return AppCard(
       outlined: true,
+      onTap: () => showIndicatorTrendModal(context, trend),
       child: Row(
         children: <Widget>[
           SizedBox(
@@ -288,6 +290,11 @@ class _IndicatorTile extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          const Icon(
+            Icons.chevron_right,
+            size: 18,
+            color: AppColors.mutedForeground,
           ),
         ],
       ),

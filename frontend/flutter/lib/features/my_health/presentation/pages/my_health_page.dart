@@ -10,6 +10,7 @@ import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/my_health/domain/entities/health_history.dart';
 import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
 import 'package:oncare/features/my_health/presentation/widgets/indicator_trend_modal.dart';
+import 'package:oncare/features/my_health/presentation/widgets/settings_modals.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
@@ -407,10 +408,23 @@ class _SettingsRow extends StatelessWidget {
   const _SettingsRow({required this.item});
   final SettingsItem item;
 
+  void _open(BuildContext context) {
+    switch (item.kind) {
+      case SettingsKind.personalInfo:
+        showPersonalInfoModal(context);
+      case SettingsKind.healthData:
+        showHealthDataModal(context);
+      case SettingsKind.notification:
+        showNotificationSettingsModal(context);
+      case SettingsKind.support:
+        showCustomerSupportModal(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: () => _open(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,

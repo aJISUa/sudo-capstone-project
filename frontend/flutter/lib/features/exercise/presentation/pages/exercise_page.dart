@@ -42,41 +42,29 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 672),
-                child: Stack(
+                child: Column(
                   children: <Widget>[
-                    Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.lg,
-                            AppSpacing.md,
-                            AppSpacing.lg,
-                            AppSpacing.sm,
-                          ),
-                          child: ExerciseTabSwitcher(
-                            activeIndex: _activeIndex,
-                            onChange: (i) => setState(() => _activeIndex = i),
-                          ),
-                        ),
-                        Expanded(
-                          child: IndexedStack(
-                            index: _activeIndex,
-                            children: const <Widget>[
-                              WorkoutRecordTab(),
-                              GymTab(),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_activeIndex == 0)
-                      Positioned(
-                        right: AppSpacing.lg,
-                        bottom: AppSpacing.lg,
-                        child: _AddSessionFab(
-                          onPressed: () => showAddSessionSheet(context),
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        AppSpacing.md,
+                        AppSpacing.lg,
+                        AppSpacing.sm,
                       ),
+                      child: ExerciseTabSwitcher(
+                        activeIndex: _activeIndex,
+                        onChange: (i) => setState(() => _activeIndex = i),
+                      ),
+                    ),
+                    Expanded(
+                      child: IndexedStack(
+                        index: _activeIndex,
+                        children: const <Widget>[
+                          WorkoutRecordTab(),
+                          GymTab(),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -84,29 +72,15 @@ class _ExercisePageState extends ConsumerState<ExercisePage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _AddSessionFab extends StatelessWidget {
-  const _AddSessionFab({required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primary,
-      shape: const CircleBorder(),
-      elevation: 4,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: const SizedBox(
-          width: 56,
-          height: 56,
-          child: Icon(Icons.add, size: 28, color: Colors.white),
-        ),
-      ),
+      floatingActionButton: _activeIndex == 0
+          ? FloatingActionButton(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.primaryForeground,
+              tooltip: '운동 기록 추가',
+              onPressed: () => showAddSessionSheet(context),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

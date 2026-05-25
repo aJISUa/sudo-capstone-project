@@ -117,6 +117,7 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.primaryForeground,
+        tooltip: '식단 추가',
         onPressed: _openDietAddFlow,
         child: const Icon(Icons.add),
       ),

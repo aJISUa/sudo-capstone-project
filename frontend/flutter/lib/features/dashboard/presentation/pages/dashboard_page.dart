@@ -61,15 +61,15 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.primaryForeground,
-        icon: const Icon(Icons.smart_toy_outlined),
-        label: const Text('AI 코치'),
+        tooltip: 'AI 코치',
         onPressed: () => showRightSlidePanel<void>(
           context,
           content: const AiCoachPanelBody(),
         ),
+        child: const Icon(Icons.smart_toy_outlined),
       ),
     );
   }

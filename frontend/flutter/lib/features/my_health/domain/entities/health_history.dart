@@ -67,6 +67,8 @@ class IndicatorTrend {
     required this.improving,
     required this.last7Days,
     required this.chartValues,
+    required this.chartMinY,
+    required this.chartMaxY,
     required this.recentRecords,
   });
 
@@ -85,6 +87,15 @@ class IndicatorTrend {
   /// trend-modal line chart.
   final List<double> chartValues;
 
+  /// Y-axis floor for the trend-modal chart. Each indicator picks a
+  /// clinically meaningful range (e.g. 70 for weight) rather than
+  /// auto-fitting from the data, so day-to-day changes read at the
+  /// right scale.
+  final double chartMinY;
+
+  /// Y-axis ceiling for the trend-modal chart. See [chartMinY].
+  final double chartMaxY;
+
   /// Five most-recent records (오늘 / 1일 전 / …) rendered in the
   /// trend modal's "최근 기록" section.
   final List<IndicatorRecord> recentRecords;
@@ -102,6 +113,8 @@ class IndicatorTrend {
     chartValues: (json['chart_values']! as List<Object?>)
         .map((v) => (v! as num).toDouble())
         .toList(),
+    chartMinY: (json['chart_min_y']! as num).toDouble(),
+    chartMaxY: (json['chart_max_y']! as num).toDouble(),
     recentRecords: (json['recent_records']! as List<Object?>)
         .cast<Map<String, Object?>>()
         .map(IndicatorRecord.fromJson)

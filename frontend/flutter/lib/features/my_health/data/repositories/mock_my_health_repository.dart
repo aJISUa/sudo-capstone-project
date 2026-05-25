@@ -27,6 +27,8 @@ class MockMyHealthRepository implements MyHealthRepository {
             75.0, 74.8, 74.9, 74.6, 74.4, 74.2, 74.0,
             73.8, 73.7, 73.4, 73.2, 73.3, 72.9, 72.7,
           ],
+          chartMinY: 70,
+          chartMaxY: 80,
           recentRecords: <IndicatorRecord>[
             IndicatorRecord(label: '오늘', value: '72.7 kg'),
             IndicatorRecord(label: '1일 전', value: '72.9 kg'),
@@ -47,6 +49,8 @@ class MockMyHealthRepository implements MyHealthRepository {
             138, 136, 140, 135, 133, 137, 132,
             130, 134, 128, 127, 131, 126, 124,
           ],
+          chartMinY: 100,
+          chartMaxY: 140,
           recentRecords: <IndicatorRecord>[
             IndicatorRecord(label: '오늘', value: '124/79 mmHg'),
             IndicatorRecord(label: '1일 전', value: '126/80 mmHg'),
@@ -67,6 +71,8 @@ class MockMyHealthRepository implements MyHealthRepository {
             128, 126, 130, 124, 121, 119, 117,
             115, 120, 112, 108, 114, 101, 96,
           ],
+          chartMinY: 80,
+          chartMaxY: 140,
           recentRecords: <IndicatorRecord>[
             IndicatorRecord(label: '오늘', value: '96 mg/dL'),
             IndicatorRecord(label: '1일 전', value: '101 mg/dL'),

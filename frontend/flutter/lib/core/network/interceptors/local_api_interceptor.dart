@@ -489,6 +489,8 @@ class LocalApiInterceptor extends Interceptor {
           'chart_values': <double>[
             82, 80, 79, 78, 78, 77, 77, 76, 75, 75, 74, 73, 73, 72,
           ],
+          'chart_min_y': 70,
+          'chart_max_y': 80,
           'recent_records': <Map<String, Object?>>[
             <String, Object?>{'label': '오늘', 'value': '72 kg'},
             <String, Object?>{'label': '1일 전', 'value': '72 kg'},
@@ -508,6 +510,8 @@ class LocalApiInterceptor extends Interceptor {
           'chart_values': <double>[
             145, 144, 142, 140, 140, 138, 136, 134, 132, 130, 129, 127, 126, 124,
           ],
+          'chart_min_y': 100,
+          'chart_max_y': 140,
           'recent_records': <Map<String, Object?>>[
             <String, Object?>{'label': '오늘', 'value': '124 mmHg'},
             <String, Object?>{'label': '1일 전', 'value': '125 mmHg'},
@@ -527,6 +531,8 @@ class LocalApiInterceptor extends Interceptor {
           'chart_values': <double>[
             128, 124, 120, 118, 116, 113, 110, 108, 106, 104, 102, 100, 98, 96,
           ],
+          'chart_min_y': 80,
+          'chart_max_y': 140,
           'recent_records': <Map<String, Object?>>[
             <String, Object?>{'label': '오늘', 'value': '96 mg/dL'},
             <String, Object?>{'label': '1일 전', 'value': '98 mg/dL'},

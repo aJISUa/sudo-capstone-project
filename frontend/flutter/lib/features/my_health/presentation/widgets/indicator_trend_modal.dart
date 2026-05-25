@@ -70,6 +70,7 @@ class _IndicatorTrendDialog extends StatelessWidget {
               values: trend.chartValues,
               minY: trend.chartMinY,
               maxY: trend.chartMaxY,
+              interval: trend.chartInterval,
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -196,10 +197,12 @@ class _TrendChartCard extends StatelessWidget {
     required this.values,
     required this.minY,
     required this.maxY,
+    required this.interval,
   });
   final List<double> values;
   final double minY;
   final double maxY;
+  final double interval;
 
   @override
   Widget build(BuildContext context) {
@@ -231,7 +234,12 @@ class _TrendChartCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 200,
-            child: _TrendLineChart(values: values, minY: minY, maxY: maxY),
+            child: _TrendLineChart(
+              values: values,
+              minY: minY,
+              maxY: maxY,
+              interval: interval,
+            ),
           ),
         ],
       ),
@@ -244,15 +252,16 @@ class _TrendLineChart extends StatelessWidget {
     required this.values,
     required this.minY,
     required this.maxY,
+    required this.interval,
   });
   final List<double> values;
   final double minY;
   final double maxY;
+  final double interval;
 
   @override
   Widget build(BuildContext context) {
     if (values.isEmpty) return const SizedBox.shrink();
-    final interval = _intervalForRange(maxY - minY);
 
     final xLabels = <int, String>{};
     for (int i = 0; i < values.length; i++) {
@@ -346,18 +355,6 @@ class _TrendLineChart extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// Pick a clean Y-axis gridline interval given the total visible
-  /// range, so the labels land on round numbers regardless of the
-  /// indicator (weight 10 → 5, BP 40 → 10, sugar 60 → 20, …).
-  double _intervalForRange(double range) {
-    if (range <= 10) return 5;
-    if (range <= 25) return 5;
-    if (range <= 50) return 10;
-    if (range <= 100) return 20;
-    if (range <= 200) return 40;
-    return 50;
   }
 }
 

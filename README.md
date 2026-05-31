@@ -193,6 +193,27 @@ sudo-capstone-project/
 <br/>
 -->
 
+## Future Work
+
+On-Care 는 단순한 생활 기록 애플리케이션을 넘어, 만성질환 위험군인 2030 세대를 위한 *완전 개인화 예방 헬스케어 플랫폼* 으로 진화하는 것을 목표로 합니다.
+
+### Planned Improvements
+
+| 방향 | 설명 |
+|------|------|
+| **Wearable Device Integration** | Apple Health · Samsung Health · 스마트워치 데이터와 동기화하여 활동량과 생체 신호를 실시간으로 추적합니다. |
+| **Advanced Personalized Coaching** | 누적된 사용자 행동을 기반으로 장기 습관 분석과 맞춤 건강 인사이트를 제공하도록 RAG 파이프라인을 확장합니다. |
+| **Multi-Modal Food Understanding** | 학습 데이터 확충과 섭취량 추정 모델 도입을 통해 음식 인식 정확도를 향상시킵니다. |
+| **Healthcare & Hospital Connectivity** | 병원 예약 시스템 및 의료 상담 워크플로우와 연동하여 예방 의료 관리를 지원합니다. |
+| **AI-based Risk Prediction** | 종단적 건강 데이터를 활용하여 고혈압·당뇨 진행 위험을 예측하는 모델을 개발합니다. |
+| **Gamified Health Ecosystem** | 보상 체계·소셜 챌린지·습관 기반 동기 부여 메커니즘을 확장하여 장기적인 사용자 참여를 강화합니다. |
+
+### Long-Term Vision
+
+> 식단·운동·일정·건강 위험을 *하나의 개인화 플랫폼* 안에서 연속적으로 관리할 수 있도록 돕는, **통합 예방 헬스케어 동반자** 를 구축하는 것이 궁극적인 목표입니다.
+
+<br/>
+
 ## Team
 
 

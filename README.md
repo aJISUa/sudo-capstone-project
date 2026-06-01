@@ -154,23 +154,63 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 <br/>
 
-<!--
-## Roadmap
+## Development Roadmap
 
-| Stage | 범위 | 상태 |
-|------|------|------|
-| **S0 · Ideation** | 사용자 인터뷰 · 시장 분석 · 도메인 검증 | ✅ |
-| **S1 · Prototype** | React Web 프로토타입, 핵심 화면 플로우 검증 | ✅ |
-| **S2 · Flutter MVP** | iOS / Android 단일 코드베이스 · 디자인 시스템 · 로컬 백엔드(Drift) | 🚧 진행 중 |
-| **S3 · FastAPI Backend** | JWT 인증 · 식단/운동/일정 API · 컨테이너 배포 | 📅 예정 |
-| **S4 · Vision AI Integration** | YOLOv8 필터 + Gemini Vision + 공공데이터 매핑 | 📅 예정 |
-| **S5 · RAG Coach** | Pinecone 인덱스 · GPT-4o 컨텍스트 파이프라인 | 📅 예정 |
-| **S6 · O2O & Gamification** | 카카오맵 헬스장 · 트레이너 채팅 · Streak 보상 | 📅 예정 |
-| **S7 · Beta Release** | TestFlight · Play 내부 테스트 · CGM 연동 검토 | 📅 예정 |
+현재 On-Care 는 아이데이션 단계를 넘어 실제 MVP 구현 단계까지 진행 중이며, Flutter 기반 크로스플랫폼 구조를 중심으로 Vision AI · RAG · O2O 헬스케어 아키텍처를 순차적으로 통합하고 있습니다.
 
 <br/>
 
+| Stage                          | 범위                                            | 상태      |
+| ------------------------------ | --------------------------------------------- | ------- |
+| **S0 · Ideation**              | 사용자 인터뷰 · 시장 분석 · 도메인 Pain Point 검증           | ✅ 완료    |
+| **S1 · Prototype**             | Flutter 웹 프로토타입 · 핵심 UX 흐름 검증                 | ✅ 완료    |
+| **S2 · Flutter MVP**           | 디자인 시스템 · 로컬 상태 관리 · MVP 화면 구현                | 🚧 진행 중 |
+| **S3 · FastAPI Backend**       | JWT 인증 · REST API · Docker 기반 서버 아키텍처         | 📅 예정   |
+| **S4 · Vision AI Integration** | YOLOv8 음식 필터 · Gemini Vision · 공공데이터 영양 DB 매핑 | 📅 예정   |
+| **S5 · RAG Coach**             | Pinecone Vector DB · GPT-4o 기반 개인화 코칭 파이프라인   | 📅 예정   |
+| **S6 · O2O & Reward System**   | 카카오맵 헬스장 연동 · 트레이너 채팅 · Streak 보상 시스템         | 📅 예정   |
 
+<br/>
+
+### Current MVP Scope
+
+현재 MVP 에서는 다음 기능들을 우선 구현 대상으로 설정하고 있습니다.
+
+* 건강 데이터 기록 (체중 · 혈압 · 혈당)
+* 주간 식단 관리 UI 및 로그 저장
+* 운동 기록 및 주간 시각화 그래프
+* 통합 건강 일정 관리
+* Vision AI 기반 음식 사진 분석 프로토타입
+* RAG 기반 맞춤 건강 피드백 구조 설계
+
+<br/>
+
+### In Progress
+
+현재 진행 중인 개발 항목:
+
+* Flutter 디자인 시스템 정리
+* Riverpod 기반 상태 관리 구조 개선
+* FastAPI API 명세 구조화
+* Gemini Vision 응답 파싱 로직 설계
+* Vision AI 프롬프트 최적화
+* 로컬 데이터 저장 구조 개선
+
+<br/>
+
+### Collaboration Workflow
+
+On-Care 는 GitHub 기반 협업 워크플로우를 통해 기능 단위 병렬 개발을 진행하고 있습니다.
+
+* GitHub Flow 기반 브랜치 전략 사용
+* Pull Request 기반 코드 리뷰 진행
+* 기능 단위 브랜치 병렬 개발
+* AI-assisted development workflow 기록
+* GitHub Actions 기반 CI/CD 확장 예정
+
+> 단계별 로드맵을 기반으로 MVP 완성 이후 Vision AI · RAG · O2O 기능을 순차적으로 통합하여, 실질적인 행동 변화를 유도하는 통합 헬스케어 플랫폼 구축을 목표로 합니다.
+
+<!--
 ## Repository Structure
 
 ```

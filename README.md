@@ -156,59 +156,41 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 ## Development Roadmap
 
-현재 On-Care 는 아이데이션 단계를 넘어 실제 MVP 구현 단계까지 진행 중이며, Flutter 기반 크로스플랫폼 구조를 중심으로 Vision AI · RAG · O2O 헬스케어 아키텍처를 순차적으로 통합하고 있습니다.
+On-Care는 Ideation 단계를 넘어 크로스플랫폼 Flutter MVP 개발 및 AI 파이프라인 엔진 통합을 순차적으로 진행하고 있습니다.
+
+| Stage | 개발 범위 | 상태 |
+| :--- | :--- | :--- |
+| **S0 · Ideation** | 사용자 인터뷰 · 시장 분석 · 도메인 Pain Point 검증 | ✅ 완료 |
+| **S1 · Prototype** | Flutter 웹 프로토타입 설계 및 핵심 UX 흐름 검증 | ✅ 완료 |
+| **S2 · Flutter MVP** | 디자인 시스템 구축 · Riverpod 상태 관리 · MVP 핵심 화면 구현 | 🚧 진행 중 |
+| **S3 · FastAPI Backend** | Docker 기반 서버 구축 · JWT 인증 및 REST API 설계 | 📅 예정 |
+| **S4 · Vision AI** | YOLOv8 푸드 필터 · Gemini Vision 영양성분 DB 매핑 파이프라인 | 📅 예정 |
+| **S5 · RAG Coach** | Pinecone Vector DB 기반 GPT-4o 개인화 맥락 코칭 엔진 | 📅 예정 |
+| **S6 · O2O & Reward** | 카카오맵 헬스장 연동 · 트레이너 채팅 · Streak 보상 시스템 | 📅 예정 |
 
 <br/>
 
-| Stage                          | 범위                                            | 상태      |
-| ------------------------------ | --------------------------------------------- | ------- |
-| **S0 · Ideation**              | 사용자 인터뷰 · 시장 분석 · 도메인 Pain Point 검증           | ✅ 완료    |
-| **S1 · Prototype**             | Flutter 웹 프로토타입 · 핵심 UX 흐름 검증                 | ✅ 완료    |
-| **S2 · Flutter MVP**           | 디자인 시스템 · 로컬 상태 관리 · MVP 화면 구현                | 🚧 진행 중 |
-| **S3 · FastAPI Backend**       | JWT 인증 · REST API · Docker 기반 서버 아키텍처         | 📅 예정   |
-| **S4 · Vision AI Integration** | YOLOv8 음식 필터 · Gemini Vision · 공공데이터 영양 DB 매핑 | 📅 예정   |
-| **S5 · RAG Coach**             | Pinecone Vector DB · GPT-4o 기반 개인화 코칭 파이프라인   | 📅 예정   |
-| **S6 · O2O & Reward System**   | 카카오맵 헬스장 연동 · 트레이너 채팅 · Streak 보상 시스템         | 📅 예정   |
+## 👥 사용자 인터뷰 및 MVP 평가 (User Interview & UT Feedback)
 
+On-Care 서비스의 실질적인 유효성을 검증하기 위해, 핵심 타깃층인 2030 고혈압·당뇨 위험군 사용자 3인을 대상으로 진행한 인터뷰 및 MVP 사용성 테스트(UT) 요약입니다.<br>
+
+세부 내용은 [`docs/user_interview.md`](docs/user_interview.md) 참조.
+
+*   **인터뷰 참여자 정보 (Target Users)**
+    *   **참여자 A (25세, 대학원생)**: 불규칙한 식습관으로 최근 검진에서 '당뇨 전단계(공복혈당 주의)' 판정을 받음.
+    *   **참여자 B (28세, 회사원)**: 부모님 모두 고혈압 약을 복용 중이신 '가족력 유의군'이며, 혈압 관리가 필요한 상태
+    *   **참여자 C (31세, 프리랜서)**: 만성적인 운동 부족으로 검진에서 '혈압 주의 및 고지혈증 위험군'으로 분류됨.
+*   **MVP 핵심 피드백 (What Welcomed)**
+    *   **🍱 Vision AI 식단 자동 인식**: *"사진 한 장으로 나트륨과 당류 같은 성분이 자동 계산되어 수동 입력의 번거로움과 기록 마찰이 획기적으로 줄었습니다." (참여자 A)*
+    *   **🤖 RAG 기반 AI 코칭 챗봇**: *"AI 코치가 내 주간 누적 기록을 완전히 이해하고 '최근 3일간 탄수화물이 초과되었으니 저녁엔 샐러드를 추천한다'며 구체적인 맥락 피드백을 주는 점이 혁신적입니다." (참여자 B)*
+    *   **📅 통합 건강 일정 관리**: *"병원 정기검진일과 헬스장 스케줄을 단일 캘린더로 합쳐주고 메인 대시보드와 실시간 동기화해 주니 일상 속 실천을 지속하는 데 큰 도움이 됩니다." (참여자 C)*
+* **사용자 피드백 기반 한계점 (Limitations)**
+  * 조리 방식이나 양념에 숨겨진 영양성분의 정확한 추정 오차 가능성이 지적됨
+  * 혈당·혈압 수치를 수동 입력해야 하는 번거로움과 실시간 생체 지표 변화 감지의 한계가 존재함
+  * 현재의 O2O 솔루션이 건강 요약본을 트레이너에게 일방향으로 '전송'하는 수준에 머물러 있음
+
+> 💡 위 세 가지 핵심 기술적 한계점을 극복하기 위한 On-Care의 구체적인 향후 발전 방향은 아래 **What's Next** 아키텍처 확장 계획안에서 다룹니다.
 <br/>
-
-### Current MVP Scope
-
-현재 MVP 에서는 다음 기능들을 우선 구현 대상으로 설정하고 있습니다.
-
-* 건강 데이터 기록 (체중 · 혈압 · 혈당)
-* 주간 식단 관리 UI 및 로그 저장
-* 운동 기록 및 주간 시각화 그래프
-* 통합 건강 일정 관리
-* Vision AI 기반 음식 사진 분석 프로토타입
-* RAG 기반 맞춤 건강 피드백 구조 설계
-
-<br/>
-
-### In Progress
-
-현재 진행 중인 개발 항목:
-
-* Flutter 디자인 시스템 정리
-* Riverpod 기반 상태 관리 구조 개선
-* FastAPI API 명세 구조화
-* Gemini Vision 응답 파싱 로직 설계
-* Vision AI 프롬프트 최적화
-* 로컬 데이터 저장 구조 개선
-
-<br/>
-
-### Collaboration Workflow
-
-On-Care 는 GitHub 기반 협업 워크플로우를 통해 기능 단위 병렬 개발을 진행하고 있습니다.
-
-* GitHub Flow 기반 브랜치 전략 사용
-* Pull Request 기반 코드 리뷰 진행
-* 기능 단위 브랜치 병렬 개발
-* AI-assisted development workflow 기록
-* GitHub Actions 기반 CI/CD 확장 예정
-
-> 단계별 로드맵을 기반으로 MVP 완성 이후 Vision AI · RAG · O2O 기능을 순차적으로 통합하여, 실질적인 행동 변화를 유도하는 통합 헬스케어 플랫폼 구축을 목표로 합니다.
 
 <!--
 ## Repository Structure

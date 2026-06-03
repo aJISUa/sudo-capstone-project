@@ -200,33 +200,15 @@ sudo-capstone-project/
 ├── frontend/flutter/           # Flutter 앱 (iOS / Android / Web)
 │   ├── lib/
 │   │   ├── app/                # 라우팅 · 부트스트랩
-│   │   ├── core/               # 네트워크 · 스토리지 · 에러 · 로깅
-│   │   ├── design_system/      # 토큰 · atoms · molecules · 차트
-│   │   ├── features/           # 도메인 모듈 (dashboard / diet / exercise / my_health / ai_coach / notification / place / auth)
-│   │   ├── shared/             # 공통 위젯 · 모달
-│   │   ├── gen/                # 자동 생성 (l10n 등)
-│   │   ├── l10n/               # ARB 다국어 리소스
-│   │   └── main.dart
-│   ├── test/                   # 단위 · 위젯 · golden 테스트
-│   ├── integration_test/       # 통합 테스트
-│   ├── assets/                 # 이미지 · 아이콘
-│   └── docs/                   # Flutter 모듈별 설계 노트
+│   │   ├── core/               # 네트워크 · 스토리지 · 에러 처리
+│   │   ├── design_system/      # 토큰 · 위젯 · 차트
+│   │   ├── features/           # 도메인 모듈 (dashboard / diet / exercise / my_health / ...)
+│   │   └── shared/             # 공통 위젯 · 모달
+│   └── test/                   # 단위 · 위젯 · golden · 통합 테스트
 ├── backend/services/           # 백엔드 서비스 (현재는 Gemini Vision 데모)
-├── api/                        # Vercel serverless 데모 엔드포인트 (Upstash Redis 로깅)
-├── docs/                       # 프로젝트 문서
-│   ├── diagrams/               # 아키텍처 · Vision 파이프라인 SVG
-│   ├── assets/                 # 문서용 이미지
-│   ├── Ideation.md             # 아이디어 정리
-│   ├── competitive_analysis.md # 경쟁사 분석
-│   ├── elevator_speech.md      # 한 줄 소개
-│   ├── user_interview.md       # 사용자 인터뷰
-│   ├── start_final_script.md   # 캡스톤 스타트 최종 발표 대본
-│   ├── prof_meeting_260605.md  # 지도교수 면담 (6/5)
-│   └── Team_Ground_Rule.md     # 팀 그라운드 룰
-├── .github/                    # PR 템플릿 · GitHub Pages 배포 워크플로우
-├── index.html                  # GitHub Pages 랜딩 페이지
-├── package.json                # @upstash/redis (api/ 의존성)
-├── self_demo.md                # 셀프 데모 가이드
+├── api/                        # Vercel serverless 데모 엔드포인트
+├── docs/                       # 프로젝트 문서 · 발표 자료 · 다이어그램
+├── .github/                    # PR 템플릿 · 배포 워크플로우
 └── README.md
 ```
 

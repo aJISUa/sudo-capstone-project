@@ -11,8 +11,7 @@
 # Claude Code / Cowork tooling (per-session launch configs, etc.)
 .claude/
 
-# Node tooling (only `@upstash/redis` is in package.json — lockfile and
-# modules are generated per machine and shouldn't be tracked).
+# Node tooling — guard against any future Node-based add-on.
 node_modules/
 package-lock.json
 

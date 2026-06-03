@@ -206,7 +206,6 @@ sudo-capstone-project/
 │   │   └── shared/             # 공통 위젯 · 모달
 │   └── test/                   # 단위 · 위젯 · golden · 통합 테스트
 ├── backend/services/           # 백엔드 서비스 (현재는 Gemini Vision 데모)
-├── api/                        # Vercel serverless 데모 엔드포인트
 ├── docs/                       # 프로젝트 문서 · 발표 자료 · 다이어그램
 ├── .github/                    # PR 템플릿 · 배포 워크플로우
 └── README.md

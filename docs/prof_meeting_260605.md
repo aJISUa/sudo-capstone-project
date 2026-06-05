@@ -37,7 +37,7 @@
 **Q1. React 프로토타입 → Flutter 마이그레이션 선택**<br>
 Cross-platform 요구사항 측면에서 Flutter 채택이 적절했는지, React Native·Kotlin Multiplatform 등 대안과 비교한 평가.
 
-**Q2. features/* 도메인 모듈 분리 구조**<br>
+**Q2. features/ 도메인 모듈 분리 구조**<br>
 dashboard / diet / exercise / my_health / ai_coach 등 도메인 기반 모듈 분리가 확장성·테스트성 측면에서 적절한지, 더 나은 패턴이 있는지.
 
 **Q3. Mock 데이터 기반 시연의 학술적 정당성**<br>

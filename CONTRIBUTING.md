@@ -1,0 +1,116 @@
+# Contributing to On-Care
+
+On-Care 프로젝트에 기여해 주셔서 감사합니다. 본 문서는 캡스톤 팀 내부 협업과 외부 기여자를 위한 작업·리뷰 규약을 정리한 것입니다.
+
+---
+
+## 1. 시작하기 전에
+
+1. 리포지토리를 fork 또는 clone 합니다.
+2. 작업할 이슈가 없다면 먼저 [Issues](../../issues) 에 새 이슈를 등록하고, 작업 내용·기대 결과를 명시합니다.
+3. 모든 작업은 main 브랜치에서 분기한 별도 브랜치에서 진행합니다.
+
+---
+
+## 2. 브랜치 네이밍 컨벤션
+
+`<type>/<short-kebab-description>` 형식을 따릅니다.
+
+| Type | 용도 | 예시 |
+|---|---|---|
+| `feat/` | 새 기능 | `feat/diet-add-camera-flow` |
+| `fix/` | 버그 수정 | `fix/exercise-fab-overlap` |
+| `docs/` | 문서 변경 | `docs/restore-repo-structure` |
+| `chore/` | 빌드·설정·잡무 | `chore/add-community-files` |
+| `test/` | 테스트 추가·수정 | `test/dashboard-controller` |
+| `ci/` | CI/CD 워크플로우 | `ci/add-lint-step` |
+| `refactor/` | 리팩토링 | `refactor/extract-mock-data` |
+| `style/` | 코드 포맷팅(의미 변경 없음) | `style/lint-fix` |
+
+---
+
+## 3. 커밋 메시지 컨벤션
+
+**Conventional Commits** 규격을 따릅니다. 모든 커밋 제목 앞에 type + scope 접두사를 붙입니다.
+
+```text
+<type>(<scope>): <short imperative summary>
+
+<optional body — what & why, not how>
+
+<optional footer — Closes #N, Co-authored-by, etc.>
+```
+
+**예시**
+
+```text
+feat(my): add 건강 지표 추이 modal for weight/BP/blood-sugar tiles
+fix(deploy): use /frontend/ base-href to match custom domain
+docs(readme): restore Repository Structure section reflecting current layout
+chore(repo): remove unused api/ and package.json from old calculator demo
+```
+
+**Scope 표기 가이드**
+
+- 코드 변경: 가장 가까운 feature/디렉토리명 (`diet`, `exercise`, `my`, `ui`, `flutter`, `deploy`, ...)
+- 문서 변경: 대상 문서 (`readme`, `meeting`, `landing`, ...)
+- 리포지토리 전체 영향: `repo`
+
+---
+
+## 4. Pull Request 흐름
+
+### 4.1 PR 생성
+
+- PR 제목은 커밋 메시지와 동일한 Conventional Commits 형식을 사용합니다.
+- 본문은 `.github/pull_request_template.md` 의 모든 섹션(Summary / Changes / Commits / Notes / Test Plan / Related Issues / Checklist) 을 채웁니다.
+- 관련 이슈가 있으면 본문에 `Closes #<issue-number>` 를 명시해 머지 시 자동 close 되도록 합니다.
+
+### 4.2 Reviewers & Assignees
+
+- 작성자(자기 자신)를 **Assignee** 로 지정합니다.
+- 팀원 1~2명 이상을 **Reviewer** 로 지정합니다.
+- 라벨은 변경 type 에 맞춰 1개 이상 부여합니다 (`documentation`, `enhancement`, `bug`, `chore`, `test`, `deploy` ...).
+
+### 4.3 머지 정책
+
+- 최소 1명의 reviewer approval 필요
+- CI 체크(있다면) 통과 필수
+- 머지 방식: **Merge commit** (히스토리 보존)
+- 머지된 브랜치는 가능하면 즉시 삭제
+
+---
+
+## 5. 코드 리뷰 가이드
+
+- **Bug · correctness > Design > Style** 순으로 코멘트 우선순위
+- 사소한 스타일 제안은 `nit:` 접두사로 표시
+- 차단성 코멘트는 `Request changes`, 의견만 남길 때는 `Comment`
+- 리뷰어는 24시간 내 1차 응답을 목표로 합니다.
+
+---
+
+## 6. 로컬 검증 (Flutter)
+
+`frontend/flutter/` 디렉토리에서 다음을 수행한 후 PR 을 생성합니다.
+
+```bash
+flutter analyze
+flutter test
+```
+
+UI 변경 시 golden 테스트 결과 (`test/golden/failures/`) 도 함께 확인합니다.
+
+---
+
+## 7. 이슈 사용
+
+- 새 작업은 가능한 한 **이슈 → PR → Closes** 흐름을 유지합니다.
+- 이슈 본문 구조: **Background / Tasks / Expected Result** 3개 섹션 권장.
+
+---
+
+## 8. 질문이 있다면
+
+- 협업 규약 관련: [Issues](../../issues) 에 `question` 라벨로 등록
+- 보안 취약점 신고: [SECURITY.md](SECURITY.md) 참고

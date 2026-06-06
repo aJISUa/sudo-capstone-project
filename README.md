@@ -288,7 +288,9 @@ flutter run -d chrome
 
 ## License
 
-본 저장소의 소스 코드와 디자인 자산은 별도 명시가 없는 한 모두 저작권자에게 귀속되며, 사전 서면 동의 없이 복제·배포·상업적 이용을 금합니다.
+본 프로젝트는 [MIT License](LICENSE) 하에 배포됩니다. 자세한 내용은 [`LICENSE`](LICENSE) 파일을 참고하세요.
+
+> Copyright © 2026 On-Care Team (CSE-Sudo-26: 최지수 · 박서연 · 신수빈)
 
 <br/>
 

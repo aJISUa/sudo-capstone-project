@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you reference On-Care in academic or technical work, please cite it as below."
+title: "On-Care: AI-powered chronic disease management platform for 20-30s hypertension and diabetes risk groups"
+abstract: >-
+  On-Care is a Flutter-based cross-platform healthcare application targeting
+  the 20-30 age group at risk of hypertension and diabetes. It integrates
+  Vision AI food recognition (YOLOv8 + Gemini Vision + Korean public nutrition
+  database), RAG-based personalized health coaching (LangChain + Pinecone +
+  GPT-4o), and offline-to-online trainer connectivity, addressing the three
+  structural limitations of existing healthcare apps — recording friction,
+  context-less generic advice, and online-offline disconnection.
+type: software
+authors:
+  - family-names: "Choi"
+    given-names: "Jisu"
+    affiliation: "Ewha Womans University, Dept. of Computer Science and Engineering"
+  - family-names: "Park"
+    given-names: "Seoyeon"
+    affiliation: "Ewha Womans University, Dept. of Computer Science and Engineering"
+  - family-names: "Shin"
+    given-names: "Subin"
+    affiliation: "Ewha Womans University, Dept. of Computer Science and Engineering"
+date-released: "2026-06-11"
+version: "0.3.0"
+repository-code: "https://github.com/CSE-Sudo-26/sudo-capstone-project"
+url: "https://github.com/CSE-Sudo-26/sudo-capstone-project"
+license: MIT
+keywords:
+  - healthcare
+  - chronic-disease-management
+  - hypertension
+  - diabetes
+  - vision-ai
+  - food-recognition
+  - retrieval-augmented-generation
+  - rag
+  - personalized-coaching
+  - flutter
+  - cross-platform
+  - capstone

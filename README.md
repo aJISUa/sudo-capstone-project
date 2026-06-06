@@ -21,7 +21,7 @@
 
 ## Index
 
-[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Roadmap](#development-roadmap) · [User Interview](#user-interview--feedback) · [Repository](#repository-structure) · [Getting Started](#getting-started-run-locally) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
 

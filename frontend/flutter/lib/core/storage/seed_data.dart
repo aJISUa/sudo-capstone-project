@@ -4,26 +4,67 @@ import 'package:drift/drift.dart';
 
 import 'package:oncare/core/storage/app_database.dart';
 
-/// Idempotent seeder. Runs at bootstrap; if the `seeded_v2` flag is
-/// already set in `AppKeyValues`, returns immediately. Otherwise it
-/// inserts the React prototype's mock data into the new resource
-/// tables.
+/// Date-aware idempotent seeder. Runs at bootstrap.
 ///
-/// v2 (vs v1) re-seeds the weekly exercise sessions with multi-type
-/// rows per day so the `WeeklyActivity` stacked-bar chart renders the
-/// 유산소 / 근력 / 스트레칭 breakdown the prototype shows.
+/// **Flag format (v3+).** `AppKeyValues['seeded_v3']` stores the
+/// *date string* the seed last ran with (`YYYY-MM-DD`). Behaviour:
+///
+/// - `null` (first ever boot, or upgrading from v1/v2) — wipe any
+///   stale `seed-%`-prefixed rows and insert a fresh seed for today.
+/// - `flag == today` — no-op (seed already matches the current date).
+/// - `flag != today` — slide the seed forward: wipe `seed-%`-prefixed
+///   rows and re-insert with today's date / current week's `weekStart`.
+///   This keeps the dashboard non-empty on any subsequent calendar
+///   day without re-running on every boot.
+///
+/// **Why this matters.** `LocalApiInterceptor._dashboardSummary`
+/// aggregates `dietEntries` / `exerciseSessions` / `scheduleEvents`
+/// in real time with `WHERE date = today`. The legacy `seeded_v2`
+/// boolean flag would lock seed rows to the *first boot date* and
+/// produce an all-zero dashboard for every visitor on subsequent days.
+///
+/// **User data is preserved.** Only rows whose `id` starts with
+/// `seed-` are wiped — anything the app or user has inserted directly
+/// (e.g. vitals from the quick-input dialog) keeps its independent
+/// `id` and survives the slide.
+///
+/// v2 (vs v1) introduced multi-type exercise sessions per day so the
+/// `WeeklyActivity` stacked-bar chart renders the 유산소 / 근력 /
+/// 스트레칭 breakdown the prototype shows.
 Future<void> seedIfEmpty(AppDatabase db) async {
-  final flag = await db.readValue('seeded_v2');
-  if (flag == 'true') return;
-
-  // Wipe v1 exercise rows so the new shape lands cleanly — keep
-  // anything the user added after upgrading.
-  await (db.delete(
-    db.exerciseSessions,
-  )..where((t) => t.id.like('seed-ex-%'))).go();
-
   final today = _fmtDate(DateTime.now());
   final weekStart = _fmtDate(_mondayOfThisWeek(DateTime.now()));
+
+  final seedDate = await db.readValue('seeded_v3');
+  if (seedDate == today) {
+    // Already seeded for today — leave both seed rows and user rows
+    // untouched.
+    return;
+  }
+
+  // Either first boot, upgrading from v1/v2, or date has rolled over.
+  // Wipe every `seed-%`-prefixed row across all date-bearing tables
+  // so the next insert lands cleanly. Non-seed rows (anything the
+  // user actually entered) are not matched by the LIKE and survive.
+  await db.transaction(() async {
+    await (db.delete(
+      db.dietEntries,
+    )..where((t) => t.id.like('seed-%'))).go();
+    await (db.delete(
+      db.exerciseSessions,
+    )..where((t) => t.id.like('seed-%'))).go();
+    await (db.delete(
+      db.scheduleEvents,
+    )..where((t) => t.id.like('seed-%'))).go();
+    await (db.delete(db.vitals)..where((t) => t.id.like('seed-%'))).go();
+    await (db.delete(
+      db.notificationItems,
+    )..where((t) => t.id.like('seed-%'))).go();
+  });
+
+  // Drop the legacy boolean flag if it's still around, so a fresh
+  // `readValue` next boot only sees the v3-shaped key.
+  await db.deleteValue('seeded_v2');
 
   await db.transaction(() async {
     // ---- Diet entries (3 meals for today) ----
@@ -289,7 +330,7 @@ Future<void> seedIfEmpty(AppDatabase db) async {
     });
   });
 
-  await db.putValue('seeded_v2', 'true');
+  await db.putValue('seeded_v3', today);
 }
 
 String _fmtDate(DateTime d) =>

@@ -115,7 +115,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 ## Screenshots
 
-아래는 정적 화면이며, **실제 구동 흐름은 [▶ 데모 영상](https://youtu.be/C4ivM_dlAww?si=8iOWmOpSxcpQmlU3)** 에서 확인하실 수 있습니다.<br/>
+빠른 미리보기를 위한 주요 화면입니다. **전체 구동 흐름은 [▶ 데모 영상](https://youtu.be/C4ivM_dlAww?si=8iOWmOpSxcpQmlU3)** 에서 확인하실 수 있습니다.<br/>
 (배포 웹 데모: [`ewhasudo.zapto.org/frontend`](https://ewhasudo.zapto.org/frontend/#/dashboard) · Flutter · iOS / Android / Web 단일 코드베이스)
 
 <table>

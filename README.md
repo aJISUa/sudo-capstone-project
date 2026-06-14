@@ -314,6 +314,8 @@ sudo-capstone-project/
 └── README.md
 ```
 
+**개발·설계 문서** — [PLAN](frontend/flutter/docs/PLAN.md) (재구성 계획·상태관리 등 기술 선택 근거) · [STRUCTURE](frontend/flutter/docs/STRUCTURE.md) (디렉토리·계층 아키텍처) · [API_CATALOG](frontend/flutter/docs/API_CATALOG.md) (도메인 모델 ⇆ API 카탈로그) · [DUMMY_BACKEND](frontend/flutter/docs/DUMMY_BACKEND.md) (백엔드 없이 풀기능 동작하는 로컬 목 전략)
+
 <br/>
 
 ## Getting Started

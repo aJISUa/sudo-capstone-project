@@ -21,7 +21,7 @@
 
 ## Index
 
-[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
 
@@ -93,6 +93,22 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 | **헬스장 검색 & 트레이너 연동** | 위치 기반 검색·예약·트레이너 인앱 채팅 화면 및 정보 연속성 흐름 설계 | 카카오맵 API (연동 예정) |
 | **통합 건강 일정 관리** | 식단·운동·병원 예약 캘린더 통합 및 대시보드 실시간 푸시 알림 연동 | Flutter Local State |
 | **Streak 보상 시스템** | 활동 포인트·연속 달성 보상 UI 및 동기부여 메커니즘 검증 | Flutter Local State |
+
+<br/>
+
+## Screenshots
+
+> 배포된 웹 데모([`ewhasudo.zapto.org/frontend`](https://ewhasudo.zapto.org/frontend/#/dashboard))의 실제 구동 화면입니다. (Flutter · iOS / Android / Web 단일 코드베이스)
+
+| 홈 대시보드 | 식단 기록 | 운동 관리 |
+|:---:|:---:|:---:|
+| <img src="docs/assets/screenshots/01-dashboard.png" width="260"/> | <img src="docs/assets/screenshots/02-diet.png" width="260"/> | <img src="docs/assets/screenshots/03-exercise.png" width="260"/> |
+| 체중·혈압·혈당 빠른 기록 + 나트륨·당류 예산 + AI 코치 피드백 | 끼니별 영양 분석 · 나트륨/당류 추적 | 주간 운동 누적 차트 + Streak 연속 기록 |
+
+| 헬스장 찾기 (O2O) | My — 건강 지표 추이 |
+|:---:|:---:|
+| <img src="docs/assets/screenshots/04-gym-finder.png" width="260"/> | <img src="docs/assets/screenshots/05-my-health.png" width="260"/> |
+| 위치 기반 헬스장 검색·등록 · 트레이너 연계 | 체중·혈압·혈당 추세 + 위험 알림 + 활동 포인트 |
 
 <br/>
 

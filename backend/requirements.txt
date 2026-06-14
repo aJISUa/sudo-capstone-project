@@ -1,0 +1,4 @@
+# Gemini Vision 식단 분석 PoC (backend/services/gemini_service.py) 의존성
+google-generativeai
+Pillow
+python-dotenv

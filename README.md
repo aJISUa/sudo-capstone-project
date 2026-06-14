@@ -23,7 +23,7 @@
 
 ## Index
 
-[Quick Facts](#quick-facts) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Quick Facts](#quick-facts) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
 
@@ -306,26 +306,48 @@ sudo-capstone-project/
 
 <br/>
 
-## Getting Started (Run Locally)
+## Getting Started
+
+> 로컬 실행은 **별도 백엔드 없이** 동작합니다 — 기본값 `USE_MOCK_API=true` 로 drift 로컬 DB의 seed 데이터를 사용합니다.
 
 ### Prerequisites
-* Flutter SDK (v3.x 권장)
-* Dart SDK (v3.x 권장)
+- **Flutter** — stable 채널 (Dart SDK `>= 3.10.0`)
+- **Chrome** — 웹 데모 실행용
+- *(선택)* Android Studio / Xcode — 모바일 빌드 시
+- 설치 상태 점검: `flutter doctor`
 
-### Installation & Execution
+### Run on Web
 ```bash
-# 1. 저장소 복제
+# 1) 저장소 클론 후 Flutter 프로젝트로 이동
 git clone https://github.com/CSE-Sudo-26/sudo-capstone-project.git
-
-# 2. Flutter 프로젝트 디렉토리 이동
 cd sudo-capstone-project/frontend/flutter
 
-# 3. 의존성 설치
+# 2) 의존성 설치
 flutter pub get
 
-# 4. Web 실행
+# 3) drift 웹 런타임 다운로드 (sqlite3.wasm + drift_worker.js)
+#    web/ 의 두 파일은 .gitignore 되어 있어, 클론 후 1회 받아야 웹에서 정상 동작합니다.
+bash tool/fetch_drift_wasm.sh
+
+# 4) 실행 (Chrome)
 flutter run -d chrome
 ```
+
+### Run on Android / iOS *(선택)*
+```bash
+flutter devices                 # 연결된 디바이스 / 에뮬레이터 ID 확인
+flutter run -d <device-id>      # 디버그 실행
+# 릴리스 빌드: flutter build apk  |  flutter build ios
+```
+
+### Verify (quality gates)
+```bash
+flutter analyze     # 정적 분석 (lint)
+flutter test        # 단위 · 위젯 · golden 테스트
+```
+
+> **실 백엔드 연동(그로쓰 단계 예정)** 시:
+> `flutter run -d chrome --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=<your-api>`
 
 <br/>
 

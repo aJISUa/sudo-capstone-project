@@ -107,10 +107,10 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 | <img src="docs/assets/screenshots/01-dashboard.png" width="260"/> | <img src="docs/assets/screenshots/02-diet.png" width="260"/> | <img src="docs/assets/screenshots/03-exercise.png" width="260"/> |
 | 체중·혈압·혈당 빠른 기록 + 나트륨·당류 예산 + AI 코치 피드백 | 끼니별 영양 분석 · 나트륨/당류 추적 | 주간 운동 누적 차트 + Streak 연속 기록 |
 
-| 헬스장 찾기 (O2O) | My — 건강 지표 추이 |
-|:---:|:---:|
-| <img src="docs/assets/screenshots/04-gym-finder.png" width="260"/> | <img src="docs/assets/screenshots/05-my-health.png" width="260"/> |
-| 위치 기반 헬스장 검색·등록 · 트레이너 연계 | 체중·혈압·혈당 추세 + 위험 알림 + 활동 포인트 |
+| 헬스장 찾기 (O2O) | My — 건강 지표 추이 | |
+|:---:|:---:|:---:|
+| <img src="docs/assets/screenshots/04-gym-finder.png" width="260"/> | <img src="docs/assets/screenshots/05-my-health.png" width="260"/> | |
+| 위치 기반 헬스장 검색·등록 · 트레이너 연계 | 체중·혈압·혈당 추세 + 위험 알림 + 활동 포인트 | |
 
 <br/>
 

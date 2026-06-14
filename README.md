@@ -23,7 +23,7 @@
 
 ## Index
 
-[Quick Facts](#quick-facts) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Quick Facts](#quick-facts) · [Current Implementation Status](#current-implementation-status) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
 
@@ -38,7 +38,29 @@
 | AI | Gemini Vision 🟡 prototype / YOLOv8 · RAG · Pinecone · GPT-4o 🔵 planned |
 | Status | Front-end MVP live · AI & back-end at design stage |
 
-✅ implemented · 🟡 prototype · 🔵 planned
+<br/>
+
+## Current Implementation Status
+
+본 저장소(default branch)에서 **실제로 구현되어 동작하는 범위**와 **프로토타입 / 설계 단계**를 구분해 정리했습니다. 현재는 Flutter 프론트엔드 + 로컬 백엔드(mock)까지 동작하며, AI 엔진·실 백엔드는 아키텍처 설계 및 프로토타이핑 단계입니다.
+
+범례 — ✅ 구현·동작  ·  🟡 프로토타입 (별도 구현, 앱 미연동)  ·  🔵 설계 단계 (아직 미구현)
+
+| 영역 / 구성요소 | 상태 | 근거 (default branch) |
+|---|:---:|---|
+| 크로스플랫폼 UI — 홈·식단·운동·My + AI 코치 패널 · 반응형 웹 | ✅ | 라이브 데모 · Screenshots · `lib/features/` |
+| 건강 지표 기록 · 7일 추세 (체중·혈압·혈당) | ✅ | `lib/features/my_health`, `lib/features/vitals` |
+| 식단·운동 기록 UI · 통합 일정 캘린더 · 헬스장 찾기 UI | ✅ | `lib/features/{diet,exercise,dashboard,place}` |
+| 디자인 시스템 (토큰 · atoms · molecules · 차트) | ✅ | `lib/design_system/` |
+| 로컬 백엔드 — drift DB + LocalApiInterceptor + seed | ✅ | `lib/core/network`, `lib/core/storage` |
+| 테스트 스위트 (단위·위젯·golden·통합) · 웹 자동 배포 | ✅ | `test/`, `.github/workflows/deploy.yml` |
+| Gemini Vision 영양 분석 | 🟡 | `backend/services/gemini_service.py` |
+| YOLOv8 음식 필터링 | 🔵 | Vision 파이프라인 다이어그램 |
+| RAG 코치 (Pinecone · LangChain · GPT-4o) | 🔵 | RAG 파이프라인 다이어그램 |
+| FastAPI 백엔드 · MySQL · JWT 인증 | 🔵 | System Architecture |
+| 카카오맵 실연동 · Firebase FCM 푸시 | 🔵 | System Architecture |
+
+*Flutter 코드 경로(`lib/…`, `test/`)는 `frontend/flutter/` 기준입니다.*
 
 <br/>
 
@@ -80,23 +102,6 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 | 온·오프라인 분리 | **O2O 통합** — 카카오맵 기반 헬스장 검색·예약, 트레이너 인앱 채팅, 건강 요약 자동 전달 |
 
 **핵심 가치** — *기록 도구가 아닌, 행동 변화를 만드는 앱.*
-
-<br/>
-
-## Current MVP Status
-
-> ⚠️ **본 프로젝트는 현재 Flutter 기반의 크로스플랫폼 Frontend MVP 중심**으로 구현되어 있습니다. AI 엔진 및 백엔드 서버는 상세 아키텍처 설계 및 핵심 API 프로토타이핑 단계이며, 향후 순차적으로 통합될 예정입니다.
-
-### Currently Implemented (구현 완료 항목)
-* **Flutter 기반 반응형 UI/UX**: 모바일 및 웹 환경을 모두 지원하는 크로스플랫폼 인터페이스 구축
-* **사용자 흐름 및 핵심 시나리오 구현**: 식단 기록, 운동 가이드, 통합 대시보드, 헬스장 검색 등 주요 기능의 프론트엔드 인터랙션 완성
-* **웹 기반 MVP 데모 배포**: 타깃 유저 대상 사용성 테스트(UT)가 가능한 실구동 웹 데모 운영
-* **시나리오 기반 검증**: 프론트엔드 목업(Mock) 데이터를 활용한 유저 인터뷰 및 핵심 가치 제안 검증
-
-### In Progress / Planned (설계 및 개발 예정 항목)
-* **FastAPI 기반 백엔드**: Docker 기반 컨테이너화 및 JWT 인증 시스템, REST API 규격 설계
-* **Vision AI Pipeline**: YOLOv8 단일 객체 탐지 엔진 연동 및 Gemini Vision 영양성분 매핑 로직 구현 예정
-* **RAG AI Coach**: Pinecone Vector DB 인덱싱 아키텍처 및 LangChain 기반 대화형 파이프라인 연동 예정
 
 <br/>
 

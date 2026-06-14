@@ -19,7 +19,7 @@
 
 </div>
 
-> **TL;DR (EN)** — **On-Care** is an AI healthcare platform for 20–30s at risk of hypertension & diabetes: one photo auto-logs a meal's sodium & sugar, RAG coaching learns from your history, and O2O links offline gyms & trainers. *A polished Flutter MVP (live web demo); the Vision-AI & back-end engines are at the design/prototyping stage.*
+**On-Care** is an AI healthcare platform for 20–30s at risk of hypertension & diabetes — one photo auto-logs a meal's sodium & sugar, RAG coaching learns from your history, and O2O links offline gyms & trainers. *A polished Flutter MVP (live web demo); the Vision-AI & back-end engines are at the design/prototyping stage.*
 
 ## Index
 

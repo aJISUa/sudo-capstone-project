@@ -23,7 +23,7 @@
 
 ## Index
 
-[Quick Facts](#quick-facts) · [Current Implementation Status](#current-implementation-status) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Quick Facts](#quick-facts) · [Current Implementation Status](#current-implementation-status) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline (설계안)](#vision-ai-pipeline-설계안) · [RAG Pipeline (설계안)](#rag-pipeline-설계안) · [System Architecture (설계안)](#system-architecture-설계안) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
 
@@ -158,7 +158,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 <br/>
 
-## Vision AI Pipeline
+## Vision AI Pipeline (설계안)
 > 💡 **Architecture Design (시스템 설계안)**
 > 본 파이프라인은 Vision AI 연동을 위한 아키텍처 설계 단계이며, YOLOv8 푸드 필터와 Gemini Vision API의 2-Stage 구조로 기획되었습니다.
 
@@ -172,7 +172,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 <br/>
 
-## RAG Pipeline
+## RAG Pipeline (설계안)
 > 📌 **Architecture Design 핵심 요약**
 > 본 파이프라인은 사용자 건강 기록을 기반으로 개인화된 코칭을 제공하기 위한 RAG 아키텍처 설계안입니다. Pinecone Vector DB 기반 검색 결과를 GPT-4o에 실시간 컨텍스트로 주입하는 구조로 설계되었습니다.
 
@@ -186,7 +186,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 <br/>
 
-## System Architecture
+## System Architecture (설계안)
 > 💡 **Architecture & Infrastructure Design (시스템 아키텍처 설계안)**
 > 본 구조는 서비스 고도화를 위한 전체 시스템 아키텍처 및 인프라 설계안입니다. 현재 MVP 단계 이후 FastAPI 백엔드 및 AWS 데이터베이스 인프라를 순차적으로 연동할 예정입니다.
 

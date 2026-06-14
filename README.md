@@ -23,9 +23,25 @@
 
 ## Index
 
-[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Quick Facts](#quick-facts) · [Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
+
+## Quick Facts
+
+| Item | Description |
+|------|------|
+| Project | On-Care — AI Healthcare Platform |
+| Target User | 20–30s at risk of hypertension / diabetes |
+| Frontend | Flutter (iOS · Android · Web) — ✅ implemented |
+| Backend | drift local + LocalApiInterceptor ✅ / FastAPI · MySQL 🔵 planned |
+| AI | Gemini Vision 🟡 prototype / YOLOv8 · RAG · Pinecone · GPT-4o 🔵 planned |
+| Status | Front-end MVP live · AI & back-end at design stage |
+| Live Demo | https://ewhasudo.zapto.org/frontend |
+
+✅ implemented · 🟡 prototype · 🔵 planned
+
+<br/>
 
 ## Why On-Care
 

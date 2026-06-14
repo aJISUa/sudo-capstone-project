@@ -37,7 +37,6 @@
 | Backend | drift local + LocalApiInterceptor ✅ / FastAPI · MySQL 🔵 planned |
 | AI | Gemini Vision 🟡 prototype / YOLOv8 · RAG · Pinecone · GPT-4o 🔵 planned |
 | Status | Front-end MVP live · AI & back-end at design stage |
-| Live Demo | https://ewhasudo.zapto.org/frontend |
 
 ✅ implemented · 🟡 prototype · 🔵 planned
 

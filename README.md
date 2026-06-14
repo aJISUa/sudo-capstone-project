@@ -19,9 +19,11 @@
 
 </div>
 
+> **TL;DR (EN)** — **On-Care** is an AI healthcare platform for 20–30s at risk of hypertension & diabetes: one photo auto-logs a meal's sodium & sugar, RAG coaching learns from your history, and O2O links offline gyms & trainers. *A polished Flutter MVP (live web demo); the Vision-AI & back-end engines are at the design/prototyping stage.*
+
 ## Index
 
-[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
+[Why On-Care](#why-on-care) · [Problem](#problem) · [Solution](#solution) · [Current MVP Status](#current-mvp-status) · [Key Features](#key-features) · [Screenshots](#screenshots) · [Vision AI Pipeline](#vision-ai-pipeline) · [RAG Pipeline](#rag-pipeline) · [System Architecture](#system-architecture) · [Tech Stack](#tech-stack) · [Competitive Analysis](#competitive-analysis) · [Development Roadmap](#development-roadmap) · [User Interview & Feedback](#user-interview--feedback) · [Repository Structure](#repository-structure) · [Getting Started](#getting-started-run-locally) · [AI Transparency](#ai-transparency) · [What's Next](#whats-next) · [Team](#team) · [License](#license)
 
 ---
 
@@ -283,6 +285,16 @@ flutter pub get
 # 4. Web 실행
 flutter run -d chrome
 ```
+
+<br/>
+
+## AI Transparency
+
+본 프로젝트는 기획·문서화·UI 초안·코드 구현 과정에서 생성형 AI 도구(ChatGPT · Claude · Gemini 등)를 **보조 도구로** 활용했습니다. AI의 제안을 그대로 적용하지 않고 *만성질환 위험관리*라는 목적과 실제 구현 범위에 맞게 검증·수정했으며, 서비스 방향 설정·타깃 사용자 정의·UX 설계·GitHub 협업 관리는 팀이 직접 수행했습니다.
+
+> 도구별 활용 범위와 검증 방식은 [`docs/ai_transparency_report.md`](docs/ai_transparency_report.md) 에 상세히 기록되어 있습니다.
+
+<br/>
 
 ## What's Next
 

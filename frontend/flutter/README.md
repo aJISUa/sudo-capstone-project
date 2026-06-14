@@ -3,7 +3,8 @@
 [Oncare Prototype (React/TS)](https://github.com/subin21cc/Oncareprototype) 를 Flutter로 재구성하는 프로젝트입니다.
 **Android / iOS / Web** 3개 타깃을 단일 코드베이스로 빌드하며, 웹은 GitHub Pages에 CI 배포됩니다.
 
-> 현재 상태: **Stage 8 — UX Alignment 완료** — v0.2.0+2 (React 원본 1:1 정렬)
+> 현재 상태: **Stage 9 — Local Backend 완료** — v0.3.0+3
+> (drift + LocalApiInterceptor 기반 로컬 백엔드 — `--dart-define=USE_MOCK_API=false` 한 줄로 FastAPI 전환 가능)
 
 ## 문서
 
@@ -27,9 +28,9 @@ flutter run -d chrome \
   --dart-define=ENV=dev \
   --dart-define=API_BASE_URL=https://dev.api.oncare.example.com
 
-# Web (배포 빌드, GitHub Pages용)
+# Web (배포 빌드, GitHub Pages용 — 커스텀 도메인 ewhasudo.zapto.org/frontend)
 flutter build web --release \
-  --base-href "/oncare-flutter/" \
+  --base-href "/frontend/" \
   --dart-define=ENV=prod \
   --dart-define=API_BASE_URL=https://api.oncare.example.com
 
@@ -46,8 +47,7 @@ flutter build ios --release      # Xcode에서 archive
 
 `.github/workflows/`:
 
-- **`ci.yml`** — `push`(main) / `pull_request`에서 `dart format` + `flutter analyze` + `flutter test` 실행
-- **`deploy-web.yml`** — `push`(main) 시 `flutter build web` 후 GitHub Pages에 자동 배포 → `https://barmi.github.io/oncare-flutter/`
+- **`deploy.yml`** — `push`(main) / `workflow_dispatch` 시 `flutter build web --base-href "/frontend/"` 후 정적 소개 페이지(`index.html`)와 함께 GitHub Pages에 자동 배포 → 커스텀 도메인 `https://ewhasudo.zapto.org/frontend/`
 
 ### 최초 1회 설정
 
@@ -56,7 +56,7 @@ flutter build ios --release      # Xcode에서 archive
 
 1. 레포 → **Settings → Pages**
 2. **Source**: `GitHub Actions` 로 변경
-3. Actions 탭에서 실패한 `Deploy Web (GitHub Pages)` 워크플로우를 **Re-run**
+3. Actions 탭에서 실패한 `Deploy GitHub Pages` 워크플로우를 **Re-run**
 
 (선택) **Settings → Secrets and variables → Actions → Variables** 에 `API_BASE_URL` 등록 — 미설정 시 dev 기본값 사용
 
@@ -71,3 +71,4 @@ flutter build ios --release      # Xcode에서 archive
 - [x] **Stage 6 — Quality** (model/widget tests, golden infra w/ tag, integration smoke)
 - [x] **Stage 7 — Release** (RELEASE.md guides, CHANGELOG v0.1.0+1, web Pages live)
 - [x] **Stage 8 — UX Alignment** (shadcn tokens / 홈·식단·운동·My / OncareHeader / Dashboard 5-card / Calendar·QuickInput·AddEvent modals / Notification·AI-coach right-slide panels)
+- [x] **Stage 9 — Local Backend** (drift schema v2 6-table / `LocalApiInterceptor` dio dispatcher / seed bootstrap / `USE_MOCK_API` 플래그로 FastAPI 단일 전환)

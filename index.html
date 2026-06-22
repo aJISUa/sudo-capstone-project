@@ -670,7 +670,7 @@
           2030세대의 만성질환 유병률이 구조적으로 급증하는 가운데, 기존의 디지털 헬스케어 서비스들은 여전히 <strong>기록의 번거로움</strong>, <strong>맥락 없는 획일적 조언</strong>, 그리고 <strong>온·오프라인의 단절</strong>이라는 임계점을 보이고 있습니다.
         </p>
         <p style="font-size:0.93rem; color:var(--text); line-height:1.8; margin-top:12px;">
-          <strong>On-Care</strong>는 이러한 파편화와 마찰을 정면으로 해결하기 위해 구축된 통합 AI 헬스케어 플랫폼입니다.
+          <strong>On-Care</strong>는 이러한 파편화와 마찰을 정면으로 해결하기 위해 구축 중인 통합 AI 헬스케어 플랫폼입니다. (현재 Flutter MVP 동작 · 핵심 AI 엔진은 프로토타입·설계 단계)
         </p>
         <div class="card-grid" style="margin-top:16px; gap:12px;">
           <div style="background:var(--primary-pale); border-radius:var(--radius-sm); padding:14px 16px;">
@@ -692,34 +692,35 @@
     <!-- Key Features -->
     <section>
       <h2>✨ 핵심 기능</h2>
+      <p style="font-size:0.8rem; color:var(--text); opacity:0.72; margin:-4px 0 14px;">상태 — ✅ 구현 · 🟡 프로토타입(별도 PoC) · 🔵 설계 단계 (UI 구현 = 화면 동작)</p>
       <div class="card-grid">
         <div class="card">
-          <span class="tag tag-green">Vision AI</span>
+          <span class="tag tag-green">Vision AI</span> <span class="tag tag-accent">🟡 프로토타입</span>
           <h3>🍱 Vision AI 식단 자동 인식</h3>
           <p>음식 사진 1장으로 식품 종류·섭취량·칼로리·영양소를 자동 인식. YOLOv8로 음식 여부를 가려낸 뒤 Gemini Vision 분석 후 국가 영양성분 DB 매핑.</p>
         </div>
         <div class="card blue-card">
-          <span class="tag tag-blue">RAG · GPT-4o</span>
+          <span class="tag tag-blue">RAG · GPT-4o</span> <span class="tag tag-blue">🔵 설계</span>
           <h3>🤖 RAG 기반 AI 헬스 챗봇</h3>
           <p>사용자의 누적 건강 데이터 이력과 Vector DB 컨텍스트를 GPT-4o에 실시간 주입하여 일반론이 아닌 '내 이번 주 기록 기준'의 밀착 코칭 제공.</p>
         </div>
         <div class="card">
-          <span class="tag tag-green">하이브리드 엔진</span>
+          <span class="tag tag-green">하이브리드 엔진</span> <span class="tag tag-blue">🔵 설계 (UI 구현)</span>
           <h3>🏃 AI 맞춤 운동 코칭</h3>
           <p>개인별 체력 상태, 운동 목적, 기저 질환 상태에 맞춰 운동 루틴을 생성하고 피드백 루프에 따라 강도 및 스트레칭 세션을 동적 재조정.</p>
         </div>
         <div class="card accent-card">
-          <span class="tag tag-accent">O2O 커넥션</span>
+          <span class="tag tag-accent">O2O 커넥션</span> <span class="tag tag-blue">🔵 설계 (UI 구현)</span>
           <h3>🏋️ 헬스장 검색 &amp; 트레이너 연동</h3>
           <p>카카오맵 API 기반 시설 예약 및 트레이너 인앱 채팅 연동. 플랫폼에 축적된 식단 및 운동 건강 데이터 요약본을 트레이너에게 안전하고 간편하게 자동 전송.</p>
         </div>
         <div class="card">
-          <span class="tag tag-green">FCM 통합</span>
+          <span class="tag tag-green">일정 통합</span> <span class="tag tag-green">✅ 구현</span>
           <h3>📅 통합 건강 일정 관리</h3>
-          <p>식단, 운동, 헬스장 예약 스케줄, 병원 정기검진과 종합 건강검진 일정을 단일 캘린더 아키텍처로 통합 관리하며 푸시 알림 연동.</p>
+          <p>식단, 운동, 헬스장 예약 스케줄, 병원 정기검진과 종합 건강검진 일정을 단일 캘린더 아키텍처로 통합 관리.</p>
         </div>
         <div class="card purple-card">
-          <span class="tag tag-purple">게이미피케이션</span>
+          <span class="tag tag-purple">게이미피케이션</span> <span class="tag tag-blue">🔵 설계</span>
           <h3>🏆 포인트 &amp; Streak 보상 시스템</h3>
           <p>일일 건강 지표 및 식단/운동 연속 달성 기록에 따른 리워드(Streak) 부여로 유저의 지속적인 자가 관리 유도.</p>
         </div>

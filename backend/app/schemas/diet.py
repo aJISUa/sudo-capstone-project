@@ -1,0 +1,38 @@
+"""
+식단 인식 결과의 공통 형식(계약).
+
+Gemini든 YOLO든 이 형식으로 변환됩니다(이식성).
+On-Care 특화: 칼로리뿐 아니라 나트륨(sodium_mg)·당류(sugar_g)가 1급 지표.
+또한 고혈압(DASH) 관점 식단평(coach_comment)을 포함 — 기존 PoC 프롬프트 방향 계승.
+"""
+from __future__ import annotations
+
+from typing import Optional
+from pydantic import BaseModel, Field
+
+
+class RecognizedFood(BaseModel):
+    name: str = Field(..., description="음식 이름(한국어)")
+    calories: Optional[int] = Field(None, description="추정 칼로리 kcal")
+    sodium_mg: Optional[int] = Field(None, description="추정 나트륨 mg")
+    sugar_g: Optional[int] = Field(None, description="추정 당류 g")
+    confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
+
+
+class DietAnalysis(BaseModel):
+    """인식 엔진의 공통 출력."""
+    engine: str
+    foods: list[RecognizedFood] = Field(default_factory=list)
+    total_calories: int = 0
+    total_sodium_mg: int = 0
+    total_sugar_g: int = 0
+    # 고혈압·DASH 관점 식단평 (기존 PoC 의 핵심 가치)
+    coach_comment: str = ""
+    latency_ms: Optional[int] = None
+    raw_model_output: Optional[str] = None
+
+    def compute_totals(self) -> "DietAnalysis":
+        self.total_calories = sum(f.calories or 0 for f in self.foods)
+        self.total_sodium_mg = sum(f.sodium_mg or 0 for f in self.foods)
+        self.total_sugar_g = sum(f.sugar_g or 0 for f in self.foods)
+        return self

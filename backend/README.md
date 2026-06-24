@@ -7,7 +7,7 @@
 - **STEP 0** ✅ API 계약 명세 (API_CONTRACT.md)
 - **STEP 1** ✅ 골격 재구성: /v1 prefix · 문자열 id · snake_case · 시스템 엔드포인트 · DB/Docker
 - **STEP 2** ✅ 사용자/인증: /users/me, /users/me/health (토큰→유저 / 무토큰→데모 폴백)
-- STEP 3 식단: /diet/days/today + POST /diet/analyze (Gemini, DASH/나트륨 관점)
+- **STEP 3** ✅ 식단: /diet/days/today + POST /diet/analyze (Gemini, DASH/나트륨·당류 관점, 엔진 교체 가능)
 - STEP 4 운동: /exercise/weeks/current
 - STEP 5 바이탈: /vitals/*
 - STEP 6 일정/알림/장소/AI코치

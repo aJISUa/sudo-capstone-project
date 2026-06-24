@@ -30,6 +30,18 @@ class Settings(BaseSettings):
     embedder: str = "openai"
     openai_embed_model: str = "text-embedding-3-small"
 
+    # --- RAG (STEP 7) ---
+    # 임베딩 차원: 모델에 맞춰 바꿉니다. 바꾸면 재임베딩 필요(scripts/reembed).
+    #   OpenAI text-embedding-3-small/large = 1536 / 3072
+    #   Gemini text-embedding-004          = 768
+    embed_dim: int = 1536
+    # 청킹: 윈도우(문장 수)와 겹침(stride 보정). 최적값 찾으면 여기만 수정.
+    chunk_window: int = 5      # 한 청크에 묶을 문장 수
+    chunk_overlap: int = 1     # 청크 간 겹칠 문장 수
+    # 검색: 개인 문서 / 공공 문서 각각 top-k
+    retrieve_personal_k: int = 3
+    retrieve_public_k: int = 3
+
     # --- 기타 ---
     cors_allow_origins: str = "*"
     seed_demo_data: bool = True

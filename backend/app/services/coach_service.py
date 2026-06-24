@@ -78,7 +78,9 @@ def _exercise_suggestion(db: Session, user_id: str) -> CoachSuggestion:
 def build_feedback(db: Session, user_id: str, user_name: str) -> AiCoachFeedback:
     """
     도메인별 코치를 각각 호출해 합친다.
-    (STEP 7: 각 _xxx_suggestion 내부가 RAG 검색→LLM 생성으로 바뀜. 합치는 구조는 동일.)
+
+    STEP 7: 식단·운동 코치는 RAG 기반(domain_coaches)으로 동작.
+    RAG 가 불가(키 미설정/자료 없음)하면 내부에서 STEP 6 규칙 기반으로 자동 폴백.
     """
     hour = datetime.now().hour
     if hour < 11:
@@ -88,9 +90,12 @@ def build_feedback(db: Session, user_id: str, user_name: str) -> AiCoachFeedback
     else:
         greeting = f"{user_name}님, 오늘 하루 어떠셨나요? 마무리도 건강하게요."
 
+    # 지연 import (순환 참조 방지: domain_coaches 가 coach_service 를 import)
+    from app.services.coach.domain_coaches import diet_coach, exercise_coach
+
     suggestions = [
-        _diet_suggestion(db, user_id),
-        _exercise_suggestion(db, user_id),
+        diet_coach(db, user_id),       # 식단 RAG 코치 (실패 시 규칙 폴백)
+        exercise_coach(db, user_id),   # 운동 RAG 코치 (실패 시 규칙 폴백)
         CoachSuggestion(
             tag="hydration", title="수분 섭취 잊지 마세요",
             body="하루 6~8잔의 물은 혈압 관리에도 도움이 됩니다.",

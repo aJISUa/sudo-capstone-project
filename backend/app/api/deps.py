@@ -1,0 +1,83 @@
+"""
+인증 의존성.
+
+프론트는 로그인(Stage 4) 전이라 토큰 없이도 데이터 화면이 떠야 합니다.
+그래서 current_user 는 다음 규칙으로 동작합니다:
+
+  1) Authorization: Bearer <유효한 토큰> 이 있으면 → 그 사용자
+  2) 없거나 무효하면 → 데모 사용자(user-demo) 로 폴백
+
+이렇게 하면 프론트가 USE_MOCK_API=false 로 전환해도(아직 토큰 없음)
+화면이 데모 데이터로 정상 렌더되고, Stage 4 에서 로그인이 붙으면
+자동으로 실제 사용자 데이터로 전환됩니다.
+
+운영 배포 시 엄격 모드가 필요하면 require_auth 의존성을 쓰면 됩니다.
+"""
+from __future__ import annotations
+
+from typing import Annotated, Optional
+
+import jwt
+from fastapi import Depends, HTTPException, Request, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.core.security import decode_access_token
+from app.db.init_db import DEMO_USER_ID
+from app.db.session import get_db
+from app.models.models import User
+
+
+def _extract_bearer(request: Request) -> Optional[str]:
+    auth = request.headers.get("Authorization", "")
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip()
+    return None
+
+
+def get_current_user(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> User:
+    """토큰이 유효하면 그 사용자, 아니면 데모 사용자로 폴백."""
+    token = _extract_bearer(request)
+    user_id = DEMO_USER_ID
+    if token:
+        try:
+            user_id = decode_access_token(token)
+        except jwt.InvalidTokenError:
+            user_id = DEMO_USER_ID
+
+    user = db.scalar(select(User).where(User.id == user_id))
+    if user is None:
+        # 토큰의 사용자가 없으면 데모로 한 번 더 폴백
+        user = db.scalar(select(User).where(User.id == DEMO_USER_ID))
+    if user is None:
+        raise HTTPException(status_code=500, detail="데모 사용자가 시드되지 않았습니다.")
+    return user
+
+
+def require_auth(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> User:
+    """엄격 모드: 유효한 토큰이 반드시 있어야 함 (로그인 도입 후 보호용 엔드포인트에 사용)."""
+    token = _extract_bearer(request)
+    exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="인증이 필요합니다.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    if not token:
+        raise exc
+    try:
+        user_id = decode_access_token(token)
+    except jwt.InvalidTokenError:
+        raise exc
+    user = db.scalar(select(User).where(User.id == user_id))
+    if user is None or not user.is_active:
+        raise exc
+    return user
+
+
+CurrentUser = Annotated[User, Depends(get_current_user)]

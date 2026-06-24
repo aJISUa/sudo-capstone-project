@@ -9,7 +9,7 @@
 - **STEP 2** ✅ 사용자/인증: /users/me, /users/me/health (토큰→유저 / 무토큰→데모 폴백)
 - **STEP 3** ✅ 식단: /diet/days/today + POST /diet/analyze (Gemini, DASH/나트륨·당류 관점, 엔진 교체 가능)
 - **STEP 4** ✅ 운동: /exercise/weeks/current + POST /exercise/sessions (요일별/타입별 집계, streak, 주간 코칭)
-- STEP 5 바이탈: /vitals/*
+- **STEP 5** ✅ 바이탈: /vitals/{weight|blood-pressure|blood-sugar} + /vitals/{kind}/latest (→ /users/me/health indicators 자동 연결)
 - STEP 6 일정/알림/장소/AI코치
 - STEP 7 RAG 코치 심화 · YOLO 이식 자리
 

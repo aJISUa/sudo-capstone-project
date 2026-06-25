@@ -1,0 +1,115 @@
+"""
+Gemini Vision 식단 인식기.
+
+기존 PoC(gemini_service.py)의 방향 계승:
+  - 전문 영양사 역할
+  - 고혈압(DASH) 관점 식단평 + 개선 제안
+하지만 PoC 는 자유 텍스트만 반환했고, 우리는 프론트 저장을 위해
+  - 음식별 구조화 데이터(칼로리/나트륨/당류)  ← entries 저장용
+  - 식단평 텍스트(coach_comment)               ← ai_coach_message/코칭용
+둘 다 JSON 으로 받아냅니다.
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+import time
+
+from google import genai
+from google.genai import types
+
+from app.core.config import get_settings
+from app.schemas.diet import DietAnalysis, RecognizedFood
+from app.services.recognizer.base import FoodRecognizer
+
+_PROMPT = """당신은 전문 영양사입니다. 업로드된 음식 사진을 분석해 아래 JSON 스키마로만 응답하세요.
+설명, 마크다운, 코드블록 없이 순수 JSON만 출력합니다.
+
+{
+  "foods": [
+    {
+      "name": "음식 이름(한국어)",
+      "calories": 예상 칼로리 정수(kcal),
+      "sodium_mg": 예상 나트륨 정수(mg),
+      "sugar_g": 예상 당류 정수(g),
+      "confidence": 0.0~1.0 인식 확신도
+    }
+  ],
+  "coach_comment": "고혈압(DASH 식단) 관점의 식단평. 나트륨이 높은 음식을 짚고, 장단점과 구체적 개선 제안(예: '국물을 남기세요', '채소를 추가하세요')을 2~3문장으로 친절하게 한국어로."
+}
+
+음식이 여러 개면 foods 에 모두 넣으세요. 모르는 값은 null 로 두세요.
+나트륨·당류는 고혈압·당뇨 위험군에게 중요하니 신중히 추정하세요."""
+
+
+class GeminiVisionRecognizer(FoodRecognizer):
+    name = "gemini"
+
+    def __init__(self) -> None:
+        settings = get_settings()
+        if not settings.gemini_api_key:
+            raise RuntimeError("GEMINI_API_KEY 가 설정되지 않았습니다. .env 를 확인하세요.")
+        self._client = genai.Client(api_key=settings.gemini_api_key)
+        self._model = settings.gemini_model
+
+    async def recognize(self, image_bytes: bytes, mime_type: str) -> DietAnalysis:
+        start = time.perf_counter()
+        response = await asyncio.to_thread(
+            self._client.models.generate_content,
+            model=self._model,
+            contents=[
+                _PROMPT,
+                types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+            ],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            ),
+        )
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        return self._parse(response.text or "", latency_ms)
+
+    def _parse(self, raw: str, latency_ms: int) -> DietAnalysis:
+        foods: list[RecognizedFood] = []
+        coach_comment = ""
+        try:
+            data = json.loads(raw)
+            coach_comment = str(data.get("coach_comment", "") or "")
+            for f in data.get("foods", []):
+                foods.append(
+                    RecognizedFood(
+                        name=str(f.get("name", "알 수 없음")),
+                        calories=_as_int(f.get("calories")),
+                        sodium_mg=_as_int(f.get("sodium_mg")),
+                        sugar_g=_as_int(f.get("sugar_g")),
+                        confidence=_as_float(f.get("confidence")),
+                    )
+                )
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+        return DietAnalysis(
+            engine=self.name,
+            foods=foods,
+            coach_comment=coach_comment,
+            latency_ms=latency_ms,
+            raw_model_output=raw,
+        ).compute_totals()
+
+
+def _as_int(v) -> int | None:
+    if v is None:
+        return None
+    try:
+        return int(round(float(v)))
+    except (TypeError, ValueError):
+        return None
+
+
+def _as_float(v) -> float | None:
+    if v is None:
+        return None
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None

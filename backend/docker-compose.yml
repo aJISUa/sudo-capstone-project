@@ -1,0 +1,31 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: oncare-db
+    environment:
+      POSTGRES_USER: oncare
+      POSTGRES_PASSWORD: oncare
+      POSTGRES_DB: oncare
+    ports:
+      - "5432:5432"
+    volumes:
+      - oncare_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oncare"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  app:
+    build: .
+    container_name: oncare-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://oncare:oncare@db:5432/oncare
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+volumes:
+  oncare_pgdata:

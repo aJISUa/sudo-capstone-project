@@ -11,7 +11,7 @@
 - **STEP 4** ✅ 운동: /exercise/weeks/current + POST /exercise/sessions (요일별/타입별 집계, streak, 주간 코칭)
 - **STEP 5** ✅ 바이탈: /vitals/{weight|blood-pressure|blood-sugar} + /vitals/{kind}/latest (→ /users/me/health indicators 자동 연결)
 - **STEP 6** ✅ 일정/알림/장소/AI코치: /schedule/events · /notifications · /places/nearby · /ai-coach/feedback (도메인별 코치 분리, RAG 진입점)
-- STEP 7 RAG 코치 심화 · YOLO 이식 자리
+- **STEP 7** ✅ RAG 코치: 임베더/LLM factory(교체 가능), 개인·공공 문서 격리, 도메인 필터, 청킹(설정값), 토큰 기록, 규칙 기반 폴백, 적재/재임베딩 스크립트
 
 ## STEP 1 에서 동작하는 것
 - `GET /v1/ping` · `GET /v1/healthz` · `GET /v1/version` — 프론트 계약과 정확히 일치

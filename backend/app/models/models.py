@@ -19,9 +19,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.config import get_settings
 from app.db.session import Base
 
-EMBED_DIM = 1536
+# 임베딩 차원은 설정값에서. 모델 교체 시 .env(EMBED_DIM)만 바꾸고 재임베딩.
+EMBED_DIM = get_settings().embed_dim
 
 
 class User(Base):

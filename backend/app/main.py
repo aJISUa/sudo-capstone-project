@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import diet, exercise, system, users
+from app.api.v1 import diet, exercise, system, users, vitals
 from app.core.config import get_settings
 from app.db.init_db import init_db
 
@@ -45,3 +45,4 @@ app.include_router(system.router, prefix=settings.api_v1_prefix)
 app.include_router(users.router, prefix=settings.api_v1_prefix)
 app.include_router(diet.router, prefix=settings.api_v1_prefix)
 app.include_router(exercise.router, prefix=settings.api_v1_prefix)
+app.include_router(vitals.router, prefix=settings.api_v1_prefix)

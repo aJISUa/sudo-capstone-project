@@ -66,17 +66,130 @@ DEMO_SETTINGS = [
 ]
 
 
+# kind 별 표시 메타 (라벨/단위/차트 범위/대표값 추출 방식)
+_KIND_META = {
+    "weight": {
+        "label": "체중", "unit": "kg",
+        "chart_min_y": 50, "chart_max_y": 100, "chart_interval": 10,
+        "scalar": lambda v: v.get("kg"),
+        "lower_is_better": True,
+    },
+    "blood-pressure": {
+        "label": "혈압", "unit": "mmHg",
+        "chart_min_y": 80, "chart_max_y": 160, "chart_interval": 20,
+        # 혈압은 수축기(systolic)를 대표값으로
+        "scalar": lambda v: v.get("systolic"),
+        "lower_is_better": True,
+    },
+    "blood-sugar": {
+        "label": "혈당", "unit": "mg/dL",
+        "chart_min_y": 70, "chart_max_y": 160, "chart_interval": 20,
+        "scalar": lambda v: v.get("mg_per_dl"),
+        "lower_is_better": True,
+    },
+}
+
+# 데모 폴백을 kind 로 빠르게 찾기 위한 매핑
+_DEMO_BY_KIND = {ind.kind: ind for ind in _DEMO_INDICATORS}
+
+
+def _indicator_from_vitals(kind: str, rows: list) -> HealthIndicator | None:
+    """특정 kind 의 vital row 들(시간순)로 HealthIndicator 구성. 부족하면 None."""
+    import json
+
+    meta = _KIND_META[kind]
+    points: list[tuple] = []  # (recorded_at, scalar_value, raw_value_dict)
+    for r in rows:
+        try:
+            v = json.loads(r.value_json) if r.value_json else {}
+        except json.JSONDecodeError:
+            continue
+        s = meta["scalar"](v)
+        if s is None:
+            continue
+        points.append((r.recorded_at, float(s), v))
+
+    if not points:
+        return None
+
+    points.sort(key=lambda p: p[0])  # 시간 오름차순
+    values = [p[1] for p in points]
+    latest = values[-1]
+
+    # delta: 처음 대비 변화
+    first = values[0]
+    diff = latest - first
+    improving = (diff < 0) if meta["lower_is_better"] else (diff > 0)
+    if len(values) >= 2 and abs(diff) > 0:
+        delta_text = f"{diff:+.0f}{meta['unit']} (기록 시작 대비)"
+    else:
+        delta_text = "추세를 보려면 기록을 더 쌓아보세요"
+
+    # 차트용: 최근 최대 14개
+    chart_values = [round(v, 1) for v in values[-14:]]
+
+    # last_7_days: 최근 7개를 0~1 로 정규화(없으면 채움)
+    recent = values[-7:]
+    lo, hi = min(recent), max(recent)
+    span = (hi - lo) or 1.0
+    last_7 = [round((v - lo) / span, 2) for v in recent]
+    while len(last_7) < 7:
+        last_7.insert(0, last_7[0] if last_7 else 0.0)
+
+    # recent_records: 최근 5건 (최신 먼저)
+    def _fmt(val_dict) -> str:
+        if kind == "blood-pressure":
+            return f"{val_dict.get('systolic')}/{val_dict.get('diastolic')} {meta['unit']}"
+        s = meta["scalar"](val_dict)
+        return f"{s:g} {meta['unit']}"
+
+    labels = ["오늘", "1일 전", "2일 전", "3일 전", "4일 전"]
+    recent_records = []
+    for i, (_, _, raw) in enumerate(reversed(points[-5:])):
+        recent_records.append(RecentRecord(label=labels[i] if i < len(labels) else f"{i}일 전",
+                                            value=_fmt(raw)))
+
+    # latest_value 표시
+    if kind == "blood-pressure":
+        latest_value = str(points[-1][2].get("systolic"))
+    else:
+        latest_value = f"{latest:g}"
+
+    return HealthIndicator(
+        kind=kind, label=meta["label"], latest_value=latest_value, unit=meta["unit"],
+        delta_text=delta_text, improving=improving,
+        last_7_days=last_7, chart_values=chart_values,
+        chart_min_y=meta["chart_min_y"], chart_max_y=meta["chart_max_y"],
+        chart_interval=meta["chart_interval"], recent_records=recent_records,
+    )
+
+
 def build_indicators_for_user(db, user_id: str) -> list[HealthIndicator]:
     """
-    사용자의 vitals 로 지표 구성. 데이터가 없으면 데모 지표 반환.
-
-    STEP 5(vitals 입력)가 붙으면 이 함수가 실제 데이터로 지표를 만들도록 확장합니다.
-    지금은 vitals 가 비어 있으므로 데모로 폴백합니다.
+    사용자의 vitals 로 지표 구성.
+    - 해당 kind 의 기록이 있으면 실제 데이터로 지표 생성
+    - 없으면 그 kind 만 데모 지표로 폴백 (화면이 비지 않도록)
+    순서는 항상 weight → blood-pressure → blood-sugar (프론트 기대 순서).
     """
     from app.models.models import Vital
 
-    has_any = db.query(Vital.id).filter(Vital.user_id == user_id).first()
-    if has_any is None:
-        return _DEMO_INDICATORS
-    # TODO(STEP 5): 실제 vitals 집계로 HealthIndicator 구성
-    return _DEMO_INDICATORS
+    indicators: list[HealthIndicator] = []
+    for kind in ("weight", "blood-pressure", "blood-sugar"):
+        rows = db.scalars(
+            select_vitals(Vital, user_id, kind)
+        ).all()
+        built = _indicator_from_vitals(kind, list(rows)) if rows else None
+        indicators.append(built or _DEMO_BY_KIND[kind])
+    return indicators
+
+
+def select_vitals(Vital, user_id: str, kind: str):
+    """kind 의 모든 vital 을 가져오는 select (최근 30건)."""
+    from sqlalchemy import select
+    return (
+        select(Vital)
+        .where(Vital.user_id == user_id)
+        .where(Vital.kind == kind)
+        .order_by(Vital.recorded_at.desc())
+        .limit(30)
+    )

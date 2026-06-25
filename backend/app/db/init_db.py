@@ -26,6 +26,8 @@ def init_db() -> None:
 
     if get_settings().seed_demo_data:
         _seed_demo_user()
+        _seed_demo_places()
+        _seed_demo_notifications()
 
 
 def _seed_demo_user() -> None:
@@ -41,5 +43,44 @@ def _seed_demo_user() -> None:
             )
             db.add(user)
             db.commit()
+    finally:
+        db.close()
+
+
+def _seed_demo_places() -> None:
+    """서울시청 인근 데모 장소 (카카오맵 실연동 전까지 사용)."""
+    db: Session = SessionLocal()
+    try:
+        if db.scalar(select(models.Place).limit(1)):
+            return
+        demo = [
+            ("place-1", "온케어 내과의원", "medical", "서울 중구 세종대로 110", 37.5660, 126.9785),
+            ("place-2", "헬스플러스 피트니스", "fitness", "서울 중구 을지로 50", 37.5663, 126.9820),
+            ("place-3", "그린샐러드 키친", "healthy_food", "서울 중구 명동길 20", 37.5638, 126.9850),
+            ("place-4", "건강약국", "pharmacy", "서울 중구 태평로 30", 37.5650, 126.9770),
+            ("place-5", "한강공원 러닝트랙", "fitness", "서울 영등포구 여의동로 330", 37.5283, 126.9325),
+        ]
+        for pid, name, cat, addr, lat, lng in demo:
+            db.add(models.Place(id=pid, name=name, category=cat, address=addr, lat=lat, lng=lng))
+        db.commit()
+    finally:
+        db.close()
+
+
+def _seed_demo_notifications() -> None:
+    db: Session = SessionLocal()
+    try:
+        if db.scalar(select(models.Notification).where(models.Notification.user_id == DEMO_USER_ID).limit(1)):
+            return
+        demo = [
+            ("noti-1", "오늘의 혈압을 기록해 주세요", "정기 측정 시간이에요.", "reminder"),
+            ("noti-2", "이번 주 운동 목표 80% 달성!", "조금만 더 힘내세요!", "achievement"),
+            ("noti-3", "건강검진 예약 안내", "다음 주 화요일 검진 일정이 있어요.", "health_check"),
+        ]
+        for nid, title, body, cat in demo:
+            db.add(models.Notification(
+                id=nid, user_id=DEMO_USER_ID, title=title, body=body, category=cat, read=False,
+            ))
+        db.commit()
     finally:
         db.close()

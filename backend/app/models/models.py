@@ -131,12 +131,27 @@ class Notification(Base):
 
 
 class CoachDocument(Base):
-    """RAG 코치용 문서 + 임베딩 (STEP 7)."""
+    """RAG 코치용 문서 + 임베딩 (STEP 7).
+
+    두 종류의 문서가 공존:
+      - 개인 문서(환자 데이터): user_id = 특정 사용자  → 그 사용자만 검색됨
+      - 공공 문서(가이드라인 등): user_id = NULL        → 모든 사용자 공유
+
+    검색 시 (user_id == 현재사용자 OR user_id IS NULL) 로 가져오면
+    내 개인기록 + 공용 가이드라인만 나오고 남의 개인기록은 절대 안 섞인다.
+    """
     __tablename__ = "coach_documents"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    # nullable: 공공 문서는 NULL(전체 공유), 개인 문서는 특정 user_id
+    user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    # 'public' | 'meal' | 'workout' | 'profile' | 'vital' ...
     source: Mapped[str] = mapped_column(String(50), default="")
+    # 도메인 필터용: 'diet' | 'exercise' | 'general' (도메인별 코치가 자기 자료만 검색)
+    domain: Mapped[str] = mapped_column(String(20), default="general", index=True)
+    title: Mapped[str] = mapped_column(String(300), default="")
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBED_DIM), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

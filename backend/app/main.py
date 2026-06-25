@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import system
+from app.api.v1 import system, users
 from app.core.config import get_settings
 from app.db.init_db import init_db
 
@@ -42,3 +42,4 @@ app.add_middleware(
 
 # /v1 prefix 로 마운트 (프론트 base URL 이 /v1 을 포함하는 계약)
 app.include_router(system.router, prefix=settings.api_v1_prefix)
+app.include_router(users.router, prefix=settings.api_v1_prefix)

@@ -40,6 +40,18 @@ def client():
         yield c
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    """각 테스트 전 rate limiter 상태 초기화(테스트 간 누적 방지).
+    fastapi 미설치 로컬 환경에서는 조용히 건너뛴다(순수 테스트에 무영향)."""
+    try:
+        from app.core.rate_limit import limiter
+        limiter.clear()
+    except Exception:  # noqa: BLE001
+        pass
+    yield
+
+
 @pytest.fixture
 def db_session(client):
     """시드까지 끝난 DB 세션. client 픽스처가 먼저 init_db(시드)를 돌린다."""

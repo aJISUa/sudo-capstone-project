@@ -22,6 +22,8 @@ class WorkoutRecordTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(exerciseWeekProvider);
     return async.when(
+      // 운동 추가 후 invalidate 시 전체 화면이 스피너로 깜빡이지 않도록 이전 데이터 유지.
+      skipLoadingOnRefresh: true,
       data: (week) => _Body(week: week),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (Object e, _) => ErrorView(
@@ -32,15 +34,13 @@ class WorkoutRecordTab extends ConsumerWidget {
   }
 }
 
-class _Body extends ConsumerWidget {
+class _Body extends StatelessWidget {
   const _Body({required this.week});
   final ExerciseWeek week;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final added = ref.watch(addedSessionsProvider);
-    final allSessions = <ExerciseSession>[...added, ...week.sessions];
     final hasStackedSeries =
         week.cardioMinutes.isNotEmpty ||
         week.strengthMinutes.isNotEmpty ||
@@ -149,7 +149,7 @@ class _Body extends ConsumerWidget {
         AiCoachCard(message: week.aiCoachMessage),
         const SizedBox(height: AppSpacing.lg),
 
-        for (final s in allSessions) ...<Widget>[
+        for (final s in week.sessions) ...<Widget>[
           _SessionCard(session: s),
           const SizedBox(height: AppSpacing.sm),
         ],

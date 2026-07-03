@@ -41,6 +41,7 @@ class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
   ExerciseType _type = ExerciseType.cardio;
   final TextEditingController _minutesController = TextEditingController();
   final TextEditingController _itemsController = TextEditingController();
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -49,39 +50,34 @@ class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final minutes = int.tryParse(_minutesController.text.trim()) ?? 0;
     if (minutes <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('운동 시간을 입력해주세요')));
+      messenger.showSnackBar(const SnackBar(content: Text('운동 시간을 입력해주세요')));
       return;
     }
-    final raw = _itemsController.text.trim();
-    final items = raw.isEmpty
-        ? const <String>[]
-        : raw
-              .split(RegExp(r'[,\n]'))
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
-    final now = DateTime.now();
-    final session = ExerciseSession(
-      id: 'ux-${now.microsecondsSinceEpoch}',
-      dateLabel: '오늘',
-      timeLabel:
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-      dayLabel: _weekdayLabels[now.weekday - 1],
-      type: _type,
-      minutes: minutes,
-      calories: _estimateCalories(_type, minutes),
-      items: items,
-    );
-    ref.read(addedSessionsProvider.notifier).add(session);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('운동 기록이 추가되었어요')));
+    setState(() => _saving = true);
+    final dayLabel = _weekdayLabels[DateTime.now().weekday - 1];
+    try {
+      // 서버(mock 모드는 drift)에 저장 → 주간 데이터 무효화로 통계·차트·목록 모두 반영.
+      await ref.read(exerciseRepositoryProvider).addSession(
+        type: _type,
+        minutes: minutes,
+        calories: _estimateCalories(_type, minutes),
+        dayLabel: dayLabel,
+      );
+      ref.invalidate(exerciseWeekProvider);
+      navigator.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('운동 기록이 추가되었어요')));
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('저장에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
   }
 
   @override
@@ -189,14 +185,23 @@ class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
           SizedBox(
             height: 48,
             child: FilledButton(
-              onPressed: _save,
+              onPressed: _saving ? null : _save,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(AppRadius.lg),
                 ),
               ),
-              child: const Text('저장하기'),
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('저장하기'),
             ),
           ),
         ],

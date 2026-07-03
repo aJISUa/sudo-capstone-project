@@ -5,6 +5,24 @@ class MockExerciseRepository implements ExerciseRepository {
   const MockExerciseRepository();
 
   @override
+  Future<ExerciseSession> addSession({
+    required ExerciseType type,
+    required int minutes,
+    required int calories,
+    required String dayLabel,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    return ExerciseSession(
+      id: 'mock-ex',
+      dayLabel: dayLabel,
+      type: type,
+      minutes: minutes,
+      calories: calories,
+      dateLabel: '오늘',
+    );
+  }
+
+  @override
   Future<ExerciseWeek> fetchThisWeek() async {
     await Future<void>.delayed(const Duration(milliseconds: 150));
     return const ExerciseWeek(

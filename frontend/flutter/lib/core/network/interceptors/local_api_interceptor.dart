@@ -34,6 +34,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /dashboard/summary': _dashboardSummary,
     'GET /diet/days/today': _dietToday,
     'GET /exercise/weeks/current': _exerciseCurrentWeek,
+    'POST /exercise/sessions': _exerciseAddSession,
     'GET /schedule/events': _scheduleEvents,
     'GET /notifications': _notifications,
     'GET /ai-coach/feedback': _aiCoachFeedback,
@@ -384,6 +385,57 @@ class LocalApiInterceptor extends Interceptor {
     'walking' => const <String>['공원 산책'],
     _ => const <String>[],
   };
+
+  /// POST /exercise/sessions — persist a workout into drift so the next
+  /// GET /exercise/weeks/current includes it (stats + chart + list). The
+  /// `ex-` id prefix (not `seed-`) means seedIfEmpty never wipes it.
+  Future<Response<Object?>> _exerciseAddSession(RequestOptions options) async {
+    final body = options.data;
+    Map<String, Object?> payload;
+    if (body is Map) {
+      payload = body.cast<String, Object?>();
+    } else if (body is String && body.isNotEmpty) {
+      payload = (jsonDecode(body) as Map<Object?, Object?>)
+          .cast<String, Object?>();
+    } else {
+      payload = <String, Object?>{};
+    }
+
+    final type = (payload['type'] as String?) ?? 'cardio';
+    final minutes = (payload['minutes'] as num?)?.toInt() ?? 0;
+    if (minutes <= 0) {
+      return _badRequest(options, 'minutes must be > 0');
+    }
+    final calories = (payload['calories'] as num?)?.toInt() ?? 0;
+    final dayLabel =
+        (payload['day_label'] as String?) ??
+        _weekdayLabels[DateTime.now().weekday - 1];
+
+    final id = 'ex-${DateTime.now().microsecondsSinceEpoch}';
+    await _db
+        .into(_db.exerciseSessions)
+        .insert(
+          ExerciseSessionsCompanion.insert(
+            id: id,
+            weekStart: _mondayOfThisWeekString(),
+            dayLabel: dayLabel,
+            type: type,
+            minutes: minutes,
+            calories: calories,
+          ),
+        );
+
+    return _ok(options, <String, Object?>{
+      'id': id,
+      'day_label': dayLabel,
+      'type': type,
+      'minutes': minutes,
+      'calories': calories,
+      'date_label': _dateLabelForDayLabel(dayLabel),
+      'time_label': _defaultTimeLabel(type),
+      'items': _defaultItems(type),
+    });
+  }
 
   // ---- Schedule ----
 

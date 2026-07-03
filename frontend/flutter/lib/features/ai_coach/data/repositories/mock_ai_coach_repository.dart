@@ -1,8 +1,21 @@
 import 'package:oncare/features/ai_coach/domain/entities/ai_coach_state.dart';
+import 'package:oncare/features/ai_coach/domain/entities/chat_message.dart';
 import 'package:oncare/features/ai_coach/domain/repositories/ai_coach_repository.dart';
 
 class MockAiCoachRepository implements AiCoachRepository {
   const MockAiCoachRepository();
+
+  @override
+  Future<ChatMessage> sendMessage({
+    required String message,
+    required List<ChatMessage> history,
+  }) async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return const ChatMessage(
+      role: ChatRole.coach,
+      content: '식단·운동·혈압·혈당 관리에 대해 무엇이든 물어봐 주세요. 온이가 도와드릴게요! 😊',
+    );
+  }
 
   @override
   Future<AiCoachState> fetchState() async {

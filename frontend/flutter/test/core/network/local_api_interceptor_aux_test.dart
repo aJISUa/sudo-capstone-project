@@ -76,4 +76,24 @@ void main() {
     expect(res.data!['status'], 'ok');
     expect(res.data!['backend'], 'drift-local');
   });
+
+  test('POST /ai-coach/chat returns a grounded reply with sources', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/ai-coach/chat',
+      data: <String, Object?>{'message': '나트륨을 줄이려면 어떻게 해요?'},
+    );
+    expect(res.statusCode, 200);
+    expect(res.data!['reply'], isNotEmpty);
+    final sources = (res.data!['sources']! as List<Object?>).cast<String>();
+    expect(sources, contains('나트륨 줄이기'));
+  });
+
+  test('POST /ai-coach/chat rejects an empty message', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/ai-coach/chat',
+      data: <String, Object?>{'message': '   '},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
 }

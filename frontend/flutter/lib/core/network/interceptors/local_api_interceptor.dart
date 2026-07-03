@@ -37,6 +37,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /schedule/events': _scheduleEvents,
     'GET /notifications': _notifications,
     'GET /ai-coach/feedback': _aiCoachFeedback,
+    'POST /ai-coach/chat': _aiCoachChat,
     'GET /users/me': _usersMe,
     'GET /users/me/health': _usersMeHealth,
     'GET /places/nearby': _placesNearby,
@@ -457,6 +458,82 @@ class LocalApiInterceptor extends Interceptor {
         },
       ],
     });
+  }
+
+  /// Interactive coach chat. Reads `{ message, history[] }` and returns
+  /// `{ reply, sources[] }`. Keyword-matched canned answers grounded in the
+  /// same public guidelines the real RAG backend seeds, so the demo (mock
+  /// mode) exchanges real messages without a server.
+  Future<Response<Object?>> _aiCoachChat(RequestOptions options) async {
+    final body = options.data;
+    Map<String, Object?> payload;
+    if (body is Map) {
+      payload = body.cast<String, Object?>();
+    } else if (body is String && body.isNotEmpty) {
+      payload = (jsonDecode(body) as Map<Object?, Object?>)
+          .cast<String, Object?>();
+    } else {
+      payload = <String, Object?>{};
+    }
+    final message = (payload['message'] as String? ?? '').trim();
+    if (message.isEmpty) {
+      return _badRequest(options, 'message is empty');
+    }
+
+    final (String reply, List<String> sources) = _mockCoachReply(message);
+    return _ok(options, <String, Object?>{'reply': reply, 'sources': sources});
+  }
+
+  (String, List<String>) _mockCoachReply(String message) {
+    bool has(List<String> keys) => keys.any(message.contains);
+
+    if (has(<String>['나트륨', '혈압', '짜', '소금', '국물'])) {
+      return (
+        '나트륨을 줄이려면 국물은 남기고 건더기 위주로 드시고, 소금 대신 후추·마늘·레몬으로 '
+        '간을 해보세요. 하루 나트륨을 2000mg 이하로 맞추면 혈압 관리에 큰 도움이 돼요. 🌿',
+        <String>['나트륨 줄이기', 'DASH 식단 개요'],
+      );
+    }
+    if (has(<String>['당', '혈당', '설탕', '단 것', '디저트'])) {
+      return (
+        '혈당 관리를 위해 가당 음료와 디저트 같은 단순당을 줄이고, 식이섬유가 풍부한 통곡물·채소를 '
+        '늘려보세요. 음료는 물이나 무가당 차로 바꾸는 것만으로도 효과가 좋아요. 🍵',
+        <String>['당류 관리'],
+      );
+    }
+    if (has(<String>['운동', '걷', '헬스', '유산소', '근력'])) {
+      return (
+        '빠르게 걷기 같은 중강도 유산소를 주 5회, 하루 30분씩 해보세요. 여기에 주 2회 가벼운 근력 '
+        '운동을 더하면 혈압·혈당 관리에 특히 좋아요. 식후 10분 걷기도 큰 도움이 됩니다. 🚶',
+        <String>['고혈압과 운동', '유산소와 근력 균형'],
+      );
+    }
+    if (has(<String>['뭐 먹', '식단', '점심', '저녁', '아침', '메뉴'])) {
+      return (
+        '채소·통곡물·저지방 단백질 위주의 DASH 식단을 추천해요. 국·찌개는 싱겁게, 튀김보다 구이·찜으로 '
+        '드시면 좋아요. 혹시 최근 나트륨이 높았다면 담백한 샐러드나 생선구이가 균형을 맞춰줘요. 🥗',
+        <String>['DASH 식단 개요'],
+      );
+    }
+    if (has(<String>['물', '수분'])) {
+      return (
+        '하루 6~8잔의 물을 나눠 마시는 것이 혈압과 신진대사에 도움이 돼요. 카페인·가당 음료는 줄이고 '
+        '물로 대체해보세요. 💧',
+        <String>['수분 섭취'],
+      );
+    }
+    if (has(<String>['체중', '살', '다이어트', '몸무게'])) {
+      return (
+        '급격한 감량보다 식단과 운동을 병행한 완만한 감량이 안전해요. 체중을 5~10%만 줄여도 혈압·혈당 '
+        '지표가 눈에 띄게 좋아질 수 있어요. 함께 천천히 가봐요! 💪',
+        <String>['체중 관리'],
+      );
+    }
+    return (
+      '좋은 질문이에요! 식단·운동·혈압·혈당·수분 관리에 대해 더 구체적으로 물어봐 주시면 온이가 '
+      '맞춤으로 도와드릴게요. 예를 들어 "나트륨 줄이는 법"이나 "오늘 뭐 먹을까?"처럼요. 😊',
+      <String>[],
+    );
   }
 
   // ---- Users / Me ----

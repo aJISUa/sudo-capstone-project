@@ -5,6 +5,7 @@ import 'package:oncare/design_system/atoms/app_card.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
+import 'package:oncare/features/ai_coach/presentation/widgets/coach_chat_card.dart';
 import 'package:oncare/features/dashboard/domain/entities/dashboard_summary.dart';
 
 /// The Home tab body — five stacked cards matching the React original
@@ -39,11 +40,10 @@ class DashboardContent extends StatelessWidget {
         onBloodPressure: onQuickInputBloodPressure,
         onBloodSugar: onQuickInputBloodSugar,
       ),
-      if (summary.sodiumWarning != null || summary.exerciseFeedback != null)
-        _DailyFeedbackCard(
-          dietLine: summary.sodiumWarning,
-          exerciseLine: summary.exerciseFeedback,
-        ),
+      CoachChatCard(
+        dietLine: summary.sodiumWarning,
+        exerciseLine: summary.exerciseFeedback,
+      ),
       _HealthSummaryCard(summary: summary),
       _ScheduleCard(items: summary.todaySchedule, onOpenAll: onOpenSchedule),
       _WeekScoreCard(score: summary.weekScore, delta: summary.weekScoreDelta),
@@ -146,70 +146,6 @@ class _QuickInputCard extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Combined daily-feedback card — sits between 오늘의 건강 기록 and
-/// 오늘의 건강 요약. White surface with the design-system gray
-/// border, robot avatar on the left, and one bullet per available
-/// feedback line (diet / exercise).
-class _DailyFeedbackCard extends StatelessWidget {
-  const _DailyFeedbackCard({this.dietLine, this.exerciseLine});
-
-  final String? dietLine;
-  final String? exerciseLine;
-
-  String _withEmoji(String text, String emoji) {
-    final t = text.trimRight();
-    return t.endsWith(emoji) ? t : '$t $emoji';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final lines = <({String text, String emoji})>[
-      if (dietLine != null) (text: dietLine!, emoji: '🥗'),
-      if (exerciseLine != null) (text: exerciseLine!, emoji: '🚶'),
-    ];
-
-    return AppCard(
-      outlined: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.18),
-              borderRadius: const BorderRadius.all(AppRadius.lg),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.smart_toy_outlined,
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                for (int i = 0; i < lines.length; i++) ...<Widget>[
-                  Text(
-                    _withEmoji(lines[i].text, lines[i].emoji),
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  if (i < lines.length - 1)
-                    const SizedBox(height: AppSpacing.sm),
-                ],
-              ],
-            ),
           ),
         ],
       ),

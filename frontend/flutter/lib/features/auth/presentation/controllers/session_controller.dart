@@ -65,6 +65,26 @@ class SessionController extends StateNotifier<SessionState> {
     state = const SessionState(status: SessionStatus.authenticated);
   }
 
+  /// Register a new account → POST /auth/register (returns the created
+  /// user, not a token), then log in with the same credentials so the
+  /// user lands authenticated. Throws on failure (e.g. 409 duplicate).
+  Future<void> register({
+    required String email,
+    required String password,
+    String name = '',
+  }) async {
+    final dio = _ref.read(dioProvider);
+    await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{
+        'email': email,
+        'password': password,
+        'name': name,
+      },
+    );
+    await login(email: email, password: password);
+  }
+
   /// Skip auth — demo mode. No token; the backend demo-fallback serves data.
   void enterDemo() {
     _setToken(null);

@@ -54,5 +54,19 @@ void main() {
         isNull,
       );
     });
+
+    test('sign-up route is public like sign-in', () {
+      // signed-out / restoring may reach it; already-in-app is bounced out.
+      expect(sessionRedirect(SessionStatus.signedOut, AppRoutes.signUp), isNull);
+      expect(sessionRedirect(SessionStatus.unknown, AppRoutes.signUp), isNull);
+      expect(
+        sessionRedirect(SessionStatus.demo, AppRoutes.signUp),
+        AppRoutes.dashboard,
+      );
+      expect(
+        sessionRedirect(SessionStatus.authenticated, AppRoutes.signUp),
+        AppRoutes.dashboard,
+      );
+    });
   });
 }

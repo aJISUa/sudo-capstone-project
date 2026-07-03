@@ -1,61 +1,90 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:oncare/app/router/routes.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
-import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
 import 'package:oncare/features/auth/presentation/widgets/auth_fields.dart';
 
-/// 로그인 화면 — 이메일/비밀번호 로그인 + 우측 상단 "데모로 시작" 바로가기.
-class SignInPage extends ConsumerStatefulWidget {
-  const SignInPage({super.key});
+/// 회원가입 화면 — 이름/이메일/비밀번호로 계정을 만들고, 성공 시 자동
+/// 로그인해 대시보드로 진입한다(라우터 가드가 인증 상태를 감지).
+class SignUpPage extends ConsumerStatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  ConsumerState<SignInPage> createState() => _SignInPageState();
+  ConsumerState<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignInPageState extends ConsumerState<SignInPage> {
+class _SignUpPageState extends ConsumerState<SignUpPage> {
+  final TextEditingController _name = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  final TextEditingController _passwordConfirm = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
 
   @override
   void dispose() {
+    _name.dispose();
     _email.dispose();
     _password.dispose();
+    _passwordConfirm.dispose();
     super.dispose();
   }
 
-  void _enterDemo() {
-    ref.read(sessionControllerProvider.notifier).enterDemo();
-    context.go(AppRoutes.dashboard);
+  void _backToSignIn() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.signIn);
+    }
   }
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (_loading) return;
     final messenger = ScaffoldMessenger.of(context);
+    final name = _name.text.trim();
     final email = _email.text.trim();
     final password = _password.text;
+    final confirm = _passwordConfirm.text;
     if (email.isEmpty || password.isEmpty) {
-      messenger.showSnackBar(const SnackBar(content: Text('이메일과 비밀번호를 입력해 주세요')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('이메일과 비밀번호를 입력해 주세요')),
+      );
+      return;
+    }
+    if (password.length < 8) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('비밀번호는 8자 이상이어야 해요')),
+      );
+      return;
+    }
+    if (password != confirm) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('비밀번호가 일치하지 않아요')),
+      );
       return;
     }
     setState(() => _loading = true);
     try {
-      await ref.read(sessionControllerProvider.notifier).login(
-        email: email,
-        password: password,
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .register(email: email, password: password, name: name);
       if (!mounted) return;
       context.go(AppRoutes.dashboard);
+    } on DioException catch (e) {
+      if (mounted) setState(() => _loading = false);
+      final msg = e.response?.statusCode == 409
+          ? '이미 가입된 이메일이에요. 로그인해 주세요.'
+          : '회원가입에 실패했어요. 잠시 후 다시 시도해 주세요.';
+      messenger.showSnackBar(SnackBar(content: Text(msg)));
     } catch (_) {
       if (mounted) setState(() => _loading = false);
       messenger.showSnackBar(
-        const SnackBar(content: Text('로그인에 실패했어요. 이메일·비밀번호를 확인해 주세요')),
+        const SnackBar(content: Text('회원가입에 실패했어요. 잠시 후 다시 시도해 주세요.')),
       );
     }
   }
@@ -68,16 +97,14 @@ class _SignInPageState extends ConsumerState<SignInPage> {
       body: SafeArea(
         child: Stack(
           children: <Widget>[
-            // 우측 상단 데모 바로가기
             Align(
-              alignment: Alignment.topRight,
+              alignment: Alignment.topLeft,
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                child: TextButton.icon(
-                  onPressed: _enterDemo,
-                  style: TextButton.styleFrom(foregroundColor: AppColors.mutedForeground),
-                  icon: const Text('데모로 시작', style: TextStyle(fontSize: 13)),
-                  label: const Icon(Icons.arrow_forward, size: 16),
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                child: IconButton(
+                  onPressed: _backToSignIn,
+                  icon: const Icon(Icons.arrow_back),
+                  color: AppColors.mutedForeground,
                 ),
               ),
             ),
@@ -90,26 +117,8 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      // 브랜드 — 온케어 로고
-                      Center(
-                        child: Container(
-                          width: 84,
-                          height: 84,
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: const BorderRadius.all(AppRadius.card),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Image.asset(
-                            'assets/images/oncare-logo.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
                       Text(
-                        '온케어',
+                        '회원가입',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w700,
@@ -117,7 +126,7 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '고혈압·당뇨 관리를 위한 AI 헬스케어',
+                        '온케어 계정을 만들어 건강 관리를 시작하세요',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.mutedForeground,
@@ -125,6 +134,12 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                       ),
                       const SizedBox(height: AppSpacing.xxl),
 
+                      AuthField(
+                        controller: _name,
+                        hint: '이름',
+                        icon: Icons.person_outline,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
                       AuthField(
                         controller: _email,
                         hint: '이메일',
@@ -134,10 +149,9 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                       const SizedBox(height: AppSpacing.md),
                       AuthField(
                         controller: _password,
-                        hint: '비밀번호',
+                        hint: '비밀번호 (8자 이상)',
                         icon: Icons.lock_outline,
                         obscure: _obscure,
-                        onSubmitted: (_) => _login(),
                         trailing: IconButton(
                           icon: Icon(
                             _obscure ? Icons.visibility_off : Icons.visibility,
@@ -147,39 +161,37 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.md),
+                      AuthField(
+                        controller: _passwordConfirm,
+                        hint: '비밀번호 확인',
+                        icon: Icons.lock_outline,
+                        obscure: _obscure,
+                        onSubmitted: (_) => _register(),
+                      ),
                       const SizedBox(height: AppSpacing.xl),
 
-                      // 로그인 버튼(그라데이션)
                       AuthGradientButton(
                         loading: _loading,
-                        label: '로그인',
-                        onTap: _login,
+                        label: '가입하고 시작하기',
+                        onTap: _register,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           const Text(
-                            '계정이 없으신가요?',
+                            '이미 계정이 있으신가요?',
                             style: TextStyle(color: AppColors.mutedForeground),
                           ),
                           TextButton(
-                            onPressed: () => context.push(AppRoutes.signUp),
+                            onPressed: _backToSignIn,
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.primary,
                             ),
-                            child: const Text('회원가입'),
+                            child: const Text('로그인'),
                           ),
                         ],
-                      ),
-                      Center(
-                        child: TextButton(
-                          onPressed: _enterDemo,
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                          ),
-                          child: const Text('로그인 없이 데모 둘러보기'),
-                        ),
                       ),
                     ],
                   ),
@@ -192,4 +204,3 @@ class _SignInPageState extends ConsumerState<SignInPage> {
     );
   }
 }
-

@@ -11,6 +11,7 @@ import 'package:oncare/design_system/catalog/ui_catalog_page.dart';
 import 'package:oncare/features/ai_coach/presentation/pages/ai_coach_page.dart';
 import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
 import 'package:oncare/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:oncare/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:oncare/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:oncare/features/diet/presentation/pages/diet_record_page.dart';
 import 'package:oncare/features/exercise/presentation/pages/exercise_page.dart';
@@ -28,14 +29,15 @@ import 'package:oncare/features/place/presentation/pages/place_page.dart';
 ///
 /// Returning `null` means "no redirect — stay put".
 String? sessionRedirect(SessionStatus status, String location) {
-  final atSignIn = location == AppRoutes.signIn;
+  final onAuthRoute =
+      location == AppRoutes.signIn || location == AppRoutes.signUp;
   switch (status) {
     case SessionStatus.unknown:
     case SessionStatus.signedOut:
-      return atSignIn ? null : AppRoutes.signIn;
+      return onAuthRoute ? null : AppRoutes.signIn;
     case SessionStatus.demo:
     case SessionStatus.authenticated:
-      return atSignIn ? AppRoutes.dashboard : null;
+      return onAuthRoute ? AppRoutes.dashboard : null;
   }
 }
 
@@ -117,6 +119,10 @@ GoRouter buildAppRouter({
       GoRoute(
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.signUp,
+        builder: (context, state) => const SignUpPage(),
       ),
       if (!config.isProd)
         GoRoute(

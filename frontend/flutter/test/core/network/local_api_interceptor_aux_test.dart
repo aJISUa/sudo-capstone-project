@@ -147,4 +147,40 @@ void main() {
     );
     expect(res.statusCode, 400);
   });
+
+  test('POST /auth/register creates a user (201) for valid input', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{
+        'email': 'new@oncare.com',
+        'password': 'password123',
+        'name': '홍길동',
+      },
+    );
+    expect(res.statusCode, 201);
+    expect(res.data!['email'], 'new@oncare.com');
+    expect(res.data!['name'], '홍길동');
+    expect((res.data!['id']! as String).isNotEmpty, isTrue);
+  });
+
+  test('POST /auth/register defaults name to the email local-part', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{
+        'email': 'solo@oncare.com',
+        'password': 'password123',
+      },
+    );
+    expect(res.statusCode, 201);
+    expect(res.data!['name'], 'solo');
+  });
+
+  test('POST /auth/register rejects empty credentials', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{'email': '', 'password': ''},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
 }

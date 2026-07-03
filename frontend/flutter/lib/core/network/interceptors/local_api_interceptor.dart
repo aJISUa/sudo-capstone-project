@@ -41,6 +41,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /ai-coach/feedback': _aiCoachFeedback,
     'POST /ai-coach/chat': _aiCoachChat,
     'POST /auth/login': _authLogin,
+    'POST /auth/register': _authRegister,
     'GET /users/me': _usersMe,
     'GET /users/me/profile': _usersMeProfile,
     'PUT /users/me': _usersMeUpdate,
@@ -679,6 +680,29 @@ class LocalApiInterceptor extends Interceptor {
       'refresh_token': 'demo-refresh',
       'token_type': 'bearer',
     });
+  }
+
+  /// POST /auth/register — mirrors FastAPI: returns the created user
+  /// `{id, name, email}` with 201. The demo accepts any non-empty
+  /// email/password (real duplicate/validation is enforced by FastAPI
+  /// when USE_MOCK_API=false). `name` defaults to the email local-part.
+  Future<Response<Object?>> _authRegister(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final email = (body['email'] as String? ?? '').trim();
+    final password = (body['password'] as String? ?? '').trim();
+    final name = (body['name'] as String? ?? '').trim();
+    if (email.isEmpty || password.isEmpty) {
+      return _badRequest(options, 'email and password are required');
+    }
+    return Response<Object?>(
+      requestOptions: options,
+      statusCode: 201,
+      data: <String, Object?>{
+        'id': 'user-${DateTime.now().microsecondsSinceEpoch}',
+        'name': name.isEmpty ? email.split('@').first : name,
+        'email': email,
+      },
+    );
   }
 
   // ---- Profile (내 프로필 / 건강 목표) — AppKeyValues 로 영속 ----

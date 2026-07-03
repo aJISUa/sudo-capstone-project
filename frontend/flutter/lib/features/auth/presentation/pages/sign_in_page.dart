@@ -95,20 +95,20 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      // 브랜드
+                      // 브랜드 — 온케어 로고
                       Center(
                         child: Container(
-                          width: 72,
-                          height: 72,
-                          decoration: const BoxDecoration(
-                            gradient: _brandGradient,
-                            borderRadius: BorderRadius.all(AppRadius.card),
+                          width: 84,
+                          height: 84,
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: const BorderRadius.all(AppRadius.card),
+                            border: Border.all(color: AppColors.border),
                           ),
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.favorite_rounded,
-                            color: Colors.white,
-                            size: 38,
+                          child: Image.asset(
+                            'assets/images/oncare-logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),

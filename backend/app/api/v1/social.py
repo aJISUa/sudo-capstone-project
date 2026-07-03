@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token, create_refresh_token
 from app.db.session import get_db
 from app.models.models import SocialAccount, User
@@ -59,7 +60,11 @@ def _find_or_create_user(db: Session, identity: SocialIdentity) -> User:
     return user
 
 
-@router.post("/auth/social/{provider}", response_model=Token)
+@router.post(
+    "/auth/social/{provider}",
+    response_model=Token,
+    dependencies=[Depends(rate_limit("auth-social"))],
+)
 async def social_login(
     provider: str,
     payload: SocialLoginRequest,

@@ -20,6 +20,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, RequireUser
+from app.core.rate_limit import rate_limit
 from app.core.security import (
     create_access_token, create_refresh_token, decode_refresh_token,
     hash_password, verify_password,
@@ -194,7 +195,12 @@ def delete_me(
 
 # ---- 인증 (Stage 4 대비, 지금도 동작) ----
 
-@router.post("/auth/register", response_model=UserMe, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/auth/register",
+    response_model=UserMe,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit("auth-register"))],
+)
 def register(payload: UserRegister, db: Annotated[Session, Depends(get_db)]) -> UserMe:
     exists = db.scalar(select(User).where(User.email == payload.email))
     if exists:
@@ -211,7 +217,11 @@ def register(payload: UserRegister, db: Annotated[Session, Depends(get_db)]) -> 
     return UserMe(id=user.id, name=user.name, email=user.email)
 
 
-@router.post("/auth/login", response_model=Token)
+@router.post(
+    "/auth/login",
+    response_model=Token,
+    dependencies=[Depends(rate_limit("auth-login"))],
+)
 def login(
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
@@ -225,7 +235,11 @@ def login(
     )
 
 
-@router.post("/auth/refresh", response_model=Token)
+@router.post(
+    "/auth/refresh",
+    response_model=Token,
+    dependencies=[Depends(rate_limit("auth-refresh"))],
+)
 def refresh(payload: RefreshRequest, db: Annotated[Session, Depends(get_db)]) -> Token:
     """refresh 토큰으로 새 access(+refresh) 토큰 발급(회전)."""
     invalid = HTTPException(status_code=401, detail="유효하지 않은 refresh 토큰입니다.")

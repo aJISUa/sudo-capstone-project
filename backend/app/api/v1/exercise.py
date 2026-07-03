@@ -26,7 +26,7 @@ from app.services.exercise_service import (
 
 router = APIRouter(tags=["exercise"])
 
-_ALLOWED_TYPES = {"cardio", "strength", "yoga", "walking", "stretching"}
+_ALLOWED_TYPES = {"cardio", "strength", "yoga", "walking", "stretching", "other"}
 
 
 @router.get("/exercise/weeks/current", response_model=ExerciseWeekResponse)

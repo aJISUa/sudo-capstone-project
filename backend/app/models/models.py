@@ -35,6 +35,8 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100), default="")
     hashed_password: Mapped[str] = mapped_column(String(255), default="")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # 관리자 권한(공공문서 업로드 등 민감 엔드포인트 접근). 기본 False.
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     health_profile: Mapped["HealthProfile | None"] = relationship(

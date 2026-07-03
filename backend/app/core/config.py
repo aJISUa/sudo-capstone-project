@@ -62,6 +62,12 @@ class Settings(BaseSettings):
     # --- 기타 ---
     cors_allow_origins: str = "*"
     seed_demo_data: bool = True
+    # 관리자 이메일(콤마구분) — 기동 시 해당 사용자를 is_admin=True 로 승격
+    admin_emails: str = ""
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
 
     @property
     def is_prod(self) -> bool:

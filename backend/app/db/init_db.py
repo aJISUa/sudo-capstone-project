@@ -39,6 +39,8 @@ def init_db() -> None:
         _seed_demo_places()
         _seed_demo_notifications()
 
+    _promote_admins()  # ADMIN_EMAILS 사용자를 관리자로 승격(멱등)
+
 
 def _seed_demo_user() -> None:
     db: Session = SessionLocal()
@@ -52,6 +54,29 @@ def _seed_demo_user() -> None:
                 hashed_password="",  # 데모용. 로그인은 Stage 4.
             )
             db.add(user)
+            db.commit()
+    finally:
+        db.close()
+
+
+def _promote_admins() -> None:
+    """ADMIN_EMAILS(콤마구분)에 있는 사용자를 관리자로 승격(멱등)."""
+    from sqlalchemy import func
+
+    emails = get_settings().admin_email_set
+    if not emails:
+        return
+    db: Session = SessionLocal()
+    try:
+        users = db.scalars(
+            select(models.User).where(func.lower(models.User.email).in_(emails))
+        ).all()
+        changed = False
+        for u in users:
+            if not u.is_admin:
+                u.is_admin = True
+                changed = True
+        if changed:
             db.commit()
     finally:
         db.close()

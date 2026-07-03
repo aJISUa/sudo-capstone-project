@@ -18,6 +18,9 @@ class AppRoutes {
   static const String signIn = '/auth/sign-in';
   static const String signUp = '/auth/sign-up';
 
+  // First-run onboarding (shown right after sign-up)
+  static const String onboarding = '/onboarding';
+
   // Dev-only routes (registered only in non-prod builds).
   static const String uiCatalog = '/dev/ui-catalog';
 }

@@ -74,7 +74,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           .read(sessionControllerProvider.notifier)
           .register(email: email, password: password, name: name);
       if (!mounted) return;
-      context.go(AppRoutes.dashboard);
+      // New accounts land in first-run onboarding; the guard keeps the
+      // (now authenticated) user on this protected route.
+      context.go(AppRoutes.onboarding);
     } on DioException catch (e) {
       if (mounted) setState(() => _loading = false);
       final msg = e.response?.statusCode == 409

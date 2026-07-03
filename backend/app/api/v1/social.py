@@ -10,13 +10,14 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.rate_limit import rate_limit
 from app.core.security import create_access_token, create_refresh_token
 from app.db.session import get_db
+from app.services.audit import client_ip, record as audit
 from app.models.models import SocialAccount, User
 from app.schemas.user import SocialLoginRequest, Token
 from app.services.social.base import SocialAuthError, SocialIdentity
@@ -68,6 +69,7 @@ def _find_or_create_user(db: Session, identity: SocialIdentity) -> User:
 async def social_login(
     provider: str,
     payload: SocialLoginRequest,
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
 ) -> Token:
     try:
@@ -80,9 +82,11 @@ async def social_login(
     except NotImplementedError:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="아직 지원하지 않는 소셜 로그인입니다.")
     except SocialAuthError:
+        audit(db, event="auth.social", ip=client_ip(request), success=False, detail=provider)
         raise HTTPException(status_code=401, detail="소셜 인증에 실패했습니다.")
 
     user = _find_or_create_user(db, identity)
+    audit(db, event="auth.social", user_id=user.id, ip=client_ip(request), success=True, detail=provider)
     return Token(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),

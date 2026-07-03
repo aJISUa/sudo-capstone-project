@@ -13,12 +13,13 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import RequireAdmin
 from app.db.session import get_db
+from app.services.audit import client_ip, record as audit
 from app.services.coach.rag import ingest_document
 
 router = APIRouter(tags=["coach-docs"])
@@ -35,6 +36,7 @@ class PublicDocIn(BaseModel):
 def upload_public_doc(
     payload: PublicDocIn,
     admin: RequireAdmin,  # 관리자 전용(비관리자 403, 미인증 401)
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
 ) -> dict:
     if not payload.content.strip():
@@ -49,4 +51,8 @@ def upload_public_doc(
         raise HTTPException(status_code=503, detail=f"임베딩 불가: {e}")
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"적재 실패: {e}")
+    audit(
+        db, event="admin.public_doc_upload", user_id=admin.id,
+        ip=client_ip(request), success=True, detail=f"{payload.domain}:{payload.title}",
+    )
     return {"ingested_chunks": n, "domain": payload.domain, "title": payload.title}

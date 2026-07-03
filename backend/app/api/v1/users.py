@@ -14,13 +14,14 @@ import uuid
 from typing import Annotated
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, RequireUser
 from app.core.rate_limit import rate_limit
+from app.services.audit import client_ip, record as audit
 from app.core.security import (
     create_access_token, create_refresh_token, decode_refresh_token,
     hash_password, verify_password,
@@ -201,9 +202,14 @@ def delete_me(
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(rate_limit("auth-register"))],
 )
-def register(payload: UserRegister, db: Annotated[Session, Depends(get_db)]) -> UserMe:
+def register(
+    request: Request,
+    payload: UserRegister,
+    db: Annotated[Session, Depends(get_db)],
+) -> UserMe:
     exists = db.scalar(select(User).where(User.email == payload.email))
     if exists:
+        audit(db, event="auth.register", ip=client_ip(request), success=False, detail=payload.email)
         raise HTTPException(status_code=409, detail="이미 가입된 이메일입니다.")
     user = User(
         id=f"user-{uuid.uuid4().hex[:12]}",
@@ -214,6 +220,7 @@ def register(payload: UserRegister, db: Annotated[Session, Depends(get_db)]) -> 
     db.add(user)
     db.commit()
     db.refresh(user)
+    audit(db, event="auth.register", user_id=user.id, ip=client_ip(request), success=True)
     return UserMe(id=user.id, name=user.name, email=user.email)
 
 
@@ -223,12 +230,15 @@ def register(payload: UserRegister, db: Annotated[Session, Depends(get_db)]) -> 
     dependencies=[Depends(rate_limit("auth-login"))],
 )
 def login(
+    request: Request,
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
 ) -> Token:
     user = db.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.hashed_password):
+        audit(db, event="auth.login", ip=client_ip(request), success=False, detail=form.username)
         raise HTTPException(status_code=401, detail="이메일 또는 비밀번호가 올바르지 않습니다.")
+    audit(db, event="auth.login", user_id=user.id, ip=client_ip(request), success=True)
     return Token(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),

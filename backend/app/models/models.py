@@ -54,6 +54,24 @@ class HealthProfile(Base):
     risk_level: Mapped[str] = mapped_column(String(20), default="low")  # low|medium|high
     conditions: Mapped[str] = mapped_column(Text, default="")  # "고혈압, 당뇨 전단계"
     goals: Mapped[str] = mapped_column(Text, default="")
+
+    # 개인정보(내 프로필 모달) + 온보딩 인구통계
+    phone: Mapped[str] = mapped_column(String(20), default="")
+    birth_date: Mapped[str] = mapped_column(String(10), default="")   # YYYY-MM-DD
+    gender: Mapped[str] = mapped_column(String(10), default="")       # male|female|other
+    height_cm: Mapped[float | None] = mapped_column(Float, nullable=True)
+    weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # 건강 목표(건강 목표 모달)
+    goal_weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
+    goal_bp_systolic: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    goal_blood_sugar: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    daily_calories: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    daily_sodium_mg: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    # 온보딩 완료 여부(프론트 온보딩 게이팅용)
+    onboarded: Mapped[bool] = mapped_column(Boolean, default=False)
+
     activity_points: Mapped[int] = mapped_column(Integer, default=0)
     activity_rank: Mapped[int | None] = mapped_column(Integer, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(

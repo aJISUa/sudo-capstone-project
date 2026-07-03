@@ -40,6 +40,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /notifications': _notifications,
     'GET /ai-coach/feedback': _aiCoachFeedback,
     'POST /ai-coach/chat': _aiCoachChat,
+    'POST /auth/login': _authLogin,
     'GET /users/me': _usersMe,
     'GET /users/me/profile': _usersMeProfile,
     'PUT /users/me': _usersMeUpdate,
@@ -662,6 +663,23 @@ class LocalApiInterceptor extends Interceptor {
   }
 
   // ---- Users / Me ----
+
+  /// POST /auth/login — the demo accepts any non-empty credentials and
+  /// issues a token so the login flow works without a server. Real
+  /// credentials are validated by FastAPI when USE_MOCK_API=false.
+  Future<Response<Object?>> _authLogin(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final username = (body['username'] as String? ?? '').trim();
+    final password = (body['password'] as String? ?? '').trim();
+    if (username.isEmpty || password.isEmpty) {
+      return _badRequest(options, 'username and password are required');
+    }
+    return _ok(options, <String, Object?>{
+      'access_token': 'demo-access-${DateTime.now().microsecondsSinceEpoch}',
+      'refresh_token': 'demo-refresh',
+      'token_type': 'bearer',
+    });
+  }
 
   // ---- Profile (내 프로필 / 건강 목표) — AppKeyValues 로 영속 ----
 

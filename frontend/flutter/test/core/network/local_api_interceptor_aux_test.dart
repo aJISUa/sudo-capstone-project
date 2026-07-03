@@ -124,4 +124,27 @@ void main() {
     expect(prof.data!['daily_sodium_mg'], 1800);
     expect(prof.data!['goal_bp_systolic'], 120); // 미변경 목표는 기본 유지
   });
+
+  test('POST /auth/login issues a token for non-empty credentials', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/login',
+      data: <String, Object?>{'username': 'a@b.com', 'password': 'pw'},
+      options: Options(contentType: Headers.formUrlEncodedContentType),
+    );
+    expect(res.statusCode, 200);
+    expect((res.data!['access_token']! as String).isNotEmpty, isTrue);
+    expect(res.data!['token_type'], 'bearer');
+  });
+
+  test('POST /auth/login rejects empty credentials', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/login',
+      data: <String, Object?>{'username': '', 'password': ''},
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        validateStatus: (int? s) => true,
+      ),
+    );
+    expect(res.statusCode, 400);
+  });
 }

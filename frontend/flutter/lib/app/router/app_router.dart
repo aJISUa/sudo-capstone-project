@@ -25,7 +25,7 @@ GoRouter buildAppRouter({
   NavigatorObserver? observer,
 }) {
   return GoRouter(
-    initialLocation: AppRoutes.dashboard,
+    initialLocation: AppRoutes.signIn,
     debugLogDiagnostics: !config.isProd,
     observers: observer == null
         ? const <NavigatorObserver>[]

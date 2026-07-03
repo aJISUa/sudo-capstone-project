@@ -98,6 +98,29 @@ class DietEntry(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class FoodNutrient(Base):
+    """공공 식품영양성분 DB(식약처/국가표준) 큐레이션 테이블.
+
+    Vision 인식이 준 '음식 이름'을 이 표에 매핑해 신뢰 가능한 1인분 영양가로 교체한다.
+    (LLM 은 '무엇인지' 식별에 강하고, 정확한 영양 수치는 이 공공 DB 가 제공.)
+    수치는 1회 제공량(serving_size_g) 기준. name_norm 은 매칭용 정규화 이름.
+    """
+    __tablename__ = "food_nutrients"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), index=True)
+    name_norm: Mapped[str] = mapped_column(String(100), default="", index=True)
+    category: Mapped[str] = mapped_column(String(30), default="")  # 밥류|국·찌개류|구이류...
+    serving_size_g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    calories: Mapped[float] = mapped_column(Float, default=0)      # kcal / 1인분
+    sodium_mg: Mapped[float] = mapped_column(Float, default=0)     # mg  / 1인분
+    sugar_g: Mapped[float] = mapped_column(Float, default=0)       # g   / 1인분
+    carbs_g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    protein_g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fat_g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    source: Mapped[str] = mapped_column(String(20), default="mfds")  # 데이터 출처(식약처=mfds)
+
+
 class ExerciseSession(Base):
     """운동 기록 — drift ExerciseSessions 대응."""
     __tablename__ = "exercise_sessions"

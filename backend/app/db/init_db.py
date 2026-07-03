@@ -29,6 +29,9 @@ def init_db() -> None:
     if settings.auto_create_tables:
         Base.metadata.create_all(bind=engine)
 
+    # 참조 데이터: 공공 식품영양성분 DB(데모/운영 무관, 멱등)
+    _seed_food_nutrients()
+
     if settings.seed_demo_data:
         _seed_demo_user()
         _seed_demo_places()
@@ -48,6 +51,33 @@ def _seed_demo_user() -> None:
             )
             db.add(user)
             db.commit()
+    finally:
+        db.close()
+
+
+def _seed_food_nutrients() -> None:
+    """공공 식품영양성분 DB 큐레이션 시드(멱등). name_norm 은 매칭기와 동일 규칙으로 생성."""
+    from app.data.food_nutrients_seed import FOOD_NUTRIENTS
+    from app.services.nutrition.matcher import normalize
+
+    db: Session = SessionLocal()
+    try:
+        if db.scalar(select(models.FoodNutrient).limit(1)):
+            return
+        for item in FOOD_NUTRIENTS:
+            db.add(models.FoodNutrient(
+                name=item["name"],
+                name_norm=normalize(item["name"]),
+                category=item.get("category", ""),
+                serving_size_g=item.get("serving_size_g"),
+                calories=item.get("calories", 0),
+                sodium_mg=item.get("sodium_mg", 0),
+                sugar_g=item.get("sugar_g", 0),
+                carbs_g=item.get("carbs_g"),
+                protein_g=item.get("protein_g"),
+                fat_g=item.get("fat_g"),
+            ))
+        db.commit()
     finally:
         db.close()
 

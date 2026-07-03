@@ -15,10 +15,12 @@ _REGISTRY: dict[str, type[FoodRecognizer]] = {}
 def _registry() -> dict[str, type[FoodRecognizer]]:
     if not _REGISTRY:
         from app.services.recognizer.gemini import GeminiVisionRecognizer
+        from app.services.recognizer.stub import StubFoodRecognizer
         from app.services.recognizer.yolo import YoloPipelineRecognizer
 
         _REGISTRY["gemini"] = GeminiVisionRecognizer
         _REGISTRY["yolo"] = YoloPipelineRecognizer
+        _REGISTRY["stub"] = StubFoodRecognizer  # 오프라인 폴백(키 불필요)
     return _REGISTRY
 
 
@@ -31,5 +33,10 @@ def _build(name: str) -> FoodRecognizer:
 
 
 def get_recognizer(name: str | None = None) -> FoodRecognizer:
-    engine = (name or get_settings().recognizer).lower()
+    """설정된 인식기를 반환. gemini 인데 키가 없으면 오프라인 스텁으로 폴백
+    (개발/CI/데모에서도 /diet/analyze 가 동작하도록)."""
+    s = get_settings()
+    engine = (name or s.recognizer).lower()
+    if engine == "gemini" and not s.gemini_api_key:
+        engine = "stub"
     return _build(engine)

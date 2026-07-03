@@ -65,6 +65,10 @@ class Settings(BaseSettings):
     # 관리자 이메일(콤마구분) — 기동 시 해당 사용자를 is_admin=True 로 승격
     admin_emails: str = ""
 
+    # --- Rate limit (인증 엔드포인트 브루트포스 방어) ---
+    rate_limit_enabled: bool = True
+    rate_limit_auth_per_minute: int = 10  # IP·엔드포인트당 분당 시도 한도
+
     @property
     def admin_email_set(self) -> set[str]:
         return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:oncare/core/errors/app_error.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/diet/presentation/controllers/diet_controller.dart';
-import 'package:oncare/features/diet/presentation/pages/diet_add_camera_page.dart';
+import 'package:oncare/features/diet/presentation/pages/diet_analyze_page.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_summary_card.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_week_strip.dart';
 import 'package:oncare/features/diet/presentation/widgets/meal_card.dart';
@@ -27,20 +28,60 @@ class DietRecordPage extends ConsumerStatefulWidget {
 class _DietRecordPageState extends ConsumerState<DietRecordPage> {
   late DateTime _selectedDay = DateTime.now();
 
+  static String _currentMealType() {
+    final h = DateTime.now().hour;
+    if (h < 11) return 'breakfast';
+    if (h < 15) return 'lunch';
+    if (h < 21) return 'dinner';
+    return 'snack';
+  }
+
+  Future<ImageSource?> _pickSource() {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (BuildContext ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('사진 촬영'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('갤러리에서 선택'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _openDietAddFlow() async {
-    final captured = await Navigator.of(context).push<bool>(
+    final source = await _pickSource();
+    if (source == null) return;
+    final XFile? file = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1600,
+    );
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+
+    final added = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
-        builder: (_) => const DietAddCameraPage(),
+        builder: (_) => DietAnalyzePage(imageBytes: bytes, mealType: _currentMealType()),
         fullscreenDialog: true,
       ),
     );
     if (!mounted) return;
-    if (captured == true) {
+    if (added == true) {
+      ref.invalidate(dietTodayProvider); // 새 식단이 오늘 목록·요약에 반영
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('식단 분석을 완료했어요. 결과 확인 화면은 곧 공개됩니다.'),
-          duration: Duration(seconds: 3),
-        ),
+        const SnackBar(content: Text('식단이 추가되었어요')),
       );
     }
   }

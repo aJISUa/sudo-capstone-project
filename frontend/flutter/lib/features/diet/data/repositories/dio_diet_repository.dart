@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
+import 'package:oncare/features/diet/domain/entities/diet_analysis.dart';
 import 'package:oncare/features/diet/domain/entities/diet_day.dart';
 import 'package:oncare/features/diet/domain/repositories/diet_repository.dart';
 
@@ -15,5 +18,26 @@ class DioDietRepository implements DietRepository {
   Future<DietDay> fetchToday() async {
     final res = await _dio.get<Map<String, Object?>>('/diet/days/today');
     return DietDay.fromJson(res.data!);
+  }
+
+  @override
+  Future<DietAnalysisResult> analyze({
+    required Uint8List imageBytes,
+    required String filename,
+    required String mealType,
+  }) async {
+    final form = FormData.fromMap(<String, Object?>{
+      'image': MultipartFile.fromBytes(
+        imageBytes,
+        filename: filename,
+        contentType: DioMediaType('image', 'jpeg'),
+      ),
+      'meal_type': mealType,
+    });
+    final res = await _dio.post<Map<String, Object?>>(
+      '/diet/analyze',
+      data: form,
+    );
+    return DietAnalysisResult.fromResponse(res.data!);
   }
 }

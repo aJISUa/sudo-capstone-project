@@ -33,6 +33,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /version': _version,
     'GET /dashboard/summary': _dashboardSummary,
     'GET /diet/days/today': _dietToday,
+    'POST /diet/analyze': _dietAnalyze,
     'GET /exercise/weeks/current': _exerciseCurrentWeek,
     'POST /exercise/sessions': _exerciseAddSession,
     'GET /schedule/events': _scheduleEvents,
@@ -242,6 +243,75 @@ class LocalApiInterceptor extends Interceptor {
       'ai_coach_message': totalSodium > 2000
           ? '오늘 점심에 나트륨이 많았어요. 저녁은 담백한 구이/샐러드로 균형을 맞춰봐요!'
           : '균형 잡힌 하루였어요. 내일도 이대로 가요!',
+    });
+  }
+
+  /// POST /diet/analyze — the mock can't see the uploaded image, so it
+  /// returns a deterministic "recognized" meal (nutrition from the same
+  /// public DB the real backend maps to) and persists a diet entry to
+  /// drift so it shows up in GET /diet/days/today. `diet-` id (not
+  /// `seed-`) means seedIfEmpty never wipes it.
+  Future<Response<Object?>> _dietAnalyze(RequestOptions options) async {
+    // meal_type 은 multipart FormData 또는 Map 에서 추출.
+    String mealType = 'lunch';
+    final data = options.data;
+    if (data is FormData) {
+      for (final MapEntry<String, String> f in data.fields) {
+        if (f.key == 'meal_type' && f.value.isNotEmpty) mealType = f.value;
+      }
+    } else if (data is Map) {
+      mealType = (data['meal_type'] as String?) ?? 'lunch';
+    }
+
+    final foods = <Map<String, Object?>>[
+      <String, Object?>{
+        'name': '비빔밥',
+        'calories': 600,
+        'sodium_mg': 900,
+        'sugar_g': 8,
+        'source': 'db',
+      },
+      <String, Object?>{
+        'name': '김치',
+        'calories': 15,
+        'sodium_mg': 300,
+        'sugar_g': 1,
+        'source': 'db',
+      },
+    ];
+    const int totalCal = 615;
+    const int totalNa = 1200;
+    const int totalSugar = 9;
+    const String coach = '비빔밥은 채소가 풍부해 좋아요. 나트륨이 다소 높으니 고추장·간장을 조금 줄여보세요.';
+
+    final now = DateTime.now();
+    final id = 'diet-${now.microsecondsSinceEpoch}';
+    await _db
+        .into(_db.dietEntries)
+        .insert(
+          DietEntriesCompanion.insert(
+            id: id,
+            date: _todayDateString(),
+            mealType: mealType,
+            timeLabel:
+                '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+            foodsJson: jsonEncode(foods),
+            totalCalories: totalCal,
+            sodiumMg: const Value(totalNa),
+            sugarG: const Value(totalSugar),
+          ),
+        );
+
+    return _ok(options, <String, Object?>{
+      'entry_id': id,
+      'analysis': <String, Object?>{
+        'engine': 'stub',
+        'foods': foods,
+        'total_calories': totalCal,
+        'total_sodium_mg': totalNa,
+        'total_sugar_g': totalSugar,
+        'coach_comment': coach,
+      },
     });
   }
 

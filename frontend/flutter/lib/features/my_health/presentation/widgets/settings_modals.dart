@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
+import 'package:oncare/features/account/domain/entities/user_profile.dart';
+import 'package:oncare/features/account/presentation/controllers/account_controller.dart';
 
 // ---------------------------------------------------------------------------
 // Shared scaffold
@@ -17,12 +20,14 @@ class _SettingsDialog extends StatelessWidget {
     required this.body,
     required this.footerLabel,
     this.onFooter,
+    this.saving = false,
   });
 
   final String title;
   final Widget body;
   final String footerLabel;
   final VoidCallback? onFooter;
+  final bool saving;
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +76,19 @@ class _SettingsDialog extends StatelessWidget {
                       borderRadius: BorderRadius.all(AppRadius.lg),
                     ),
                   ),
-                  onPressed: onFooter ?? () => Navigator.of(context).pop(),
-                  child: Text(footerLabel),
+                  onPressed: saving
+                      ? null
+                      : (onFooter ?? () => Navigator.of(context).pop()),
+                  child: saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(footerLabel),
                 ),
               ),
             ],
@@ -173,23 +189,40 @@ Future<void> showMyProfileModal(BuildContext context) {
   );
 }
 
-class _MyProfileDialog extends StatefulWidget {
+class _MyProfileDialog extends ConsumerWidget {
   const _MyProfileDialog();
+
   @override
-  State<_MyProfileDialog> createState() => _MyProfileDialogState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(profileProvider);
+    return async.when(
+      data: (UserProfile p) => _MyProfileForm(initial: p),
+      loading: () => const _LoadingDialog(title: '내 프로필'),
+      error: (_, _) => const _MyProfileForm(
+        initial: UserProfile(id: '', name: '', email: ''),
+      ),
+    );
+  }
 }
 
-class _MyProfileDialogState extends State<_MyProfileDialog> {
-  late final TextEditingController _name = TextEditingController(text: '김민수');
-  late final TextEditingController _email = TextEditingController(
-    text: 'minsu@oncare.com',
-  );
-  late final TextEditingController _phone = TextEditingController(
-    text: '010-1234-5678',
-  );
-  late final TextEditingController _birth = TextEditingController(
-    text: '1990. 01. 15.',
-  );
+class _MyProfileForm extends ConsumerStatefulWidget {
+  const _MyProfileForm({required this.initial});
+  final UserProfile initial;
+
+  @override
+  ConsumerState<_MyProfileForm> createState() => _MyProfileFormState();
+}
+
+class _MyProfileFormState extends ConsumerState<_MyProfileForm> {
+  late final TextEditingController _name =
+      TextEditingController(text: widget.initial.name);
+  late final TextEditingController _email =
+      TextEditingController(text: widget.initial.email);
+  late final TextEditingController _phone =
+      TextEditingController(text: widget.initial.phone);
+  late final TextEditingController _birth =
+      TextEditingController(text: widget.initial.birthDate);
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -200,11 +233,27 @@ class _MyProfileDialogState extends State<_MyProfileDialog> {
     super.dispose();
   }
 
-  void _save() {
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('내 프로필이 저장되었어요')),
-    );
+  Future<void> _save() async {
+    if (_saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    setState(() => _saving = true);
+    try {
+      await ref.read(accountRepositoryProvider).updateProfile(
+        name: _name.text.trim(),
+        email: _email.text.trim(),
+        phone: _phone.text.trim(),
+        birthDate: _birth.text.trim(),
+      );
+      ref.invalidate(profileProvider);
+      navigator.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('내 프로필이 저장되었어요')));
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('저장에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
   }
 
   @override
@@ -213,6 +262,7 @@ class _MyProfileDialogState extends State<_MyProfileDialog> {
       title: '내 프로필',
       footerLabel: '저장하기',
       onFooter: _save,
+      saving: _saving,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -241,6 +291,25 @@ class _MyProfileDialogState extends State<_MyProfileDialog> {
   }
 }
 
+/// Minimal spinner dialog shown while the profile loads.
+class _LoadingDialog extends StatelessWidget {
+  const _LoadingDialog({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsDialog(
+      title: title,
+      footerLabel: '저장하기',
+      saving: true,
+      body: const Padding(
+        padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // 건강 목표 modal
 // ---------------------------------------------------------------------------
@@ -252,20 +321,42 @@ Future<void> showHealthGoalModal(BuildContext context) {
   );
 }
 
-class _HealthGoalDialog extends StatefulWidget {
+class _HealthGoalDialog extends ConsumerWidget {
   const _HealthGoalDialog();
+
   @override
-  State<_HealthGoalDialog> createState() => _HealthGoalDialogState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(profileProvider);
+    return async.when(
+      data: (UserProfile p) => _HealthGoalForm(initial: p),
+      loading: () => const _LoadingDialog(title: '건강 목표'),
+      error: (_, _) => const _HealthGoalForm(
+        initial: UserProfile(id: '', name: '', email: ''),
+      ),
+    );
+  }
 }
 
-class _HealthGoalDialogState extends State<_HealthGoalDialog> {
-  late final TextEditingController _weight = TextEditingController(text: '70');
-  late final TextEditingController _bp = TextEditingController(text: '120');
-  late final TextEditingController _sugar = TextEditingController(text: '100');
-  late final TextEditingController _kcal = TextEditingController(text: '2000');
-  late final TextEditingController _sodium = TextEditingController(
-    text: '2000',
-  );
+class _HealthGoalForm extends ConsumerStatefulWidget {
+  const _HealthGoalForm({required this.initial});
+  final UserProfile initial;
+
+  @override
+  ConsumerState<_HealthGoalForm> createState() => _HealthGoalFormState();
+}
+
+class _HealthGoalFormState extends ConsumerState<_HealthGoalForm> {
+  late final TextEditingController _weight =
+      TextEditingController(text: '${(widget.initial.goalWeightKg ?? 70).round()}');
+  late final TextEditingController _bp =
+      TextEditingController(text: '${widget.initial.goalBpSystolic ?? 120}');
+  late final TextEditingController _sugar =
+      TextEditingController(text: '${widget.initial.goalBloodSugar ?? 100}');
+  late final TextEditingController _kcal =
+      TextEditingController(text: '${widget.initial.dailyCalories ?? 2000}');
+  late final TextEditingController _sodium =
+      TextEditingController(text: '${widget.initial.dailySodiumMg ?? 2000}');
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -277,11 +368,28 @@ class _HealthGoalDialogState extends State<_HealthGoalDialog> {
     super.dispose();
   }
 
-  void _save() {
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('건강 목표가 저장되었어요')),
-    );
+  Future<void> _save() async {
+    if (_saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    setState(() => _saving = true);
+    try {
+      await ref.read(accountRepositoryProvider).updateHealthGoals(
+        goalWeightKg: int.tryParse(_weight.text.trim()),
+        goalBpSystolic: int.tryParse(_bp.text.trim()),
+        goalBloodSugar: int.tryParse(_sugar.text.trim()),
+        dailyCalories: int.tryParse(_kcal.text.trim()),
+        dailySodiumMg: int.tryParse(_sodium.text.trim()),
+      );
+      ref.invalidate(profileProvider);
+      navigator.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('건강 목표가 저장되었어요')));
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('저장에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
   }
 
   @override
@@ -293,6 +401,7 @@ class _HealthGoalDialogState extends State<_HealthGoalDialog> {
       title: '건강 목표',
       footerLabel: '저장하기',
       onFooter: _save,
+      saving: _saving,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[

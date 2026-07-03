@@ -13,17 +13,21 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import (
+    create_access_token, create_refresh_token, decode_refresh_token,
+    hash_password, verify_password,
+)
 from app.db.session import get_db
 from app.models.models import HealthProfile, User
 from app.schemas.user import (
-    HealthProfileBrief, RiskInfo, SettingItem, Token, UserHealth, UserMe, UserRegister,
+    HealthProfileBrief, RefreshRequest, RiskInfo, SettingItem, Token, UserHealth, UserMe, UserRegister,
 )
 from app.services.health_service import DEMO_SETTINGS, build_indicators_for_user
 
@@ -95,4 +99,24 @@ def login(
     user = db.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="이메일 또는 비밀번호가 올바르지 않습니다.")
-    return Token(access_token=create_access_token(user.id))
+    return Token(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+
+@router.post("/auth/refresh", response_model=Token)
+def refresh(payload: RefreshRequest, db: Annotated[Session, Depends(get_db)]) -> Token:
+    """refresh 토큰으로 새 access(+refresh) 토큰 발급(회전)."""
+    invalid = HTTPException(status_code=401, detail="유효하지 않은 refresh 토큰입니다.")
+    try:
+        user_id = decode_refresh_token(payload.refresh_token)
+    except jwt.InvalidTokenError:
+        raise invalid
+    user = db.scalar(select(User).where(User.id == user_id))
+    if user is None or not user.is_active:
+        raise invalid
+    return Token(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )

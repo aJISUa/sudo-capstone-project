@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     jwt_secret: str = DEFAULT_JWT_SECRET
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
+    refresh_token_expire_days: int = 30
+    # 토큰 없이 접근 시 데모 사용자로 폴백(개발 편의). 운영(prod)에서는 항상 비활성.
+    allow_demo_fallback: bool = True
 
     # --- AI 엔진 (이후 STEP 에서 사용) ---
     recognizer: str = "gemini"
@@ -59,6 +62,11 @@ class Settings(BaseSettings):
     @property
     def is_prod(self) -> bool:
         return self.env.strip().lower() in ("prod", "production")
+
+    @property
+    def demo_fallback_enabled(self) -> bool:
+        """데모 사용자 폴백 허용 여부 — 운영에서는 설정과 무관하게 항상 비활성."""
+        return self.allow_demo_fallback and not self.is_prod
 
     @model_validator(mode="after")
     def _guard_prod_secrets(self) -> "Settings":

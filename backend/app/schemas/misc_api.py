@@ -61,3 +61,19 @@ class CoachSuggestion(BaseModel):
 class AiCoachFeedback(BaseModel):
     greeting: str
     suggestions: list[CoachSuggestion]
+
+
+# ---- AI 코치 챗봇 (대화형) ----
+class ChatTurn(BaseModel):
+    role: str          # user | coach
+    content: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[ChatTurn] = []   # 직전 대화(선택). 최근 것부터가 아니라 시간순.
+
+
+class ChatReply(BaseModel):
+    reply: str
+    sources: list[str] = []        # 답변 근거로 쓰인 공공 가이드라인 제목

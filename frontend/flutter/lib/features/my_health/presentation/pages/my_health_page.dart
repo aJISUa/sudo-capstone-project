@@ -7,6 +7,7 @@ import 'package:oncare/design_system/atoms/app_card.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
+import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
 import 'package:oncare/features/my_health/domain/entities/health_history.dart';
 import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
 import 'package:oncare/features/my_health/presentation/widgets/indicator_trend_modal.dart';
@@ -103,8 +104,60 @@ class _Body extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            const _SignOutButton(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SignOutButton extends ConsumerWidget {
+  const _SignOutButton();
+
+  Future<void> _confirmAndSignOut(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃 하시겠어요?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    // Flipping the session to signed-out lets the router's redirect guard
+    // bounce us back to the sign-in screen automatically.
+    await ref.read(sessionControllerProvider.notifier).signOut();
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AppCard(
+      outlined: true,
+      onTap: () => _confirmAndSignOut(context, ref),
+      child: const Row(
+        children: <Widget>[
+          Icon(Icons.logout, size: 20, color: AppColors.destructive),
+          SizedBox(width: AppSpacing.md),
+          Text(
+            '로그아웃',
+            style: TextStyle(
+              color: AppColors.destructive,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

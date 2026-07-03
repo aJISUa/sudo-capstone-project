@@ -60,10 +60,14 @@ class Settings(BaseSettings):
     rag_auto_ingest: bool = True
 
     # --- 기타 ---
-    cors_allow_origins: str = "*"
+    cors_allow_origins: str = "*"  # 콤마구분 허용 출처. 운영에서는 '*' 금지(명시 필요)
     seed_demo_data: bool = True
     # 관리자 이메일(콤마구분) — 기동 시 해당 사용자를 is_admin=True 로 승격
     admin_emails: str = ""
+
+    # --- 운영 배포 하드닝 ---
+    force_https: bool = False       # HTTP→HTTPS 리다이렉트(프록시 뒤면 X-Forwarded-Proto 신뢰)
+    security_headers: bool = True   # 보안 응답 헤더(HSTS·nosniff·frame deny 등)
 
     # --- Rate limit (인증 엔드포인트 브루트포스 방어) ---
     rate_limit_enabled: bool = True
@@ -72,6 +76,14 @@ class Settings(BaseSettings):
     @property
     def admin_email_set(self) -> set[str]:
         return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
+
+    @property
+    def is_cors_wildcard(self) -> bool:
+        return "*" in self.cors_origin_list
 
     @property
     def is_prod(self) -> bool:
@@ -89,6 +101,10 @@ class Settings(BaseSettings):
             if not self.jwt_secret or self.jwt_secret == DEFAULT_JWT_SECRET:
                 raise ValueError(
                     "운영(env=prod)에서는 JWT_SECRET 을 안전한 값으로 반드시 설정해야 합니다."
+                )
+            if self.is_cors_wildcard:
+                raise ValueError(
+                    "운영(env=prod)에서는 CORS 허용 출처를 명시해야 합니다(와일드카드 '*' 금지)."
                 )
         return self
 

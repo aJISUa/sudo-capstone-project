@@ -74,6 +74,11 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class SocialLoginRequest(BaseModel):
+    # provider 가 준 토큰 (kakao/naver=access_token, google=id_token)
+    token: str
+
+
 class UserRegister(BaseModel):
     email: str
     password: str

@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import (
-    ai_coach, coach_docs, dashboard, diet, exercise, notifications, places, schedule, system, users, vitals,
+    ai_coach, coach_docs, dashboard, diet, exercise, notifications, places, schedule, social, system, users, vitals,
 )
 from app.core.config import get_settings
 from app.db.init_db import init_db
@@ -45,6 +45,7 @@ app.add_middleware(
 # /v1 prefix 로 마운트 (프론트 base URL 이 /v1 을 포함하는 계약)
 app.include_router(system.router, prefix=settings.api_v1_prefix)
 app.include_router(users.router, prefix=settings.api_v1_prefix)
+app.include_router(social.router, prefix=settings.api_v1_prefix)
 app.include_router(dashboard.router, prefix=settings.api_v1_prefix)
 app.include_router(diet.router, prefix=settings.api_v1_prefix)
 app.include_router(exercise.router, prefix=settings.api_v1_prefix)

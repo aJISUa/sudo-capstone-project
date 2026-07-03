@@ -38,3 +38,15 @@ def client():
 
     with TestClient(app) as c:  # lifespan → init_db (vector extension / create_all / seed)
         yield c
+
+
+@pytest.fixture
+def db_session(client):
+    """시드까지 끝난 DB 세션. client 픽스처가 먼저 init_db(시드)를 돌린다."""
+    from app.db.session import SessionLocal
+
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

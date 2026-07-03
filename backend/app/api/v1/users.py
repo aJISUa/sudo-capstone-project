@@ -19,7 +19,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser
+from app.api.deps import CurrentUser, RequireUser
 from app.core.security import (
     create_access_token, create_refresh_token, decode_refresh_token,
     hash_password, verify_password,
@@ -27,7 +27,8 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.models import HealthProfile, User
 from app.schemas.user import (
-    HealthProfileBrief, RefreshRequest, RiskInfo, SettingItem, Token, UserHealth, UserMe, UserRegister,
+    HealthGoalsUpdate, HealthProfileBrief, OnboardingRequest, ProfileUpdate, ProfileView,
+    RefreshRequest, RiskInfo, SettingItem, Token, UserHealth, UserMe, UserRegister,
 )
 from app.services.health_service import DEMO_SETTINGS, build_indicators_for_user
 
@@ -70,6 +71,125 @@ def get_my_health(
         activity_rank=rank,
         settings=[SettingItem(**s) for s in DEMO_SETTINGS],
     )
+
+
+# ---- 프로필 / 온보딩 / 건강 목표 / 탈퇴 ----
+
+def _get_or_create_profile(db: Session, user: User) -> HealthProfile:
+    """사용자의 HealthProfile 을 가져오거나(없으면) 생성한다."""
+    profile = user.health_profile
+    if profile is None:
+        profile = HealthProfile(user_id=user.id)
+        db.add(profile)
+        db.flush()
+    return profile
+
+
+def _profile_view(user: User) -> ProfileView:
+    p = user.health_profile
+    return ProfileView(
+        id=user.id,
+        name=user.name,
+        email=user.email,
+        phone=p.phone if p else "",
+        birth_date=p.birth_date if p else "",
+        gender=p.gender if p else "",
+        height_cm=p.height_cm if p else None,
+        weight_kg=p.weight_kg if p else None,
+        conditions=p.conditions if p else "",
+        goals=p.goals if p else "",
+        goal_weight_kg=p.goal_weight_kg if p else None,
+        goal_bp_systolic=p.goal_bp_systolic if p else None,
+        goal_blood_sugar=p.goal_blood_sugar if p else None,
+        daily_calories=p.daily_calories if p else None,
+        daily_sodium_mg=p.daily_sodium_mg if p else None,
+        onboarded=p.onboarded if p else False,
+    )
+
+
+@router.get("/users/me/profile", response_model=ProfileView)
+def get_my_profile(current_user: CurrentUser) -> ProfileView:
+    """내 프로필 통합 뷰(인구통계·목표·온보딩 여부). 조회는 데모 폴백 허용."""
+    return _profile_view(current_user)
+
+
+@router.post("/users/me/onboarding", response_model=ProfileView)
+def submit_onboarding(
+    payload: OnboardingRequest,
+    user: RequireUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfileView:
+    """최초 온보딩 저장. 제공된 필드만 반영하고 onboarded=True 로 표시."""
+    data = payload.model_dump(exclude_unset=True)
+    if "name" in data and data["name"] is not None:
+        user.name = data.pop("name")
+    else:
+        data.pop("name", None)
+
+    profile = _get_or_create_profile(db, user)
+    for field, value in data.items():
+        setattr(profile, field, value)
+    profile.onboarded = True
+
+    db.commit()
+    db.refresh(user)
+    return _profile_view(user)
+
+
+@router.put("/users/me", response_model=ProfileView)
+def update_me(
+    payload: ProfileUpdate,
+    user: RequireUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfileView:
+    """내 프로필 모달 저장: 이름/이메일(중복검사)/전화/생년월일."""
+    data = payload.model_dump(exclude_unset=True)
+
+    new_email = data.get("email")
+    if new_email is not None and new_email != user.email:
+        dup = db.scalar(select(User).where(User.email == new_email, User.id != user.id))
+        if dup is not None:
+            raise HTTPException(status_code=409, detail="이미 사용 중인 이메일입니다.")
+        user.email = new_email
+    if data.get("name") is not None:
+        user.name = data["name"]
+
+    profile = _get_or_create_profile(db, user)
+    if "phone" in data and data["phone"] is not None:
+        profile.phone = data["phone"]
+    if "birth_date" in data and data["birth_date"] is not None:
+        profile.birth_date = data["birth_date"]
+
+    db.commit()
+    db.refresh(user)
+    return _profile_view(user)
+
+
+@router.put("/users/me/health-goals", response_model=ProfileView)
+def update_health_goals(
+    payload: HealthGoalsUpdate,
+    user: RequireUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfileView:
+    """건강 목표 모달 저장: 목표 체중/혈압/혈당/일일 칼로리·나트륨."""
+    profile = _get_or_create_profile(db, user)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(profile, field, value)
+    db.commit()
+    db.refresh(user)
+    return _profile_view(user)
+
+
+@router.delete("/users/me")
+def delete_me(
+    user: RequireUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """회원 탈퇴. FK(ondelete=CASCADE)로 프로필·식단·운동·바이탈·일정·알림·
+    소셜계정·개인 코치문서가 함께 삭제된다."""
+    db.delete(user)
+    db.commit()
+    return {"status": "deleted"}
 
 
 # ---- 인증 (Stage 4 대비, 지금도 동작) ----

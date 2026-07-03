@@ -91,3 +91,5 @@ def require_auth(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+# 엄격 인증(쓰기/삭제 등 보호 엔드포인트용) — 데모 폴백 없음
+RequireUser = Annotated[User, Depends(require_auth)]

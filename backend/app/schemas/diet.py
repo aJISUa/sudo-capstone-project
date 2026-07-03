@@ -13,10 +13,12 @@ from pydantic import BaseModel, Field
 
 class RecognizedFood(BaseModel):
     name: str = Field(..., description="음식 이름(한국어)")
-    calories: Optional[int] = Field(None, description="추정 칼로리 kcal")
-    sodium_mg: Optional[int] = Field(None, description="추정 나트륨 mg")
-    sugar_g: Optional[int] = Field(None, description="추정 당류 g")
+    calories: Optional[int] = Field(None, description="칼로리 kcal")
+    sodium_mg: Optional[int] = Field(None, description="나트륨 mg")
+    sugar_g: Optional[int] = Field(None, description="당류 g")
     confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
+    # 영양 수치 출처: "db"(공공 식품영양성분 DB 매칭) | "estimate"(LLM 추정)
+    source: str = Field("estimate", description="db|estimate")
 
 
 class DietAnalysis(BaseModel):

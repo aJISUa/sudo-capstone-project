@@ -19,11 +19,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser
+from app.core.config import get_settings
 from app.db.session import get_db
 from app.models.models import DietEntry
 from app.schemas.diet_api import (
     DietAnalyzeResponse, DietEntryOut, DietTodayResponse, Macros,
 )
+from app.services.nutrition.enrich import enrich_analysis
 from app.services.recognizer.factory import get_recognizer
 
 router = APIRouter(tags=["diet"])
@@ -105,10 +107,13 @@ async def diet_analyze(
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"인식 실패: {e}")
 
-    # diet_entries 저장 (foods 는 {name, calories} 형태로 — drift 주석과 일치)
+    # 공공 식품영양성분 DB 매핑으로 영양 수치 보강(매칭 시 신뢰값으로 교체 → 합계 재계산)
+    enrich_analysis(db, analysis, enabled=get_settings().nutrition_db_enrich)
+
+    # diet_entries 저장 (foods 는 {name, calories, sodium_mg, sugar_g, source})
     foods_for_storage = [
         {"name": f.name, "calories": f.calories,
-         "sodium_mg": f.sodium_mg, "sugar_g": f.sugar_g}
+         "sodium_mg": f.sodium_mg, "sugar_g": f.sugar_g, "source": f.source}
         for f in analysis.foods
     ]
     entry = DietEntry(

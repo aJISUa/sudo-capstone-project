@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     # --- AI 엔진 (이후 STEP 에서 사용) ---
     recognizer: str = "gemini"
+    # 인식 후 공공 식품영양성분 DB 로 영양 수치 보강(정확도↑). 순수 LLM 비교실험 시 false.
+    nutrition_db_enrich: bool = True
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
     coach_llm: str = "openai"

@@ -232,3 +232,20 @@ class Place(Base):
     lat: Mapped[float | None] = mapped_column(Float, nullable=True)
     lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     kakao_place_id: Mapped[str] = mapped_column(String(50), default="")
+
+
+class AuditLog(Base):
+    """보안 감사 로그 — 인증/관리자 이벤트 추적.
+
+    user_id 는 FK 를 두지 않는다(사용자가 삭제돼도 감사 기록은 남아야 하므로).
+    event 예: auth.login, auth.register, auth.social, admin.public_doc_upload.
+    """
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event: Mapped[str] = mapped_column(String(50), index=True)
+    user_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    ip: Mapped[str] = mapped_column(String(64), default="")
+    success: Mapped[bool] = mapped_column(Boolean, default=True)
+    detail: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     # --- LiteLLM 프록시 (OpenAI 호환) ---
     # 하나의 Virtual Key 로 뒤의 여러 모델(claude 등)을 호출.
     # base_url 을 넣으면 OpenAI SDK 가 이 프록시를 바라봄.
-    litellm_base_url: str = "http://43.201.226.184:4000"
+    litellm_base_url: str = ""
     litellm_api_key: str = ""                       # Virtual Key
     litellm_chat_model: str = "claude-sonnet-4-6"   # 코치/인식용 채팅 모델
     litellm_embed_model: str = ""                   # 프록시에 임베딩 모델 있으면 지정

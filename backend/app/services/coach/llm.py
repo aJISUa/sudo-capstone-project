@@ -83,6 +83,11 @@ class LiteLLMCoachLLM(CoachLLM):
         s = get_settings()
         if not s.litellm_api_key:
             raise RuntimeError("LITELLM_API_KEY(Virtual Key) 가 설정되지 않았습니다.")
+        if not s.litellm_base_url:
+            raise RuntimeError(
+                "LITELLM_BASE_URL 이 설정되지 않았습니다. .env 에 지정하세요. "
+                "(예: LITELLM_BASE_URL=https://<litellm-host>:4000)"
+            )
         from openai import OpenAI
         # base_url 만 LiteLLM 으로 돌리면 OpenAI SDK 가 프록시를 호출
         self._client = OpenAI(api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1", timeout=60.0)

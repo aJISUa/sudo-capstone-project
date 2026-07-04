@@ -19,6 +19,11 @@ class LiteLLMEmbedder(Embedder):
         s = get_settings()
         if not s.litellm_api_key:
             raise RuntimeError("LITELLM_API_KEY(Virtual Key) 가 설정되지 않았습니다.")
+        if not s.litellm_base_url:
+            raise RuntimeError(
+                "LITELLM_BASE_URL 이 설정되지 않았습니다. .env 에 지정하세요. "
+                "(예: LITELLM_BASE_URL=https://<litellm-host>:4000)"
+            )
         if not s.litellm_embed_model:
             raise RuntimeError(
                 "LITELLM_EMBED_MODEL 이 비어 있습니다. "

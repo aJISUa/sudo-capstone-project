@@ -44,3 +44,28 @@ def test_analyze_rejects_empty_file(client):
         data={"meal_type": "lunch"},
     )
     assert r.status_code == 400
+
+
+def test_delete_entry_removes_from_today(client):
+    # diet 테스트는 데모 사용자를 공유하므로(무인증) 전역 합계 대신
+    # 이 엔트리 id 의 유무로 검증한다.
+    entry_id = client.post(
+        "/v1/diet/analyze",
+        files={"image": ("food.jpg", _JPEG, "image/jpeg")},
+        data={"meal_type": "lunch"},
+    ).json()["entry_id"]
+
+    before = client.get("/v1/diet/days/today").json()["entries"]
+    assert any(e["id"] == entry_id for e in before)
+
+    d = client.delete(f"/v1/diet/entries/{entry_id}")
+    assert d.status_code == 200, d.text
+    assert d.json()["status"] == "deleted"
+
+    after = client.get("/v1/diet/days/today").json()["entries"]
+    assert all(e["id"] != entry_id for e in after)
+
+
+def test_delete_entry_404_when_missing(client):
+    r = client.delete("/v1/diet/entries/diet-nope")
+    assert r.status_code == 404

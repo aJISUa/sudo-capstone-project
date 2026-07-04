@@ -37,3 +37,25 @@ def test_add_session_rejects_nonpositive_minutes(client):
     h = _login(client)
     r = client.post("/v1/exercise/sessions", json={"type": "cardio", "minutes": 0}, headers=h)
     assert r.status_code == 400
+
+
+def test_delete_session_removes_from_week(client):
+    h = _login(client)
+    sid = client.post(
+        "/v1/exercise/sessions",
+        json={"type": "cardio", "minutes": 40, "calories": 200, "day_label": "화"},
+        headers=h,
+    ).json()["id"]
+
+    d = client.delete(f"/v1/exercise/sessions/{sid}", headers=h)
+    assert d.status_code == 200, d.text
+    assert d.json()["status"] == "deleted"
+
+    week = client.get("/v1/exercise/weeks/current", headers=h)
+    assert week.json()["total_minutes"] == 0
+
+
+def test_delete_session_404_when_missing(client):
+    h = _login(client)
+    r = client.delete("/v1/exercise/sessions/ex-nope", headers=h)
+    assert r.status_code == 404

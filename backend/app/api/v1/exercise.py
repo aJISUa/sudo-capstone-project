@@ -78,3 +78,22 @@ def add_session(
     # 단건 응답도 프론트 표시 형식(date_label/time_label/items)을 채워 반환
     one = build_current_week([row])["sessions"][0]
     return ExerciseSessionOut(**one)
+
+
+@router.delete("/exercise/sessions/{session_id}")
+def delete_session(
+    session_id: str,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """운동 기록 삭제. 본인 소유 세션만 삭제 가능(아니면 404)."""
+    row = db.scalar(
+        select(ExerciseSession)
+        .where(ExerciseSession.id == session_id)
+        .where(ExerciseSession.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="운동 기록을 찾을 수 없습니다.")
+    db.delete(row)
+    db.commit()
+    return {"status": "deleted"}

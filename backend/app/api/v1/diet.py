@@ -140,3 +140,22 @@ async def diet_analyze(
     )
 
     return DietAnalyzeResponse(entry_id=entry.id, analysis=analysis)
+
+
+@router.delete("/diet/entries/{entry_id}")
+def delete_entry(
+    entry_id: str,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """식단 기록 삭제. 본인 소유 엔트리만 삭제 가능(아니면 404)."""
+    row = db.scalar(
+        select(DietEntry)
+        .where(DietEntry.id == entry_id)
+        .where(DietEntry.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="식단 기록을 찾을 수 없습니다.")
+    db.delete(row)
+    db.commit()
+    return {"status": "deleted"}

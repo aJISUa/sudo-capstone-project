@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     retrieve_public_k: int = 3
 
     # --- 기타 ---
-    cors_allow_origins: str = "*"
+    cors_allow_origins: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000"
     seed_demo_data: bool = True
 
     @property
@@ -77,6 +77,14 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "운영(env=prod)에서는 JWT_SECRET 을 안전한 값으로 반드시 설정해야 합니다."
                 )
+        origins = [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
+        if "*" in origins:
+            raise ValueError(
+                "CORS_ALLOW_ORIGINS 에 '*' 를 쓸 수 없습니다 "
+                "(allow_credentials=True 와 함께 쓰면 기동 실패/보안 취약점이 발생합니다). "
+                "허용할 origin 을 콤마로 구분해 명시하세요. "
+                "예: CORS_ALLOW_ORIGINS=http://localhost:3000,https://yourapp.com"
+            )
         return self
 
 

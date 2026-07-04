@@ -14,4 +14,7 @@ abstract class DietRepository {
     required String filename,
     required String mealType,
   });
+
+  /// DELETE /diet/entries/{id} — remove a diet entry.
+  Future<void> deleteEntry(String id);
 }

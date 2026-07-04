@@ -87,8 +87,12 @@ class LocalApiInterceptor extends Interceptor {
         _logger.d('[local-api] $key (exact)');
         return await exact(options);
       }
-      // (Regex routes will be added by later phases — diet/exercise/
-      // vitals/notifications/schedule etc.)
+      // Path-param routes (can't be keyed exactly) — e.g. DELETE by id.
+      final param = _paramRoute(method, path);
+      if (param != null) {
+        _logger.d('[local-api] $key (param)');
+        return await param(options);
+      }
       return null;
     } catch (e, st) {
       _logger.e('[local-api] $key failed', error: e, stackTrace: st);
@@ -101,6 +105,36 @@ class LocalApiInterceptor extends Interceptor {
         },
       );
     }
+  }
+
+  /// Resolve a handler for path-param routes (id in the URL). Returns null
+  /// if none matches so [_safeHandle] falls through to the real network.
+  _Handler? _paramRoute(String method, String path) {
+    if (method == 'DELETE' && path.startsWith('/diet/entries/')) {
+      return _dietDelete;
+    }
+    if (method == 'DELETE' && path.startsWith('/exercise/sessions/')) {
+      return _exerciseDelete;
+    }
+    return null;
+  }
+
+  Future<Response<Object?>> _dietDelete(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final n = await (_db.delete(
+      _db.dietEntries,
+    )..where((t) => t.id.equals(id))).go();
+    if (n == 0) return _notFound(options, '식단 기록을 찾을 수 없습니다.');
+    return _ok(options, <String, Object?>{'status': 'deleted'});
+  }
+
+  Future<Response<Object?>> _exerciseDelete(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final n = await (_db.delete(
+      _db.exerciseSessions,
+    )..where((t) => t.id.equals(id))).go();
+    if (n == 0) return _notFound(options, '운동 기록을 찾을 수 없습니다.');
+    return _ok(options, <String, Object?>{'status': 'deleted'});
   }
 
   // ---- handlers ----
@@ -1159,6 +1193,14 @@ class LocalApiInterceptor extends Interceptor {
       requestOptions: options,
       statusCode: 400,
       data: <String, Object?>{'code': 'bad_request', 'message': message},
+    );
+  }
+
+  Response<Object?> _notFound(RequestOptions options, String message) {
+    return Response<Object?>(
+      requestOptions: options,
+      statusCode: 404,
+      data: <String, Object?>{'code': 'not_found', 'message': message},
     );
   }
 

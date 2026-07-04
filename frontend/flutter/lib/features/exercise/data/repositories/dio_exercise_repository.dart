@@ -33,4 +33,9 @@ class DioExerciseRepository implements ExerciseRepository {
     );
     return ExerciseSession.fromJson(res.data!);
   }
+
+  @override
+  Future<void> deleteSession(String id) async {
+    await _dio.delete<Map<String, Object?>>('/exercise/sessions/$id');
+  }
 }

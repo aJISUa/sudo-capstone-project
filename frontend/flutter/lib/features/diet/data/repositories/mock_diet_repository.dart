@@ -74,4 +74,7 @@ class MockDietRepository implements DietRepository {
       aiCoachMessage: '오늘 점심에 나트륨이 많았어요. 저녁은 담백한 구이/샐러드로 균형을 맞춰봐요!',
     );
   }
+
+  @override
+  Future<void> deleteEntry(String id) async {}
 }

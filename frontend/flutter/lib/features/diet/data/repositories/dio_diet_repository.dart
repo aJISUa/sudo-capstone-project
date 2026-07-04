@@ -40,4 +40,9 @@ class DioDietRepository implements DietRepository {
     );
     return DietAnalysisResult.fromResponse(res.data!);
   }
+
+  @override
+  Future<void> deleteEntry(String id) async {
+    await _dio.delete<Map<String, Object?>>('/diet/entries/$id');
+  }
 }

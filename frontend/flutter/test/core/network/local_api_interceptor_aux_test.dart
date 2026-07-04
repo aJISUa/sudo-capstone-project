@@ -276,4 +276,56 @@ void main() {
     );
     expect(res.statusCode, 400);
   });
+
+  test('DELETE /diet/entries/{id} deletes an entry; 404 once gone', () async {
+    await db
+        .into(db.dietEntries)
+        .insert(
+          DietEntriesCompanion.insert(
+            id: 'del-diet-1',
+            date: '2026-07-04',
+            mealType: 'lunch',
+            timeLabel: '12:00',
+            foodsJson: '[]',
+            totalCalories: 100,
+          ),
+        );
+
+    final ok = await dio.delete<Map<String, Object?>>('/diet/entries/del-diet-1');
+    expect(ok.statusCode, 200);
+    expect(ok.data!['status'], 'deleted');
+
+    final gone = await dio.delete<Map<String, Object?>>(
+      '/diet/entries/del-diet-1',
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
+
+  test('DELETE /exercise/sessions/{id} deletes a session; 404 once gone', () async {
+    await db
+        .into(db.exerciseSessions)
+        .insert(
+          ExerciseSessionsCompanion.insert(
+            id: 'del-ex-1',
+            weekStart: '2026-06-29',
+            dayLabel: '월',
+            type: 'cardio',
+            minutes: 30,
+            calories: 200,
+          ),
+        );
+
+    final ok = await dio.delete<Map<String, Object?>>(
+      '/exercise/sessions/del-ex-1',
+    );
+    expect(ok.statusCode, 200);
+    expect(ok.data!['status'], 'deleted');
+
+    final gone = await dio.delete<Map<String, Object?>>(
+      '/exercise/sessions/del-ex-1',
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
 }

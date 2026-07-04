@@ -89,4 +89,7 @@ class MockExerciseRepository implements ExerciseRepository {
       ],
     );
   }
+
+  @override
+  Future<void> deleteSession(String id) async {}
 }

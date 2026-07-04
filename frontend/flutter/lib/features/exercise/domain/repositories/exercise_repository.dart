@@ -11,4 +11,7 @@ abstract class ExerciseRepository {
     required int calories,
     required String dayLabel,
   });
+
+  /// DELETE /exercise/sessions/{id} — remove a workout session.
+  Future<void> deleteSession(String id);
 }

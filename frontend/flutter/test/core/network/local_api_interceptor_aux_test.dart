@@ -207,4 +207,23 @@ void main() {
     expect(prof.data!['daily_sodium_mg'], 1500);
     expect(prof.data!['onboarded'], true);
   });
+
+  test('POST /auth/social/kakao issues a token for a provider token', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/social/kakao',
+      data: <String, Object?>{'token': 'kakao-oauth-token'},
+    );
+    expect(res.statusCode, 200);
+    expect((res.data!['access_token']! as String).isNotEmpty, isTrue);
+    expect(res.data!['token_type'], 'bearer');
+  });
+
+  test('POST /auth/social/google rejects an empty provider token', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/social/google',
+      data: <String, Object?>{'token': ''},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
 }

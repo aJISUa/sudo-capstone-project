@@ -43,17 +43,15 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
-  /// Email/password login → POST /auth/login (OAuth2 form). Throws on failure.
-  Future<void> login({required String email, required String password}) async {
-    final dio = _ref.read(dioProvider);
-    final res = await dio.post<Map<String, Object?>>(
-      '/auth/login',
-      data: <String, Object?>{'username': email, 'password': password},
-      options: Options(contentType: Headers.formUrlEncodedContentType),
-    );
-    final access = (res.data?['access_token'] as String?) ?? '';
-    final refresh = (res.data?['refresh_token'] as String?) ?? '';
-    if (access.isEmpty) throw Exception('로그인 응답에 토큰이 없습니다.');
+  /// Persist tokens from an auth response and flip to authenticated.
+  /// Shared by [login] and [socialLogin]. Throws if no access token.
+  Future<void> _applyTokens(
+    Map<String, Object?>? data, {
+    required String label,
+  }) async {
+    final access = (data?['access_token'] as String?) ?? '';
+    final refresh = (data?['refresh_token'] as String?) ?? '';
+    if (access.isEmpty) throw Exception('$label 응답에 토큰이 없습니다.');
     try {
       await _ref
           .read(secureTokenStoreProvider)
@@ -63,6 +61,31 @@ class SessionController extends StateNotifier<SessionState> {
     }
     _setToken(access);
     state = const SessionState(status: SessionStatus.authenticated);
+  }
+
+  /// Email/password login → POST /auth/login (OAuth2 form). Throws on failure.
+  Future<void> login({required String email, required String password}) async {
+    final dio = _ref.read(dioProvider);
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/login',
+      data: <String, Object?>{'username': email, 'password': password},
+      options: Options(contentType: Headers.formUrlEncodedContentType),
+    );
+    await _applyTokens(res.data, label: '로그인');
+  }
+
+  /// Social login — exchanges a provider (kakao/google) token for our
+  /// session via POST /auth/social/{provider}. Throws on failure.
+  Future<void> socialLogin({
+    required String provider,
+    required String token,
+  }) async {
+    final dio = _ref.read(dioProvider);
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/social/$provider',
+      data: <String, Object?>{'token': token},
+    );
+    await _applyTokens(res.data, label: '소셜 로그인');
   }
 
   /// Register a new account → POST /auth/register (returns the created

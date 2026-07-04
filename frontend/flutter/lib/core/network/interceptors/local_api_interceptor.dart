@@ -42,6 +42,8 @@ class LocalApiInterceptor extends Interceptor {
     'POST /ai-coach/chat': _aiCoachChat,
     'POST /auth/login': _authLogin,
     'POST /auth/register': _authRegister,
+    'POST /auth/social/kakao': _authSocial,
+    'POST /auth/social/google': _authSocial,
     'GET /users/me': _usersMe,
     'GET /users/me/profile': _usersMeProfile,
     'PUT /users/me': _usersMeUpdate,
@@ -704,6 +706,22 @@ class LocalApiInterceptor extends Interceptor {
         'email': email,
       },
     );
+  }
+
+  /// POST /auth/social/{provider} — the demo exchanges any non-empty
+  /// provider token for a session. Real provider-token verification is
+  /// done by FastAPI (+ provider SDK) when USE_MOCK_API=false.
+  Future<Response<Object?>> _authSocial(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final token = (body['token'] as String? ?? '').trim();
+    if (token.isEmpty) {
+      return _badRequest(options, 'token is required');
+    }
+    return _ok(options, <String, Object?>{
+      'access_token': 'demo-social-${DateTime.now().microsecondsSinceEpoch}',
+      'refresh_token': 'demo-refresh',
+      'token_type': 'bearer',
+    });
   }
 
   // ---- Profile (내 프로필 / 건강 목표) — AppKeyValues 로 영속 ----

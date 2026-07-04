@@ -13,8 +13,10 @@ def _registry() -> dict[str, type[Embedder]]:
     if not _REGISTRY:
         from app.services.embedder.openai_embedder import OpenAIEmbedder
         from app.services.embedder.gemini_embedder import GeminiEmbedder
+        from app.services.embedder.litellm_embedder import LiteLLMEmbedder
         _REGISTRY["openai"] = OpenAIEmbedder
         _REGISTRY["gemini"] = GeminiEmbedder
+        _REGISTRY["litellm"] = LiteLLMEmbedder
     return _REGISTRY
 
 

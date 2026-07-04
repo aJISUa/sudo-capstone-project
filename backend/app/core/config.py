@@ -20,15 +20,24 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
 
-    # --- AI 엔진 (이후 STEP 에서 사용) ---
-    recognizer: str = "gemini"
+    # --- AI 엔진 ---
+    recognizer: str = "gemini"        # gemini | claude(litellm) | yolo
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
-    coach_llm: str = "openai"
+    coach_llm: str = "openai"         # openai | gemini | litellm
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-4o"
-    embedder: str = "openai"
+    embedder: str = "openai"          # openai | gemini | litellm
     openai_embed_model: str = "text-embedding-3-small"
+
+    # --- LiteLLM 프록시 (OpenAI 호환) ---
+    # 하나의 Virtual Key 로 뒤의 여러 모델(claude 등)을 호출.
+    # base_url 을 넣으면 OpenAI SDK 가 이 프록시를 바라봄.
+    litellm_base_url: str = "http://43.201.226.184:4000"
+    litellm_api_key: str = ""                       # Virtual Key
+    litellm_chat_model: str = "claude-sonnet-4-6"   # 코치/인식용 채팅 모델
+    litellm_embed_model: str = ""                   # 프록시에 임베딩 모델 있으면 지정
+    litellm_vision_model: str = "claude-sonnet-4-6" # 식단 인식(이미지)용
 
     # --- RAG (STEP 7) ---
     # 임베딩 차원: 모델에 맞춰 바꿉니다. 바꾸면 재임베딩 필요(scripts/reembed).

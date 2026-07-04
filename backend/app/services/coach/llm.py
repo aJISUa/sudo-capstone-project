@@ -66,13 +66,44 @@ class GeminiCoachLLM(CoachLLM):
                 system_instruction=system_prompt, temperature=0.4
             ),
         )
-        # 토큰 사용량(있으면)
         um = getattr(resp, "usage_metadata", None)
         pt = getattr(um, "prompt_token_count", 0) if um else 0
         ct = getattr(um, "candidates_token_count", 0) if um else 0
         return LLMResult(
             text=resp.text or "", model=self._model,
             prompt_tokens=pt, completion_tokens=ct, total_tokens=(pt + ct),
+        )
+
+
+class LiteLLMCoachLLM(CoachLLM):
+    """LiteLLM 프록시 경유 (OpenAI 호환). Virtual Key 하나로 claude 등 호출."""
+    name = "litellm"
+
+    def __init__(self) -> None:
+        s = get_settings()
+        if not s.litellm_api_key:
+            raise RuntimeError("LITELLM_API_KEY(Virtual Key) 가 설정되지 않았습니다.")
+        from openai import OpenAI
+        # base_url 만 LiteLLM 으로 돌리면 OpenAI SDK 가 프록시를 호출
+        self._client = OpenAI(api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1")
+        self._model = s.litellm_chat_model
+
+    def generate(self, system_prompt: str, user_prompt: str) -> LLMResult:
+        resp = self._client.chat.completions.create(
+            model=self._model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.4,
+        )
+        u = resp.usage
+        return LLMResult(
+            text=resp.choices[0].message.content or "",
+            model=self._model,
+            prompt_tokens=getattr(u, "prompt_tokens", 0),
+            completion_tokens=getattr(u, "completion_tokens", 0),
+            total_tokens=getattr(u, "total_tokens", 0),
         )
 
 
@@ -83,6 +114,7 @@ def _registry() -> dict[str, type[CoachLLM]]:
     if not _REGISTRY:
         _REGISTRY["openai"] = OpenAICoachLLM
         _REGISTRY["gemini"] = GeminiCoachLLM
+        _REGISTRY["litellm"] = LiteLLMCoachLLM
     return _REGISTRY
 
 

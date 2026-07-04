@@ -16,9 +16,11 @@ def _registry() -> dict[str, type[FoodRecognizer]]:
     if not _REGISTRY:
         from app.services.recognizer.gemini import GeminiVisionRecognizer
         from app.services.recognizer.yolo import YoloPipelineRecognizer
+        from app.services.recognizer.litellm_vision import LiteLLMVisionRecognizer
 
         _REGISTRY["gemini"] = GeminiVisionRecognizer
         _REGISTRY["yolo"] = YoloPipelineRecognizer
+        _REGISTRY["claude"] = LiteLLMVisionRecognizer
     return _REGISTRY
 
 

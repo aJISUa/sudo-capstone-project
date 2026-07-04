@@ -9,6 +9,7 @@ import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
 import 'package:oncare/features/exercise/domain/entities/exercise_week.dart';
 import 'package:oncare/features/exercise/presentation/controllers/exercise_controller.dart';
+import 'package:oncare/features/exercise/presentation/widgets/add_session_sheet.dart';
 import 'package:oncare/shared/widgets/ai_coach_card.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
 import 'package:oncare/shared/widgets/swipe_to_delete.dart';
@@ -170,7 +171,10 @@ class _Body extends ConsumerWidget {
               dismissKey: ValueKey<String>('ex-${s.id}'),
               message: '이 운동 기록을 삭제할까요?',
               onDelete: () => _delete(context, ref, s.id!),
-              child: _SessionCard(session: s),
+              child: _SessionCard(
+                session: s,
+                onTap: () => showAddSessionSheet(context, session: s),
+              ),
             ),
           const SizedBox(height: AppSpacing.sm),
         ],
@@ -314,8 +318,9 @@ String _typeLabel(ExerciseType t) => switch (t) {
 };
 
 class _SessionCard extends StatelessWidget {
-  const _SessionCard({required this.session});
+  const _SessionCard({required this.session, this.onTap});
   final ExerciseSession session;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -324,6 +329,7 @@ class _SessionCard extends StatelessWidget {
     final timeLabel = session.timeLabel;
     return AppCard(
       outlined: true,
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

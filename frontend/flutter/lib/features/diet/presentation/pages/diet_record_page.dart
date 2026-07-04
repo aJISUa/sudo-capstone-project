@@ -9,6 +9,7 @@ import 'package:oncare/features/diet/presentation/controllers/diet_controller.da
 import 'package:oncare/features/diet/presentation/pages/diet_analyze_page.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_summary_card.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_week_strip.dart';
+import 'package:oncare/features/diet/presentation/widgets/edit_meal_sheet.dart';
 import 'package:oncare/features/diet/presentation/widgets/meal_card.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
@@ -159,7 +160,10 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
                             dismissKey: ValueKey<String>('diet-${entry.id}'),
                             message: '이 식단 기록을 삭제할까요?',
                             onDelete: () => _deleteDietEntry(entry.id!),
-                            child: MealCard(entry: entry),
+                            child: MealCard(
+                              entry: entry,
+                              onTap: () => showEditMealSheet(context, entry),
+                            ),
                           ),
                         const SizedBox(height: AppSpacing.sm),
                       ],

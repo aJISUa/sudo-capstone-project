@@ -69,3 +69,29 @@ def test_delete_entry_removes_from_today(client):
 def test_delete_entry_404_when_missing(client):
     r = client.delete("/v1/diet/entries/diet-nope")
     assert r.status_code == 404
+
+
+def test_update_entry_changes_meal_type(client):
+    entry_id = client.post(
+        "/v1/diet/analyze",
+        files={"image": ("food.jpg", _JPEG, "image/jpeg")},
+        data={"meal_type": "lunch"},
+    ).json()["entry_id"]
+
+    r = client.put(
+        f"/v1/diet/entries/{entry_id}",
+        json={"meal_type": "dinner", "time_label": "19:30"},
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["meal_type"] == "dinner"
+    assert r.json()["time_label"] == "19:30"
+
+    # 공유 데모 사용자라 전역 합계 대신 id 로 확인.
+    today = client.get("/v1/diet/days/today").json()["entries"]
+    mine = next(e for e in today if e["id"] == entry_id)
+    assert mine["meal_type"] == "dinner"
+
+
+def test_update_entry_404_when_missing(client):
+    r = client.put("/v1/diet/entries/diet-nope", json={"meal_type": "dinner"})
+    assert r.status_code == 404

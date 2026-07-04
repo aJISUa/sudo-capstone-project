@@ -59,3 +59,49 @@ def test_delete_session_404_when_missing(client):
     h = _login(client)
     r = client.delete("/v1/exercise/sessions/ex-nope", headers=h)
     assert r.status_code == 404
+
+
+def test_update_session_changes_week(client):
+    h = _login(client)
+    sid = client.post(
+        "/v1/exercise/sessions",
+        json={"type": "cardio", "minutes": 30, "calories": 150, "day_label": "월"},
+        headers=h,
+    ).json()["id"]
+
+    r = client.put(
+        f"/v1/exercise/sessions/{sid}",
+        json={"type": "strength", "minutes": 50, "calories": 250, "day_label": "화"},
+        headers=h,
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["type"] == "strength"
+    assert r.json()["minutes"] == 50
+
+    week = client.get("/v1/exercise/weeks/current", headers=h)
+    assert week.json()["total_minutes"] == 50
+
+
+def test_update_session_404_when_missing(client):
+    h = _login(client)
+    r = client.put(
+        "/v1/exercise/sessions/ex-nope",
+        json={"type": "cardio", "minutes": 20},
+        headers=h,
+    )
+    assert r.status_code == 404
+
+
+def test_update_session_rejects_bad_type(client):
+    h = _login(client)
+    sid = client.post(
+        "/v1/exercise/sessions",
+        json={"type": "cardio", "minutes": 30, "day_label": "월"},
+        headers=h,
+    ).json()["id"]
+    r = client.put(
+        f"/v1/exercise/sessions/{sid}",
+        json={"type": "flying", "minutes": 20},
+        headers=h,
+    )
+    assert r.status_code == 400

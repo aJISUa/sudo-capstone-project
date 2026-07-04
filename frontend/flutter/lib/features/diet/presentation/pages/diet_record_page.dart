@@ -17,6 +17,7 @@ import 'package:oncare/shared/widgets/error_view.dart';
 import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
 import 'package:oncare/shared/widgets/modals/schedule_calendar_sheet.dart';
 import 'package:oncare/shared/widgets/oncare_header.dart';
+import 'package:oncare/shared/widgets/swipe_to_delete.dart';
 
 class DietRecordPage extends ConsumerStatefulWidget {
   const DietRecordPage({super.key});
@@ -34,6 +35,18 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
     if (h < 15) return 'lunch';
     if (h < 21) return 'dinner';
     return 'snack';
+  }
+
+  Future<void> _deleteDietEntry(String id) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(dietRepositoryProvider).deleteEntry(id);
+      ref.invalidate(dietTodayProvider); // 삭제가 오늘 목록·요약에 반영
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('삭제에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
   }
 
   Future<ImageSource?> _pickSource() {
@@ -139,7 +152,15 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
                         ),
                       ),
                       for (final entry in day.entries) ...<Widget>[
-                        MealCard(entry: entry),
+                        if (entry.id == null)
+                          MealCard(entry: entry)
+                        else
+                          SwipeToDelete(
+                            dismissKey: ValueKey<String>('diet-${entry.id}'),
+                            message: '이 식단 기록을 삭제할까요?',
+                            onDelete: () => _deleteDietEntry(entry.id!),
+                            child: MealCard(entry: entry),
+                          ),
                         const SizedBox(height: AppSpacing.sm),
                       ],
                     ],

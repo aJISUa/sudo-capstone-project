@@ -11,6 +11,7 @@ import 'package:oncare/features/exercise/domain/entities/exercise_week.dart';
 import 'package:oncare/features/exercise/presentation/controllers/exercise_controller.dart';
 import 'package:oncare/shared/widgets/ai_coach_card.dart';
 import 'package:oncare/shared/widgets/error_view.dart';
+import 'package:oncare/shared/widgets/swipe_to_delete.dart';
 
 /// 운동 기록 tab body. Stat row → stacked weekly chart → AI feedback
 /// (unchanged AiCoachCard) → grouped session history. The FAB lives
@@ -34,12 +35,24 @@ class WorkoutRecordTab extends ConsumerWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   const _Body({required this.week});
   final ExerciseWeek week;
 
+  Future<void> _delete(BuildContext context, WidgetRef ref, String id) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(exerciseRepositoryProvider).deleteSession(id);
+      ref.invalidate(exerciseWeekProvider); // 삭제가 이번 주 집계에 반영
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('삭제에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final hasStackedSeries =
         week.cardioMinutes.isNotEmpty ||
@@ -150,7 +163,15 @@ class _Body extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
 
         for (final s in week.sessions) ...<Widget>[
-          _SessionCard(session: s),
+          if (s.id == null)
+            _SessionCard(session: s)
+          else
+            SwipeToDelete(
+              dismissKey: ValueKey<String>('ex-${s.id}'),
+              message: '이 운동 기록을 삭제할까요?',
+              onDelete: () => _delete(context, ref, s.id!),
+              child: _SessionCard(session: s),
+            ),
           const SizedBox(height: AppSpacing.sm),
         ],
       ],

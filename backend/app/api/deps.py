@@ -83,7 +83,7 @@ def require_auth(
     try:
         user_id = decode_access_token(token)
     except jwt.InvalidTokenError:
-        raise exc
+        raise exc from None
     user = db.scalar(select(User).where(User.id == user_id))
     if user is None or not user.is_active:
         raise exc

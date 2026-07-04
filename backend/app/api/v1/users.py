@@ -17,6 +17,7 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser, RequireUser
@@ -218,7 +219,11 @@ def register(
         hashed_password=hash_password(payload.password),
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="이미 가입된 이메일입니다.") from None
     db.refresh(user)
     audit(db, event="auth.register", user_id=user.id, ip=client_ip(request), success=True)
     return UserMe(id=user.id, name=user.name, email=user.email)

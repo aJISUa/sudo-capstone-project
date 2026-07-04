@@ -17,9 +17,11 @@ def _registry() -> dict[str, type[FoodRecognizer]]:
         from app.services.recognizer.gemini import GeminiVisionRecognizer
         from app.services.recognizer.stub import StubFoodRecognizer
         from app.services.recognizer.yolo import YoloPipelineRecognizer
+        from app.services.recognizer.litellm_vision import LiteLLMVisionRecognizer
 
         _REGISTRY["gemini"] = GeminiVisionRecognizer
         _REGISTRY["yolo"] = YoloPipelineRecognizer
+        _REGISTRY["claude"] = LiteLLMVisionRecognizer
         _REGISTRY["stub"] = StubFoodRecognizer  # 오프라인 폴백(키 불필요)
     return _REGISTRY
 

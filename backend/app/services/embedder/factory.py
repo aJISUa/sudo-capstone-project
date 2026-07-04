@@ -13,9 +13,11 @@ def _registry() -> dict[str, type[Embedder]]:
     if not _REGISTRY:
         from app.services.embedder.gemini_embedder import GeminiEmbedder
         from app.services.embedder.hash_embedder import HashEmbedder
+        from app.services.embedder.litellm_embedder import LiteLLMEmbedder
         from app.services.embedder.openai_embedder import OpenAIEmbedder
         _REGISTRY["openai"] = OpenAIEmbedder
         _REGISTRY["gemini"] = GeminiEmbedder
+        _REGISTRY["litellm"] = LiteLLMEmbedder
         _REGISTRY["hash"] = HashEmbedder  # 오프라인 폴백(키 불필요)
     return _REGISTRY
 

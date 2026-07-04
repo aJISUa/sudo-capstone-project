@@ -38,7 +38,7 @@ def ingest_document(
     embedder = get_embedder()
     vectors = embedder.embed(chunks)
 
-    for chunk, vec in zip(chunks, vectors):
+    for chunk, vec in zip(chunks, vectors, strict=True):
         db.add(CoachDocument(
             user_id=user_id, domain=domain, source=source,
             title=title, content=chunk, embedding=vec,

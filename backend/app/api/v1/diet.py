@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from datetime import datetime
 from typing import Annotated
@@ -30,6 +31,7 @@ from app.services.nutrition.enrich import enrich_analysis
 from app.services.recognizer.factory import get_recognizer
 
 router = APIRouter(tags=["diet"])
+logger = logging.getLogger(__name__)
 
 _ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp"}
 
@@ -99,14 +101,18 @@ async def diet_analyze(
     try:
         recognizer = get_recognizer(engine)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     try:
         analysis = await recognizer.recognize(image_bytes, image.content_type)
     except NotImplementedError as e:
-        raise HTTPException(status_code=501, detail=str(e))
+        raise HTTPException(status_code=501, detail=str(e)) from e
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"인식 실패: {e}")
+        # 원본 에러(API 키/내부 URL 등)는 서버 로그에만 남기고, 클라이언트엔 일반화된 메시지
+        logger.exception("식단 인식 실패 (engine=%s)", engine)
+        raise HTTPException(
+            status_code=502, detail="식단 인식에 실패했습니다. 잠시 후 다시 시도해 주세요."
+        ) from e
 
     # 공공 식품영양성분 DB 매핑으로 영양 수치 보강(매칭 시 신뢰값으로 교체 → 합계 재계산)
     enrich_analysis(db, analysis, enabled=get_settings().nutrition_db_enrich)
@@ -139,6 +145,8 @@ async def diet_analyze(
         total_calories=entry.total_calories, sodium_mg=entry.sodium_mg, sugar_g=entry.sugar_g,
     )
 
+    # 모델 원본 출력(raw_model_output)은 클라이언트로 내보내지 않음(디버깅 전용)
+    analysis.raw_model_output = None
     return DietAnalyzeResponse(entry_id=entry.id, analysis=analysis)
 
 

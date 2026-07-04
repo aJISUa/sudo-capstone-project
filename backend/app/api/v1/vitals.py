@@ -35,6 +35,8 @@ _VALID_KINDS = {"weight", "blood-pressure", "blood-sugar"}
 
 def _save_vital(db: Session, user_id: str, kind: str, value: dict,
                 recorded_at: datetime | None) -> Vital:
+    if recorded_at is not None and recorded_at.tzinfo is None:
+        recorded_at = recorded_at.replace(tzinfo=timezone.utc)
     row = Vital(
         id=f"vital-{uuid.uuid4().hex[:12]}",
         user_id=user_id,

@@ -7,6 +7,7 @@ import 'package:oncare/design_system/atoms/app_card.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/radius.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
+import 'package:oncare/features/account/presentation/controllers/account_controller.dart';
 import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
 import 'package:oncare/features/my_health/domain/entities/health_history.dart';
 import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
@@ -106,6 +107,8 @@ class _Body extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
             const _SignOutButton(),
+            const SizedBox(height: AppSpacing.sm),
+            const _WithdrawButton(),
           ],
         ),
       ),
@@ -158,6 +161,59 @@ class _SignOutButton extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WithdrawButton extends ConsumerWidget {
+  const _WithdrawButton();
+
+  Future<void> _confirmAndWithdraw(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('회원 탈퇴'),
+        content: const Text(
+          '정말 탈퇴하시겠어요?\n'
+          '프로필·식단·운동·건강 기록이 모두 삭제되며 되돌릴 수 없어요.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
+            child: const Text('탈퇴하기'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(accountRepositoryProvider).deleteAccount();
+      // 세션을 로그아웃 상태로 전환 → 가드가 로그인 화면으로 되돌린다.
+      await ref.read(sessionControllerProvider.notifier).signOut();
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Center(
+      child: TextButton(
+        onPressed: () => _confirmAndWithdraw(context, ref),
+        style: TextButton.styleFrom(foregroundColor: AppColors.mutedForeground),
+        child: const Text(
+          '회원 탈퇴',
+          style: TextStyle(decoration: TextDecoration.underline),
+        ),
       ),
     );
   }

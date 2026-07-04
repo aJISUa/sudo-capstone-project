@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Annotated
-
+from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
@@ -82,7 +82,11 @@ def register(payload: UserRegister, db: Annotated[Session, Depends(get_db)]) -> 
         hashed_password=hash_password(payload.password),
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="이미 가입된 이메일입니다.") from None
     db.refresh(user)
     return UserMe(id=user.id, name=user.name, email=user.email)
 

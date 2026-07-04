@@ -22,7 +22,7 @@ class OpenAICoachLLM(CoachLLM):
         if not s.openai_api_key:
             raise RuntimeError("OPENAI_API_KEY 가 설정되지 않았습니다.")
         from openai import OpenAI
-        self._client = OpenAI(api_key=s.openai_api_key)
+        self._client = OpenAI(api_key=s.openai_api_key, timeout=60.0)
         self._model = s.openai_chat_model
 
     def generate(self, system_prompt: str, user_prompt: str) -> LLMResult:
@@ -85,7 +85,7 @@ class LiteLLMCoachLLM(CoachLLM):
             raise RuntimeError("LITELLM_API_KEY(Virtual Key) 가 설정되지 않았습니다.")
         from openai import OpenAI
         # base_url 만 LiteLLM 으로 돌리면 OpenAI SDK 가 프록시를 호출
-        self._client = OpenAI(api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1")
+        self._client = OpenAI(api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1", timeout=60.0)
         self._model = s.litellm_chat_model
 
     def generate(self, system_prompt: str, user_prompt: str) -> LLMResult:

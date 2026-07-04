@@ -32,9 +32,9 @@ flutter run --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=http://l
 ```
 (LocalApiInterceptor 가 꺼지고 실제 /v1 서버로 요청)
 
-## 준비물
+## 회원님 준비물
 - Docker Desktop (무료, 가입 없음)
-- (STEP 3~) Gemini -> Claude / OpenAI 키
+- (STEP 3~) Gemini / OpenAI 키
 
 ## 식단 인식 실제 예시 (Diet Analysis PoC — live output)
 

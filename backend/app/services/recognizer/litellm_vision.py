@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import time
 
 from app.core.config import get_settings
@@ -37,7 +38,10 @@ class LiteLLMVisionRecognizer(FoodRecognizer):
         if not s.litellm_api_key:
             raise RuntimeError("LITELLM_API_KEY(Virtual Key) 가 설정되지 않았습니다.")
         from openai import OpenAI
-        self._client = OpenAI(api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1")
+        # 타임아웃을 둬서 지연 응답이 작업 스레드를 오래 점유하지 않게 함
+        self._client = OpenAI(
+            api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1", timeout=60.0
+        )
         self._model = s.litellm_vision_model
 
     async def recognize(self, image_bytes: bytes, mime_type: str) -> DietAnalysis:
@@ -63,11 +67,11 @@ class LiteLLMVisionRecognizer(FoodRecognizer):
         return self._parse(raw, latency_ms)
 
     def _parse(self, raw: str, latency_ms: int) -> DietAnalysis:
-        # Claude 가 코드블록으로 감쌀 수 있어 방어적으로 정리
+        # Claude 가 코드블록(```json ... ```)으로 감쌀 수 있어 앞부분 펜스만 정확히 제거
         text = raw.strip()
-        if text.startswith("```"):
-            text = text.split("```")[1] if "```" in text[3:] else text
-            text = text.replace("json", "", 1).strip("` \n")
+        # 선행 ```lang 펜스와 후행 ``` 만 제거 (본문의 'json' 은 건드리지 않음)
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text).strip()
         foods: list[RecognizedFood] = []
         coach = ""
         try:

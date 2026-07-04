@@ -23,6 +23,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg://oncare:oncare@db:5432/oncare
+      TZ: Asia/Seoul          # 오늘/어제 등 날짜 라벨을 KST 기준으로 계산
     env_file:
       - .env
     ports:

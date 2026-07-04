@@ -55,8 +55,7 @@ def add_session(
 ) -> ExerciseSessionOut:
     if payload.type not in _ALLOWED_TYPES:
         raise HTTPException(status_code=400, detail=f"허용되지 않는 운동 타입: {payload.type}")
-    if payload.minutes <= 0:
-        raise HTTPException(status_code=400, detail="minutes 는 1 이상이어야 합니다.")
+    # minutes(>0)·calories(>=0) 는 ExerciseSessionCreate 의 Field 제약에서 422 로 검증됨
 
     day_label = payload.day_label or WEEKDAY_LABELS[datetime.now().weekday()]
     if day_label not in WEEKDAY_LABELS:
@@ -90,8 +89,7 @@ def update_session(
     """운동 기록 수정(본인 소유만, 아니면 404). 유형/시간/칼로리/요일 갱신."""
     if payload.type not in _ALLOWED_TYPES:
         raise HTTPException(status_code=400, detail=f"허용되지 않는 운동 타입: {payload.type}")
-    if payload.minutes <= 0:
-        raise HTTPException(status_code=400, detail="minutes 는 1 이상이어야 합니다.")
+    # minutes(>0)·calories(>=0) 는 ExerciseSessionCreate 의 Field 제약에서 422 로 검증됨
 
     row = db.scalar(
         select(ExerciseSession)

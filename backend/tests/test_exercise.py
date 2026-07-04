@@ -36,7 +36,8 @@ def test_add_session_rejects_unknown_type(client):
 def test_add_session_rejects_nonpositive_minutes(client):
     h = _login(client)
     r = client.post("/v1/exercise/sessions", json={"type": "cardio", "minutes": 0}, headers=h)
-    assert r.status_code == 400
+    # minutes 는 스키마 제약(Field(gt=0)) 이라 FastAPI 가 422(Unprocessable) 로 거부
+    assert r.status_code == 422
 
 
 def test_delete_session_removes_from_week(client):

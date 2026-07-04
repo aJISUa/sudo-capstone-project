@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -20,11 +20,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser
+from app.core.config import get_settings
 from app.db.session import get_db
 from app.models.models import DietEntry
 from app.schemas.diet_api import (
-    DietAnalyzeResponse, DietEntryOut, DietTodayResponse, Macros,
+    DietAnalyzeResponse, DietEntryOut, DietEntryUpdate, DietTodayResponse, Macros,
 )
+from app.services.coach.personal_ingest import record_diet
+from app.services.nutrition.enrich import enrich_analysis
 from app.services.recognizer.factory import get_recognizer
 
 router = APIRouter(tags=["diet"])
@@ -111,10 +114,13 @@ async def diet_analyze(
             status_code=502, detail="식단 인식에 실패했습니다. 잠시 후 다시 시도해 주세요."
         ) from e
 
-    # diet_entries 저장 (foods 는 {name, calories} 형태로 — drift 주석과 일치)
+    # 공공 식품영양성분 DB 매핑으로 영양 수치 보강(매칭 시 신뢰값으로 교체 → 합계 재계산)
+    enrich_analysis(db, analysis, enabled=get_settings().nutrition_db_enrich)
+
+    # diet_entries 저장 (foods 는 {name, calories, sodium_mg, sugar_g, source})
     foods_for_storage = [
         {"name": f.name, "calories": f.calories,
-         "sodium_mg": f.sodium_mg, "sugar_g": f.sugar_g}
+         "sodium_mg": f.sodium_mg, "sugar_g": f.sugar_g, "source": f.source}
         for f in analysis.foods
     ]
     entry = DietEntry(
@@ -133,6 +139,60 @@ async def diet_analyze(
     db.commit()
     db.refresh(entry)
 
+    # 개인 RAG 문서로 적재(코치가 내 최근 식단을 검색하도록). best-effort.
+    record_diet(
+        db, current_user.id, date=entry.date, foods=foods_for_storage,
+        total_calories=entry.total_calories, sodium_mg=entry.sodium_mg, sugar_g=entry.sugar_g,
+    )
+
     # 모델 원본 출력(raw_model_output)은 클라이언트로 내보내지 않음(디버깅 전용)
     analysis.raw_model_output = None
     return DietAnalyzeResponse(entry_id=entry.id, analysis=analysis)
+
+
+@router.put("/diet/entries/{entry_id}", response_model=DietEntryOut)
+def update_entry(
+    entry_id: str,
+    payload: DietEntryUpdate,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> DietEntryOut:
+    """식단 기록의 끼니 분류/시간 수정(본인 소유만, 아니면 404)."""
+    row = db.scalar(
+        select(DietEntry)
+        .where(DietEntry.id == entry_id)
+        .where(DietEntry.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="식단 기록을 찾을 수 없습니다.")
+    if payload.meal_type is not None:
+        row.meal_type = payload.meal_type
+    if payload.time_label is not None:
+        row.time_label = payload.time_label
+    db.commit()
+    db.refresh(row)
+    foods = json.loads(row.foods_json) if row.foods_json else []
+    return DietEntryOut(
+        id=row.id, meal_type=row.meal_type, time_label=row.time_label,
+        foods=foods, total_calories=row.total_calories,
+        sodium_mg=row.sodium_mg, sugar_g=row.sugar_g,
+    )
+
+
+@router.delete("/diet/entries/{entry_id}")
+def delete_entry(
+    entry_id: str,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """식단 기록 삭제. 본인 소유 엔트리만 삭제 가능(아니면 404)."""
+    row = db.scalar(
+        select(DietEntry)
+        .where(DietEntry.id == entry_id)
+        .where(DietEntry.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="식단 기록을 찾을 수 없습니다.")
+    db.delete(row)
+    db.commit()
+    return {"status": "deleted"}

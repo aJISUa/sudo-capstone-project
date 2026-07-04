@@ -29,6 +29,13 @@ class DietEntryOut(BaseModel):
     sugar_g: int
 
 
+class DietEntryUpdate(BaseModel):
+    """PUT /diet/entries/{id} — 끼니 분류/시간 수정(부분 저장). 음식/영양은
+    분석 결과라 여기서 바꾸지 않는다."""
+    meal_type: str | None = None
+    time_label: str | None = None
+
+
 class DietTodayResponse(BaseModel):
     entries: list[DietEntryOut]
     total_calories: int

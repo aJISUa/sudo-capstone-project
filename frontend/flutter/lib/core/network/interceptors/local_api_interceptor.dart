@@ -33,11 +33,24 @@ class LocalApiInterceptor extends Interceptor {
     'GET /version': _version,
     'GET /dashboard/summary': _dashboardSummary,
     'GET /diet/days/today': _dietToday,
+    'POST /diet/analyze': _dietAnalyze,
     'GET /exercise/weeks/current': _exerciseCurrentWeek,
+    'POST /exercise/sessions': _exerciseAddSession,
     'GET /schedule/events': _scheduleEvents,
+    'POST /schedule/events': _scheduleCreate,
     'GET /notifications': _notifications,
     'GET /ai-coach/feedback': _aiCoachFeedback,
+    'POST /ai-coach/chat': _aiCoachChat,
+    'POST /auth/login': _authLogin,
+    'POST /auth/register': _authRegister,
+    'POST /auth/social/kakao': _authSocial,
+    'POST /auth/social/google': _authSocial,
     'GET /users/me': _usersMe,
+    'GET /users/me/profile': _usersMeProfile,
+    'PUT /users/me': _usersMeUpdate,
+    'DELETE /users/me': _usersMeDelete,
+    'POST /users/me/onboarding': _usersMeOnboarding,
+    'PUT /users/me/health-goals': _usersMeHealthGoals,
     'GET /users/me/health': _usersMeHealth,
     'GET /places/nearby': _placesNearby,
     // Vitals — three fixed kinds (weight | blood-pressure | blood-sugar).
@@ -74,8 +87,12 @@ class LocalApiInterceptor extends Interceptor {
         _logger.d('[local-api] $key (exact)');
         return await exact(options);
       }
-      // (Regex routes will be added by later phases — diet/exercise/
-      // vitals/notifications/schedule etc.)
+      // Path-param routes (can't be keyed exactly) — e.g. DELETE by id.
+      final param = _paramRoute(method, path);
+      if (param != null) {
+        _logger.d('[local-api] $key (param)');
+        return await param(options);
+      }
       return null;
     } catch (e, st) {
       _logger.e('[local-api] $key failed', error: e, stackTrace: st);
@@ -88,6 +105,108 @@ class LocalApiInterceptor extends Interceptor {
         },
       );
     }
+  }
+
+  /// Resolve a handler for path-param routes (id in the URL). Returns null
+  /// if none matches so [_safeHandle] falls through to the real network.
+  _Handler? _paramRoute(String method, String path) {
+    if (method == 'DELETE' && path.startsWith('/diet/entries/')) {
+      return _dietDelete;
+    }
+    if (method == 'DELETE' && path.startsWith('/exercise/sessions/')) {
+      return _exerciseDelete;
+    }
+    if (method == 'PUT' && path.startsWith('/diet/entries/')) {
+      return _dietUpdate;
+    }
+    if (method == 'PUT' && path.startsWith('/exercise/sessions/')) {
+      return _exerciseUpdate;
+    }
+    return null;
+  }
+
+  Future<Response<Object?>> _dietDelete(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final n = await (_db.delete(
+      _db.dietEntries,
+    )..where((t) => t.id.equals(id))).go();
+    if (n == 0) return _notFound(options, '식단 기록을 찾을 수 없습니다.');
+    return _ok(options, <String, Object?>{'status': 'deleted'});
+  }
+
+  Future<Response<Object?>> _exerciseDelete(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final n = await (_db.delete(
+      _db.exerciseSessions,
+    )..where((t) => t.id.equals(id))).go();
+    if (n == 0) return _notFound(options, '운동 기록을 찾을 수 없습니다.');
+    return _ok(options, <String, Object?>{'status': 'deleted'});
+  }
+
+  Future<Response<Object?>> _exerciseUpdate(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final existing = await (_db.select(
+      _db.exerciseSessions,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return _notFound(options, '운동 기록을 찾을 수 없습니다.');
+    final body = _jsonBody(options);
+    final type = (body['type'] as String? ?? existing.type).trim();
+    final minutes = (body['minutes'] as num?)?.toInt() ?? existing.minutes;
+    final calories = (body['calories'] as num?)?.toInt() ?? existing.calories;
+    final dayRaw = (body['day_label'] as String? ?? '').trim();
+    final dayLabel = dayRaw.isEmpty ? existing.dayLabel : dayRaw;
+    await (_db.update(
+      _db.exerciseSessions,
+    )..where((t) => t.id.equals(id))).write(
+      ExerciseSessionsCompanion(
+        type: Value(type),
+        minutes: Value(minutes),
+        calories: Value(calories),
+        dayLabel: Value(dayLabel),
+      ),
+    );
+    return _ok(options, <String, Object?>{
+      'id': id,
+      'day_label': dayLabel,
+      'type': type,
+      'minutes': minutes,
+      'calories': calories,
+      'date_label': _dateLabelForDayLabel(dayLabel),
+      'time_label': _defaultTimeLabel(type),
+      'items': _defaultItems(type),
+    });
+  }
+
+  Future<Response<Object?>> _dietUpdate(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final existing = await (_db.select(
+      _db.dietEntries,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return _notFound(options, '식단 기록을 찾을 수 없습니다.');
+    final body = _jsonBody(options);
+    final mealType = (body['meal_type'] as String?)?.trim();
+    final timeLabel = (body['time_label'] as String?)?.trim();
+    await (_db.update(_db.dietEntries)..where((t) => t.id.equals(id))).write(
+      DietEntriesCompanion(
+        mealType: (mealType == null || mealType.isEmpty)
+            ? const Value.absent()
+            : Value(mealType),
+        timeLabel: timeLabel == null ? const Value.absent() : Value(timeLabel),
+      ),
+    );
+    final row = await (_db.select(
+      _db.dietEntries,
+    )..where((t) => t.id.equals(id))).getSingle();
+    final foods = jsonDecode(row.foodsJson) as List<Object?>;
+    return _ok(options, <String, Object?>{
+      'id': row.id,
+      'meal_type': row.mealType,
+      'time_label': row.timeLabel,
+      'foods': foods,
+      'total_calories': row.totalCalories,
+      'sodium_mg': row.sodiumMg,
+      'sugar_g': row.sugarG,
+    });
   }
 
   // ---- handlers ----
@@ -243,6 +362,75 @@ class LocalApiInterceptor extends Interceptor {
     });
   }
 
+  /// POST /diet/analyze — the mock can't see the uploaded image, so it
+  /// returns a deterministic "recognized" meal (nutrition from the same
+  /// public DB the real backend maps to) and persists a diet entry to
+  /// drift so it shows up in GET /diet/days/today. `diet-` id (not
+  /// `seed-`) means seedIfEmpty never wipes it.
+  Future<Response<Object?>> _dietAnalyze(RequestOptions options) async {
+    // meal_type 은 multipart FormData 또는 Map 에서 추출.
+    String mealType = 'lunch';
+    final data = options.data;
+    if (data is FormData) {
+      for (final MapEntry<String, String> f in data.fields) {
+        if (f.key == 'meal_type' && f.value.isNotEmpty) mealType = f.value;
+      }
+    } else if (data is Map) {
+      mealType = (data['meal_type'] as String?) ?? 'lunch';
+    }
+
+    final foods = <Map<String, Object?>>[
+      <String, Object?>{
+        'name': '비빔밥',
+        'calories': 600,
+        'sodium_mg': 900,
+        'sugar_g': 8,
+        'source': 'db',
+      },
+      <String, Object?>{
+        'name': '김치',
+        'calories': 15,
+        'sodium_mg': 300,
+        'sugar_g': 1,
+        'source': 'db',
+      },
+    ];
+    const int totalCal = 615;
+    const int totalNa = 1200;
+    const int totalSugar = 9;
+    const String coach = '비빔밥은 채소가 풍부해 좋아요. 나트륨이 다소 높으니 고추장·간장을 조금 줄여보세요.';
+
+    final now = DateTime.now();
+    final id = 'diet-${now.microsecondsSinceEpoch}';
+    await _db
+        .into(_db.dietEntries)
+        .insert(
+          DietEntriesCompanion.insert(
+            id: id,
+            date: _todayDateString(),
+            mealType: mealType,
+            timeLabel:
+                '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+            foodsJson: jsonEncode(foods),
+            totalCalories: totalCal,
+            sodiumMg: const Value(totalNa),
+            sugarG: const Value(totalSugar),
+          ),
+        );
+
+    return _ok(options, <String, Object?>{
+      'entry_id': id,
+      'analysis': <String, Object?>{
+        'engine': 'stub',
+        'foods': foods,
+        'total_calories': totalCal,
+        'total_sodium_mg': totalNa,
+        'total_sugar_g': totalSugar,
+        'coach_comment': coach,
+      },
+    });
+  }
+
   String _todayDateString() {
     final now = DateTime.now();
     return '${now.year.toString().padLeft(4, '0')}-'
@@ -384,15 +572,74 @@ class LocalApiInterceptor extends Interceptor {
     _ => const <String>[],
   };
 
+  /// POST /exercise/sessions — persist a workout into drift so the next
+  /// GET /exercise/weeks/current includes it (stats + chart + list). The
+  /// `ex-` id prefix (not `seed-`) means seedIfEmpty never wipes it.
+  Future<Response<Object?>> _exerciseAddSession(RequestOptions options) async {
+    final body = options.data;
+    Map<String, Object?> payload;
+    if (body is Map) {
+      payload = body.cast<String, Object?>();
+    } else if (body is String && body.isNotEmpty) {
+      payload = (jsonDecode(body) as Map<Object?, Object?>)
+          .cast<String, Object?>();
+    } else {
+      payload = <String, Object?>{};
+    }
+
+    final type = (payload['type'] as String?) ?? 'cardio';
+    final minutes = (payload['minutes'] as num?)?.toInt() ?? 0;
+    if (minutes <= 0) {
+      return _badRequest(options, 'minutes must be > 0');
+    }
+    final calories = (payload['calories'] as num?)?.toInt() ?? 0;
+    final dayLabel =
+        (payload['day_label'] as String?) ??
+        _weekdayLabels[DateTime.now().weekday - 1];
+
+    final id = 'ex-${DateTime.now().microsecondsSinceEpoch}';
+    await _db
+        .into(_db.exerciseSessions)
+        .insert(
+          ExerciseSessionsCompanion.insert(
+            id: id,
+            weekStart: _mondayOfThisWeekString(),
+            dayLabel: dayLabel,
+            type: type,
+            minutes: minutes,
+            calories: calories,
+          ),
+        );
+
+    return _ok(options, <String, Object?>{
+      'id': id,
+      'day_label': dayLabel,
+      'type': type,
+      'minutes': minutes,
+      'calories': calories,
+      'date_label': _dateLabelForDayLabel(dayLabel),
+      'time_label': _defaultTimeLabel(type),
+      'items': _defaultItems(type),
+    });
+  }
+
   // ---- Schedule ----
 
   Future<Response<Object?>> _scheduleEvents(RequestOptions options) async {
-    // `?date=YYYY-MM-DD`. Defaults to today.
-    final date =
-        (options.queryParameters['date'] as String?) ?? _todayDateString();
-    final rows = await (_db.select(
-      _db.scheduleEvents,
-    )..where((t) => t.date.equals(date))).get();
+    // `?month=YYYY-MM` → whole month (calendar grid); otherwise
+    // `?date=YYYY-MM-DD` (defaults to today). Filtered in Dart to keep the
+    // drift import minimal (no LIKE extension needed); the demo table is
+    // tiny.
+    final month = options.queryParameters['month'] as String?;
+    final all = await _db.select(_db.scheduleEvents).get();
+    final rows = (month != null && month.isNotEmpty)
+        ? all.where((r) => r.date.startsWith('$month-')).toList()
+        : () {
+            final date =
+                (options.queryParameters['date'] as String?) ??
+                _todayDateString();
+            return all.where((r) => r.date == date).toList();
+          }();
 
     final list = <Map<String, Object?>>[
       for (final r in rows)
@@ -407,6 +654,57 @@ class LocalApiInterceptor extends Interceptor {
         },
     ];
     return _ok(options, list);
+  }
+
+  /// Category → (emoji, color) so created events look consistent with the
+  /// seeded ones. Mirrors what a FastAPI build would fill server-side.
+  (String, String) _scheduleStyle(String category) => switch (category) {
+    'hospital' => ('🏥', '#DBEAFE'),
+    'exercise' => ('💪', '#DCFCE7'),
+    'meal' => ('🍽️', '#FFEDD5'),
+    'medication' => ('💊', '#EDE9FE'),
+    _ => ('📌', '#E0F2F7'),
+  };
+
+  /// POST /schedule/events — persist a new event to drift so it shows up in
+  /// GET /schedule/events and the dashboard's "오늘의 일정" for that date.
+  Future<Response<Object?>> _scheduleCreate(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final date = (body['date'] as String? ?? '').trim();
+    final title = (body['title'] as String? ?? '').trim();
+    if (date.isEmpty || title.isEmpty) {
+      return _badRequest(options, 'date and title are required');
+    }
+    final time = (body['time'] as String? ?? '').trim();
+    final category = (body['category'] as String? ?? 'other').trim();
+    final (emoji, colorHex) = _scheduleStyle(category);
+    final id = 'evt-${DateTime.now().microsecondsSinceEpoch}';
+    await _db
+        .into(_db.scheduleEvents)
+        .insert(
+          ScheduleEventsCompanion.insert(
+            id: id,
+            date: date,
+            time: time,
+            title: title,
+            category: category,
+            emoji: Value(emoji),
+            colorHex: Value(colorHex),
+          ),
+        );
+    return Response<Object?>(
+      requestOptions: options,
+      statusCode: 201,
+      data: <String, Object?>{
+        'id': id,
+        'date': date,
+        'time': time,
+        'title': title,
+        'category': category,
+        'emoji': emoji,
+        'color_hex': colorHex,
+      },
+    );
   }
 
   // ---- Notifications ----
@@ -459,14 +757,245 @@ class LocalApiInterceptor extends Interceptor {
     });
   }
 
+  /// Interactive coach chat. Reads `{ message, history[] }` and returns
+  /// `{ reply, sources[] }`. Keyword-matched canned answers grounded in the
+  /// same public guidelines the real RAG backend seeds, so the demo (mock
+  /// mode) exchanges real messages without a server.
+  Future<Response<Object?>> _aiCoachChat(RequestOptions options) async {
+    final body = options.data;
+    Map<String, Object?> payload;
+    if (body is Map) {
+      payload = body.cast<String, Object?>();
+    } else if (body is String && body.isNotEmpty) {
+      payload = (jsonDecode(body) as Map<Object?, Object?>)
+          .cast<String, Object?>();
+    } else {
+      payload = <String, Object?>{};
+    }
+    final message = (payload['message'] as String? ?? '').trim();
+    if (message.isEmpty) {
+      return _badRequest(options, 'message is empty');
+    }
+
+    final (String reply, List<String> sources) = _mockCoachReply(message);
+    return _ok(options, <String, Object?>{'reply': reply, 'sources': sources});
+  }
+
+  (String, List<String>) _mockCoachReply(String message) {
+    bool has(List<String> keys) => keys.any(message.contains);
+
+    if (has(<String>['나트륨', '혈압', '짜', '소금', '국물'])) {
+      return (
+        '나트륨을 줄이려면 국물은 남기고 건더기 위주로 드시고, 소금 대신 후추·마늘·레몬으로 '
+        '간을 해보세요. 하루 나트륨을 2000mg 이하로 맞추면 혈압 관리에 큰 도움이 돼요. 🌿',
+        <String>['나트륨 줄이기', 'DASH 식단 개요'],
+      );
+    }
+    if (has(<String>['당', '혈당', '설탕', '단 것', '디저트'])) {
+      return (
+        '혈당 관리를 위해 가당 음료와 디저트 같은 단순당을 줄이고, 식이섬유가 풍부한 통곡물·채소를 '
+        '늘려보세요. 음료는 물이나 무가당 차로 바꾸는 것만으로도 효과가 좋아요. 🍵',
+        <String>['당류 관리'],
+      );
+    }
+    if (has(<String>['운동', '걷', '헬스', '유산소', '근력'])) {
+      return (
+        '빠르게 걷기 같은 중강도 유산소를 주 5회, 하루 30분씩 해보세요. 여기에 주 2회 가벼운 근력 '
+        '운동을 더하면 혈압·혈당 관리에 특히 좋아요. 식후 10분 걷기도 큰 도움이 됩니다. 🚶',
+        <String>['고혈압과 운동', '유산소와 근력 균형'],
+      );
+    }
+    if (has(<String>['뭐 먹', '식단', '점심', '저녁', '아침', '메뉴'])) {
+      return (
+        '채소·통곡물·저지방 단백질 위주의 DASH 식단을 추천해요. 국·찌개는 싱겁게, 튀김보다 구이·찜으로 '
+        '드시면 좋아요. 혹시 최근 나트륨이 높았다면 담백한 샐러드나 생선구이가 균형을 맞춰줘요. 🥗',
+        <String>['DASH 식단 개요'],
+      );
+    }
+    if (has(<String>['물', '수분'])) {
+      return (
+        '하루 6~8잔의 물을 나눠 마시는 것이 혈압과 신진대사에 도움이 돼요. 카페인·가당 음료는 줄이고 '
+        '물로 대체해보세요. 💧',
+        <String>['수분 섭취'],
+      );
+    }
+    if (has(<String>['체중', '살', '다이어트', '몸무게'])) {
+      return (
+        '급격한 감량보다 식단과 운동을 병행한 완만한 감량이 안전해요. 체중을 5~10%만 줄여도 혈압·혈당 '
+        '지표가 눈에 띄게 좋아질 수 있어요. 함께 천천히 가봐요! 💪',
+        <String>['체중 관리'],
+      );
+    }
+    return (
+      '좋은 질문이에요! 식단·운동·혈압·혈당·수분 관리에 대해 더 구체적으로 물어봐 주시면 온이가 '
+      '맞춤으로 도와드릴게요. 예를 들어 "나트륨 줄이는 법"이나 "오늘 뭐 먹을까?"처럼요. 😊',
+      <String>[],
+    );
+  }
+
   // ---- Users / Me ----
 
-  Future<Response<Object?>> _usersMe(RequestOptions options) async {
+  /// POST /auth/login — the demo accepts any non-empty credentials and
+  /// issues a token so the login flow works without a server. Real
+  /// credentials are validated by FastAPI when USE_MOCK_API=false.
+  Future<Response<Object?>> _authLogin(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final username = (body['username'] as String? ?? '').trim();
+    final password = (body['password'] as String? ?? '').trim();
+    if (username.isEmpty || password.isEmpty) {
+      return _badRequest(options, 'username and password are required');
+    }
     return _ok(options, <String, Object?>{
-      'id': 'user-demo',
-      'name': '김민수',
-      'email': 'minsu@oncare.com',
+      'access_token': 'demo-access-${DateTime.now().microsecondsSinceEpoch}',
+      'refresh_token': 'demo-refresh',
+      'token_type': 'bearer',
     });
+  }
+
+  /// POST /auth/register — mirrors FastAPI: returns the created user
+  /// `{id, name, email}` with 201. The demo accepts any non-empty
+  /// email/password (real duplicate/validation is enforced by FastAPI
+  /// when USE_MOCK_API=false). `name` defaults to the email local-part.
+  Future<Response<Object?>> _authRegister(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final email = (body['email'] as String? ?? '').trim();
+    final password = (body['password'] as String? ?? '').trim();
+    final name = (body['name'] as String? ?? '').trim();
+    if (email.isEmpty || password.isEmpty) {
+      return _badRequest(options, 'email and password are required');
+    }
+    return Response<Object?>(
+      requestOptions: options,
+      statusCode: 201,
+      data: <String, Object?>{
+        'id': 'user-${DateTime.now().microsecondsSinceEpoch}',
+        'name': name.isEmpty ? email.split('@').first : name,
+        'email': email,
+      },
+    );
+  }
+
+  /// POST /auth/social/{provider} — the demo exchanges any non-empty
+  /// provider token for a session. Real provider-token verification is
+  /// done by FastAPI (+ provider SDK) when USE_MOCK_API=false.
+  Future<Response<Object?>> _authSocial(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final token = (body['token'] as String? ?? '').trim();
+    if (token.isEmpty) {
+      return _badRequest(options, 'token is required');
+    }
+    return _ok(options, <String, Object?>{
+      'access_token': 'demo-social-${DateTime.now().microsecondsSinceEpoch}',
+      'refresh_token': 'demo-refresh',
+      'token_type': 'bearer',
+    });
+  }
+
+  // ---- Profile (내 프로필 / 건강 목표) — AppKeyValues 로 영속 ----
+
+  static const Map<String, Object?> _defaultProfile = <String, Object?>{
+    'id': 'user-demo',
+    'name': '김민수',
+    'email': 'minsu@oncare.com',
+    'phone': '010-1234-5678',
+    'birth_date': '1990-01-15',
+    'gender': '',
+    'conditions': '',
+    'goals': '',
+    'goal_weight_kg': 70,
+    'goal_bp_systolic': 120,
+    'goal_blood_sugar': 100,
+    'daily_calories': 2000,
+    'daily_sodium_mg': 2000,
+    'onboarded': true,
+  };
+
+  Future<Map<String, Object?>> _readProfileOverlay() async {
+    final raw = await _db.readValue('profile_overlay');
+    if (raw == null || raw.isEmpty) return <String, Object?>{};
+    return (jsonDecode(raw) as Map<Object?, Object?>).cast<String, Object?>();
+  }
+
+  Future<Map<String, Object?>> _mergedProfile() async {
+    return <String, Object?>{..._defaultProfile, ...await _readProfileOverlay()};
+  }
+
+  Future<void> _mergeProfileOverlay(Map<String, Object?> patch) async {
+    final overlay = await _readProfileOverlay();
+    overlay.addAll(patch);
+    await _db.putValue('profile_overlay', jsonEncode(overlay));
+  }
+
+  Future<Response<Object?>> _usersMe(RequestOptions options) async {
+    final p = await _mergedProfile();
+    return _ok(options, <String, Object?>{
+      'id': p['id'],
+      'name': p['name'],
+      'email': p['email'],
+    });
+  }
+
+  Future<Response<Object?>> _usersMeProfile(RequestOptions options) async {
+    return _ok(options, await _mergedProfile());
+  }
+
+  Future<Response<Object?>> _usersMeUpdate(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final patch = <String, Object?>{};
+    for (final String k in <String>['name', 'email', 'phone', 'birth_date']) {
+      if (body[k] != null) patch[k] = body[k];
+    }
+    await _mergeProfileOverlay(patch);
+    return _ok(options, await _mergedProfile());
+  }
+
+  Future<Response<Object?>> _usersMeHealthGoals(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final patch = <String, Object?>{};
+    for (final String k in <String>[
+      'goal_weight_kg',
+      'goal_bp_systolic',
+      'goal_blood_sugar',
+      'daily_calories',
+      'daily_sodium_mg',
+    ]) {
+      if (body[k] != null) patch[k] = body[k];
+    }
+    await _mergeProfileOverlay(patch);
+    return _ok(options, await _mergedProfile());
+  }
+
+  /// DELETE /users/me — withdraw. The demo wipes the profile overlay so a
+  /// subsequent session starts clean, mirroring FastAPI's cascade delete.
+  Future<Response<Object?>> _usersMeDelete(RequestOptions options) async {
+    await _db.putValue('profile_overlay', '');
+    return _ok(options, <String, Object?>{'status': 'deleted'});
+  }
+
+  /// POST /users/me/onboarding — first-run setup. Persists any provided
+  /// fields and marks the profile onboarded; mirrors FastAPI's partial save.
+  Future<Response<Object?>> _usersMeOnboarding(RequestOptions options) async {
+    final body = _jsonBody(options);
+    final patch = <String, Object?>{};
+    for (final String k in <String>[
+      'name',
+      'birth_date',
+      'gender',
+      'height_cm',
+      'weight_kg',
+      'conditions',
+      'goals',
+      'goal_weight_kg',
+      'goal_bp_systolic',
+      'goal_blood_sugar',
+      'daily_calories',
+      'daily_sodium_mg',
+    ]) {
+      if (body[k] != null) patch[k] = body[k];
+    }
+    patch['onboarded'] = true;
+    await _mergeProfileOverlay(patch);
+    return _ok(options, await _mergedProfile());
   }
 
   Future<Response<Object?>> _usersMeHealth(RequestOptions options) async {
@@ -718,6 +1247,16 @@ class LocalApiInterceptor extends Interceptor {
 
   // ---- helpers ----
 
+  /// Parse a request body (JSON Map or raw String) into a Map.
+  Map<String, Object?> _jsonBody(RequestOptions options) {
+    final body = options.data;
+    if (body is Map) return body.cast<String, Object?>();
+    if (body is String && body.isNotEmpty) {
+      return (jsonDecode(body) as Map<Object?, Object?>).cast<String, Object?>();
+    }
+    return <String, Object?>{};
+  }
+
   /// Build a 200 OK response carrying [body]. Subclasses of handlers
   /// will build their bodies as plain Map/List structures (snake_case)
   /// before passing in.
@@ -734,6 +1273,14 @@ class LocalApiInterceptor extends Interceptor {
       requestOptions: options,
       statusCode: 400,
       data: <String, Object?>{'code': 'bad_request', 'message': message},
+    );
+  }
+
+  Response<Object?> _notFound(RequestOptions options, String message) {
+    return Response<Object?>(
+      requestOptions: options,
+      statusCode: 404,
+      data: <String, Object?>{'code': 'not_found', 'message': message},
     );
   }
 

@@ -6,7 +6,9 @@ import pytest
 
 from app.core.security import (
     create_access_token,
+    create_refresh_token,
     decode_access_token,
+    decode_refresh_token,
     hash_password,
     verify_password,
 )
@@ -31,3 +33,20 @@ def test_jwt_roundtrip():
 def test_jwt_invalid_token_raises():
     with pytest.raises(jwt.InvalidTokenError):
         decode_access_token("not-a-valid-token")
+
+
+def test_refresh_token_roundtrip():
+    token = create_refresh_token("user-9")
+    assert decode_refresh_token(token) == "user-9"
+
+
+def test_access_token_rejected_as_refresh():
+    """액세스 토큰을 refresh 로 쓰면 거부."""
+    with pytest.raises(jwt.InvalidTokenError):
+        decode_refresh_token(create_access_token("user-9"))
+
+
+def test_refresh_token_rejected_as_access():
+    """refresh 토큰을 액세스로 쓰면 거부(토큰 혼용 방지)."""
+    with pytest.raises(jwt.InvalidTokenError):
+        decode_access_token(create_refresh_token("user-9"))

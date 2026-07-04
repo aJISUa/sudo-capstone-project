@@ -52,9 +52,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // The app now boots into the sign-in screen; enter demo mode to reach
+    // the main app (Home tab).
+    await tester.tap(find.text('데모로 시작'));
+    await tester.pumpAndSettle();
   }
 
-  testWidgets('Boots into the Home tab in English', (tester) async {
+  testWidgets('Enters the Home tab in English after demo', (tester) async {
     await pumpApp(tester, locale: const Locale('en'));
     // Bottom-nav labels match the React original.
     expect(find.text('Home'), findsAtLeastNWidgets(1));

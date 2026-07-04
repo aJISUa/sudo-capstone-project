@@ -126,4 +126,38 @@ void main() {
     expect(body['streak_days'], 0);
     expect((body['sessions']! as List<Object?>), isEmpty);
   });
+
+  test('POST /exercise/sessions persists and shows up in weeks/current', () async {
+    final add = await dio.post<Map<String, Object?>>(
+      '/exercise/sessions',
+      data: <String, Object?>{
+        'type': 'cardio',
+        'minutes': 40,
+        'calories': 300,
+        'day_label': '화',
+      },
+    );
+    expect(add.statusCode, 200);
+    expect(add.data!['type'], 'cardio');
+    expect(add.data!['minutes'], 40);
+    expect(add.data!['day_label'], '화');
+    expect(add.data!['date_label'], isNotNull);
+
+    // 재조회 시 화요일(0→40) 반영, 합계 증가(135→175).
+    final res = await dio.get<Map<String, Object?>>('/exercise/weeks/current');
+    final daily = (res.data!['daily_minutes']! as List<Object?>)
+        .cast<num>()
+        .toList();
+    expect(daily, <num>[30, 40, 45, 0, 60, 0, 0]);
+    expect(res.data!['total_minutes'], 175);
+  });
+
+  test('POST /exercise/sessions rejects non-positive minutes', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/exercise/sessions',
+      data: <String, Object?>{'type': 'cardio', 'minutes': 0},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
 }

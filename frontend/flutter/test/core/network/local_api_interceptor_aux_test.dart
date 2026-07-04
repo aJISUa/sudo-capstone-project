@@ -76,4 +76,354 @@ void main() {
     expect(res.data!['status'], 'ok');
     expect(res.data!['backend'], 'drift-local');
   });
+
+  test('POST /ai-coach/chat returns a grounded reply with sources', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/ai-coach/chat',
+      data: <String, Object?>{'message': '나트륨을 줄이려면 어떻게 해요?'},
+    );
+    expect(res.statusCode, 200);
+    expect(res.data!['reply'], isNotEmpty);
+    final sources = (res.data!['sources']! as List<Object?>).cast<String>();
+    expect(sources, contains('나트륨 줄이기'));
+  });
+
+  test('POST /ai-coach/chat rejects an empty message', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/ai-coach/chat',
+      data: <String, Object?>{'message': '   '},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
+
+  test('PUT /users/me persists profile; GET /users/me/profile + /users/me reflect it', () async {
+    final put = await dio.put<Map<String, Object?>>(
+      '/users/me',
+      data: <String, Object?>{'name': '이순신', 'phone': '010-9999-0000'},
+    );
+    expect(put.statusCode, 200);
+    expect(put.data!['name'], '이순신');
+
+    final prof = await dio.get<Map<String, Object?>>('/users/me/profile');
+    expect(prof.data!['name'], '이순신');
+    expect(prof.data!['phone'], '010-9999-0000');
+    expect(prof.data!['email'], 'minsu@oncare.com'); // 안 바꾼 값은 기본 유지
+
+    final me = await dio.get<Map<String, Object?>>('/users/me');
+    expect(me.data!['name'], '이순신');
+  });
+
+  test('PUT /users/me/health-goals persists goals', () async {
+    await dio.put<Map<String, Object?>>(
+      '/users/me/health-goals',
+      data: <String, Object?>{'goal_weight_kg': 65, 'daily_sodium_mg': 1800},
+    );
+    final prof = await dio.get<Map<String, Object?>>('/users/me/profile');
+    expect(prof.data!['goal_weight_kg'], 65);
+    expect(prof.data!['daily_sodium_mg'], 1800);
+    expect(prof.data!['goal_bp_systolic'], 120); // 미변경 목표는 기본 유지
+  });
+
+  test('POST /auth/login issues a token for non-empty credentials', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/login',
+      data: <String, Object?>{'username': 'a@b.com', 'password': 'pw'},
+      options: Options(contentType: Headers.formUrlEncodedContentType),
+    );
+    expect(res.statusCode, 200);
+    expect((res.data!['access_token']! as String).isNotEmpty, isTrue);
+    expect(res.data!['token_type'], 'bearer');
+  });
+
+  test('POST /auth/login rejects empty credentials', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/login',
+      data: <String, Object?>{'username': '', 'password': ''},
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        validateStatus: (int? s) => true,
+      ),
+    );
+    expect(res.statusCode, 400);
+  });
+
+  test('POST /auth/register creates a user (201) for valid input', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{
+        'email': 'new@oncare.com',
+        'password': 'password123',
+        'name': '홍길동',
+      },
+    );
+    expect(res.statusCode, 201);
+    expect(res.data!['email'], 'new@oncare.com');
+    expect(res.data!['name'], '홍길동');
+    expect((res.data!['id']! as String).isNotEmpty, isTrue);
+  });
+
+  test('POST /auth/register defaults name to the email local-part', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{
+        'email': 'solo@oncare.com',
+        'password': 'password123',
+      },
+    );
+    expect(res.statusCode, 201);
+    expect(res.data!['name'], 'solo');
+  });
+
+  test('POST /auth/register rejects empty credentials', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/register',
+      data: <String, Object?>{'email': '', 'password': ''},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
+
+  test('POST /users/me/onboarding persists fields + onboarded flag', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/users/me/onboarding',
+      data: <String, Object?>{
+        'birth_date': '1988-03-03',
+        'gender': 'female',
+        'conditions': '고혈압, 당뇨',
+        'goal_weight_kg': 62,
+        'daily_sodium_mg': 1500,
+      },
+    );
+    expect(res.statusCode, 200);
+    expect(res.data!['onboarded'], true);
+    expect(res.data!['gender'], 'female');
+
+    // GET /users/me/profile reflects the onboarding write.
+    final prof = await dio.get<Map<String, Object?>>('/users/me/profile');
+    expect(prof.data!['birth_date'], '1988-03-03');
+    expect(prof.data!['conditions'], '고혈압, 당뇨');
+    expect(prof.data!['goal_weight_kg'], 62);
+    expect(prof.data!['daily_sodium_mg'], 1500);
+    expect(prof.data!['onboarded'], true);
+  });
+
+  test('POST /auth/social/kakao issues a token for a provider token', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/social/kakao',
+      data: <String, Object?>{'token': 'kakao-oauth-token'},
+    );
+    expect(res.statusCode, 200);
+    expect((res.data!['access_token']! as String).isNotEmpty, isTrue);
+    expect(res.data!['token_type'], 'bearer');
+  });
+
+  test('POST /auth/social/google rejects an empty provider token', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/auth/social/google',
+      data: <String, Object?>{'token': ''},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
+
+  test('DELETE /users/me withdraws and resets the profile overlay', () async {
+    // Seed an overlay so we can prove the delete wiped it.
+    await dio.put<Map<String, Object?>>(
+      '/users/me',
+      data: <String, Object?>{'name': '탈퇴예정'},
+    );
+
+    final del = await dio.delete<Map<String, Object?>>('/users/me');
+    expect(del.statusCode, 200);
+    expect(del.data!['status'], 'deleted');
+
+    // Overlay wiped → profile back to defaults.
+    final prof = await dio.get<Map<String, Object?>>('/users/me/profile');
+    expect(prof.data!['name'], '김민수');
+  });
+
+  test('POST /schedule/events persists; GET returns it for that date', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/schedule/events',
+      data: <String, Object?>{
+        'date': '2026-07-04',
+        'time': '15:30',
+        'title': '치과 예약',
+        'category': 'hospital',
+      },
+    );
+    expect(res.statusCode, 201);
+    expect(res.data!['title'], '치과 예약');
+    expect(res.data!['emoji'], '🏥'); // derived from category
+    expect((res.data!['id']! as String).isNotEmpty, isTrue);
+
+    final list = await dio.get<List<Object?>>(
+      '/schedule/events',
+      queryParameters: <String, Object?>{'date': '2026-07-04'},
+    );
+    final titles = list.data!
+        .cast<Map<String, Object?>>()
+        .map((e) => e['title']);
+    expect(titles, contains('치과 예약'));
+  });
+
+  test('POST /schedule/events rejects a missing title', () async {
+    final res = await dio.post<Map<String, Object?>>(
+      '/schedule/events',
+      data: <String, Object?>{'date': '2026-07-04', 'title': ''},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(res.statusCode, 400);
+  });
+
+  test('DELETE /diet/entries/{id} deletes an entry; 404 once gone', () async {
+    await db
+        .into(db.dietEntries)
+        .insert(
+          DietEntriesCompanion.insert(
+            id: 'del-diet-1',
+            date: '2026-07-04',
+            mealType: 'lunch',
+            timeLabel: '12:00',
+            foodsJson: '[]',
+            totalCalories: 100,
+          ),
+        );
+
+    final ok = await dio.delete<Map<String, Object?>>('/diet/entries/del-diet-1');
+    expect(ok.statusCode, 200);
+    expect(ok.data!['status'], 'deleted');
+
+    final gone = await dio.delete<Map<String, Object?>>(
+      '/diet/entries/del-diet-1',
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
+
+  test('DELETE /exercise/sessions/{id} deletes a session; 404 once gone', () async {
+    await db
+        .into(db.exerciseSessions)
+        .insert(
+          ExerciseSessionsCompanion.insert(
+            id: 'del-ex-1',
+            weekStart: '2026-06-29',
+            dayLabel: '월',
+            type: 'cardio',
+            minutes: 30,
+            calories: 200,
+          ),
+        );
+
+    final ok = await dio.delete<Map<String, Object?>>(
+      '/exercise/sessions/del-ex-1',
+    );
+    expect(ok.statusCode, 200);
+    expect(ok.data!['status'], 'deleted');
+
+    final gone = await dio.delete<Map<String, Object?>>(
+      '/exercise/sessions/del-ex-1',
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
+
+  test('PUT /diet/entries/{id} updates meal type + time; 404 when missing', () async {
+    await db
+        .into(db.dietEntries)
+        .insert(
+          DietEntriesCompanion.insert(
+            id: 'edit-diet-1',
+            date: '2026-07-04',
+            mealType: 'lunch',
+            timeLabel: '12:00',
+            foodsJson: '[]',
+            totalCalories: 100,
+          ),
+        );
+
+    final r = await dio.put<Map<String, Object?>>(
+      '/diet/entries/edit-diet-1',
+      data: <String, Object?>{'meal_type': 'dinner', 'time_label': '19:30'},
+    );
+    expect(r.statusCode, 200);
+    expect(r.data!['meal_type'], 'dinner');
+    expect(r.data!['time_label'], '19:30');
+
+    final gone = await dio.put<Map<String, Object?>>(
+      '/diet/entries/nope',
+      data: <String, Object?>{'meal_type': 'dinner'},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
+
+  test('PUT /exercise/sessions/{id} updates the session; 404 when missing', () async {
+    await db
+        .into(db.exerciseSessions)
+        .insert(
+          ExerciseSessionsCompanion.insert(
+            id: 'edit-ex-1',
+            weekStart: '2026-06-29',
+            dayLabel: '월',
+            type: 'cardio',
+            minutes: 30,
+            calories: 150,
+          ),
+        );
+
+    final r = await dio.put<Map<String, Object?>>(
+      '/exercise/sessions/edit-ex-1',
+      data: <String, Object?>{
+        'type': 'strength',
+        'minutes': 50,
+        'calories': 250,
+        'day_label': '화',
+      },
+    );
+    expect(r.statusCode, 200);
+    expect(r.data!['type'], 'strength');
+    expect(r.data!['minutes'], 50);
+
+    final gone = await dio.put<Map<String, Object?>>(
+      '/exercise/sessions/nope',
+      data: <String, Object?>{'type': 'cardio', 'minutes': 10},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
+
+  test('GET /schedule/events?month returns the whole month only', () async {
+    for (final ({String id, String date, String cat}) e in <({
+      String id,
+      String date,
+      String cat,
+    })>[
+      (id: 'm-1', date: '2029-09-03', cat: 'hospital'),
+      (id: 'm-2', date: '2029-09-21', cat: 'meal'),
+      (id: 'm-3', date: '2029-10-01', cat: 'other'),
+    ]) {
+      await db
+          .into(db.scheduleEvents)
+          .insert(
+            ScheduleEventsCompanion.insert(
+              id: e.id,
+              date: e.date,
+              time: '10:00',
+              title: e.id,
+              category: e.cat,
+            ),
+          );
+    }
+
+    final res = await dio.get<List<Object?>>(
+      '/schedule/events',
+      queryParameters: <String, Object?>{'month': '2029-09'},
+    );
+    expect(res.statusCode, 200);
+    final ids = res.data!.cast<Map<String, Object?>>().map((e) => e['id']);
+    expect(ids, containsAll(<String>['m-1', 'm-2']));
+    expect(ids, isNot(contains('m-3'))); // 다른 달 제외
+  });
 }

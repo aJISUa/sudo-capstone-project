@@ -29,9 +29,14 @@ class Settings(BaseSettings):
     jwt_secret: str = DEFAULT_JWT_SECRET
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
+    refresh_token_expire_days: int = 30
+    # 토큰 없이 접근 시 데모 사용자로 폴백(개발 편의). 운영(prod)에서는 항상 비활성.
+    allow_demo_fallback: bool = True
 
     # --- AI 엔진 ---
     recognizer: str = "gemini"        # gemini | claude(litellm) | yolo
+    # 인식 후 공공 식품영양성분 DB 로 영양 수치 보강(정확도↑). 순수 LLM 비교실험 시 false.
+    nutrition_db_enrich: bool = True
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
     coach_llm: str = "openai"         # openai | gemini | litellm
@@ -60,14 +65,43 @@ class Settings(BaseSettings):
     # 검색: 개인 문서 / 공공 문서 각각 top-k
     retrieve_personal_k: int = 3
     retrieve_public_k: int = 3
+    # 식단/바이탈 기록 시 개인 RAG 문서 자동 적재(코치가 내 최근 데이터를 검색하도록)
+    rag_auto_ingest: bool = True
 
     # --- 기타 ---
     cors_allow_origins: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000"
     seed_demo_data: bool = True
+    # 관리자 이메일(콤마구분) — 기동 시 해당 사용자를 is_admin=True 로 승격
+    admin_emails: str = ""
+
+    # --- 운영 배포 하드닝 ---
+    force_https: bool = False       # HTTP→HTTPS 리다이렉트(프록시 뒤면 X-Forwarded-Proto 신뢰)
+    security_headers: bool = True   # 보안 응답 헤더(HSTS·nosniff·frame deny 등)
+
+    # --- Rate limit (인증 엔드포인트 브루트포스 방어) ---
+    rate_limit_enabled: bool = True
+    rate_limit_auth_per_minute: int = 10  # IP·엔드포인트당 분당 시도 한도
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
+
+    @property
+    def is_cors_wildcard(self) -> bool:
+        return "*" in self.cors_origin_list
 
     @property
     def is_prod(self) -> bool:
         return self.env.strip().lower() in ("prod", "production")
+
+    @property
+    def demo_fallback_enabled(self) -> bool:
+        """데모 사용자 폴백 허용 여부 — 운영에서는 설정과 무관하게 항상 비활성."""
+        return self.allow_demo_fallback and not self.is_prod
 
     @model_validator(mode="after")
     def _guard_prod_secrets(self) -> "Settings":
@@ -77,14 +111,10 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "운영(env=prod)에서는 JWT_SECRET 을 안전한 값으로 반드시 설정해야 합니다."
                 )
-        origins = [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
-        if "*" in origins:
-            raise ValueError(
-                "CORS_ALLOW_ORIGINS 에 '*' 를 쓸 수 없습니다 "
-                "(allow_credentials=True 와 함께 쓰면 기동 실패/보안 취약점이 발생합니다). "
-                "허용할 origin 을 콤마로 구분해 명시하세요. "
-                "예: CORS_ALLOW_ORIGINS=http://localhost:3000,https://yourapp.com"
-            )
+            if self.is_cors_wildcard:
+                raise ValueError(
+                    "운영(env=prod)에서는 CORS 허용 출처를 명시해야 합니다(와일드카드 '*' 금지)."
+                )
         return self
 
 

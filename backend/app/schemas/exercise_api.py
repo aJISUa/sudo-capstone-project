@@ -1,7 +1,6 @@
 """운동 API 스키마 — 프론트 _exerciseCurrentWeek 계약 정렬."""
 from __future__ import annotations
 from pydantic import BaseModel, Field
-from pydantic import BaseModel
 
 
 class ExerciseSessionOut(BaseModel):

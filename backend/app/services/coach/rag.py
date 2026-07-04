@@ -11,9 +11,7 @@ STEP 8 챗봇도 retrieve_context() 를 그대로 재사용합니다.
 """
 from __future__ import annotations
 
-import json
 
-from pgvector.sqlalchemy import Vector
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 

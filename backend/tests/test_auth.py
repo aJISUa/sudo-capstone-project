@@ -39,3 +39,23 @@ def test_duplicate_register_conflicts_409(client):
     assert r1.status_code == 201
     r2 = client.post("/v1/auth/register", json={"email": email, "password": "pw!", "name": "a"})
     assert r2.status_code == 409
+
+
+def test_refresh_token_flow(client):
+    email = f"ref-{uuid4().hex[:8]}@oncare.com"
+    client.post("/v1/auth/register", json={"email": email, "password": "pw!", "name": "r"})
+    login = client.post("/v1/auth/login", data={"username": email, "password": "pw!"})
+    assert login.status_code == 200
+    refresh_token = login.json()["refresh_token"]
+    assert refresh_token
+
+    # refresh 로 새 access 발급 → /users/me 동작
+    r = client.post("/v1/auth/refresh", json={"refresh_token": refresh_token})
+    assert r.status_code == 200, r.text
+    new_access = r.json()["access_token"]
+    me = client.get("/v1/users/me", headers={"Authorization": f"Bearer {new_access}"})
+    assert me.status_code == 200
+
+    # 잘못된 refresh → 401
+    bad = client.post("/v1/auth/refresh", json={"refresh_token": "not-a-token"})
+    assert bad.status_code == 401

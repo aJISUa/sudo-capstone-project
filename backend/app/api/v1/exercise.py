@@ -26,7 +26,7 @@ from app.services.exercise_service import (
 
 router = APIRouter(tags=["exercise"])
 
-_ALLOWED_TYPES = {"cardio", "strength", "yoga", "walking", "stretching"}
+_ALLOWED_TYPES = {"cardio", "strength", "yoga", "walking", "stretching", "other"}
 
 
 @router.get("/exercise/weeks/current", response_model=ExerciseWeekResponse)
@@ -55,8 +55,7 @@ def add_session(
 ) -> ExerciseSessionOut:
     if payload.type not in _ALLOWED_TYPES:
         raise HTTPException(status_code=400, detail=f"허용되지 않는 운동 타입: {payload.type}")
-    if payload.minutes <= 0:
-        raise HTTPException(status_code=400, detail="minutes 는 1 이상이어야 합니다.")
+    # minutes(>0)·calories(>=0) 는 ExerciseSessionCreate 의 Field 제약에서 422 로 검증됨
 
     day_label = payload.day_label or WEEKDAY_LABELS[datetime.now().weekday()]
     if day_label not in WEEKDAY_LABELS:
@@ -78,3 +77,57 @@ def add_session(
     # 단건 응답도 프론트 표시 형식(date_label/time_label/items)을 채워 반환
     one = build_current_week([row])["sessions"][0]
     return ExerciseSessionOut(**one)
+
+
+@router.put("/exercise/sessions/{session_id}", response_model=ExerciseSessionOut)
+def update_session(
+    session_id: str,
+    payload: ExerciseSessionCreate,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> ExerciseSessionOut:
+    """운동 기록 수정(본인 소유만, 아니면 404). 유형/시간/칼로리/요일 갱신."""
+    if payload.type not in _ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail=f"허용되지 않는 운동 타입: {payload.type}")
+    # minutes(>0)·calories(>=0) 는 ExerciseSessionCreate 의 Field 제약에서 422 로 검증됨
+
+    row = db.scalar(
+        select(ExerciseSession)
+        .where(ExerciseSession.id == session_id)
+        .where(ExerciseSession.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="운동 기록을 찾을 수 없습니다.")
+
+    day_label = payload.day_label or row.day_label
+    if day_label not in WEEKDAY_LABELS:
+        raise HTTPException(status_code=400, detail=f"잘못된 요일 라벨: {day_label}")
+
+    row.type = payload.type
+    row.minutes = payload.minutes
+    row.calories = payload.calories
+    row.day_label = day_label
+    db.commit()
+    db.refresh(row)
+
+    one = build_current_week([row])["sessions"][0]
+    return ExerciseSessionOut(**one)
+
+
+@router.delete("/exercise/sessions/{session_id}")
+def delete_session(
+    session_id: str,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> dict:
+    """운동 기록 삭제. 본인 소유 세션만 삭제 가능(아니면 404)."""
+    row = db.scalar(
+        select(ExerciseSession)
+        .where(ExerciseSession.id == session_id)
+        .where(ExerciseSession.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="운동 기록을 찾을 수 없습니다.")
+    db.delete(row)
+    db.commit()
+    return {"status": "deleted"}

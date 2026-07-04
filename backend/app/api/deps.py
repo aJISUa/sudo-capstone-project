@@ -22,6 +22,7 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.security import decode_access_token
 from app.db.init_db import DEMO_USER_ID
 from app.db.session import get_db
@@ -39,22 +40,31 @@ def get_current_user(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
 ) -> User:
-    """토큰이 유효하면 그 사용자, 아니면 데모 사용자로 폴백."""
+    """토큰이 유효하면 그 사용자. 없거나 무효하면:
+    - 개발/스테이징(demo_fallback_enabled): 데모 사용자로 폴백
+    - 운영(prod): 401 (폴백 비활성)
+    """
     token = _extract_bearer(request)
-    user_id = DEMO_USER_ID
     if token:
         try:
             user_id = decode_access_token(token)
+            user = db.scalar(select(User).where(User.id == user_id))
+            if user is not None:
+                return user
         except jwt.InvalidTokenError:
-            user_id = DEMO_USER_ID
+            pass
 
-    user = db.scalar(select(User).where(User.id == user_id))
-    if user is None:
-        # 토큰의 사용자가 없으면 데모로 한 번 더 폴백
-        user = db.scalar(select(User).where(User.id == DEMO_USER_ID))
-    if user is None:
-        raise HTTPException(status_code=500, detail="데모 사용자가 시드되지 않았습니다.")
-    return user
+    if get_settings().demo_fallback_enabled:
+        demo = db.scalar(select(User).where(User.id == DEMO_USER_ID))
+        if demo is None:
+            raise HTTPException(status_code=500, detail="데모 사용자가 시드되지 않았습니다.")
+        return demo
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="인증이 필요합니다.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 def require_auth(
@@ -80,4 +90,17 @@ def require_auth(
     return user
 
 
+def require_admin(
+    user: Annotated[User, Depends(require_auth)],
+) -> User:
+    """관리자 전용: 유효 토큰 + is_admin. 아니면 403(미인증은 require_auth 가 401)."""
+    if not user.is_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="관리자 권한이 필요합니다.")
+    return user
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
+# 엄격 인증(쓰기/삭제 등 보호 엔드포인트용) — 데모 폴백 없음
+RequireUser = Annotated[User, Depends(require_auth)]
+# 관리자 전용(공공문서 업로드 등)
+RequireAdmin = Annotated[User, Depends(require_admin)]

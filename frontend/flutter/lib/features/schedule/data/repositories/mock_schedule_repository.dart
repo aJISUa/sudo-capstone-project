@@ -28,4 +28,41 @@ class MockScheduleRepository implements ScheduleRepository {
       ),
     ];
   }
+
+  @override
+  Future<List<ScheduleEvent>> fetchByMonth(String month) async {
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    return <ScheduleEvent>[
+      ScheduleEvent(
+        id: 'mock-month-hospital',
+        date: '$month-14',
+        time: '10:00',
+        title: '병원 정기검진',
+        category: ScheduleCategory.hospital,
+      ),
+      ScheduleEvent(
+        id: 'mock-month-gym',
+        date: '$month-14',
+        time: '18:00',
+        title: '헬스장 운동',
+        category: ScheduleCategory.exercise,
+      ),
+    ];
+  }
+
+  @override
+  Future<ScheduleEvent> createEvent({
+    required String date,
+    required String title,
+    String time = '',
+    ScheduleCategory category = ScheduleCategory.other,
+  }) async {
+    return ScheduleEvent(
+      id: 'mock-${category.name}',
+      date: date,
+      time: time,
+      title: title,
+      category: category,
+    );
+  }
 }

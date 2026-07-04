@@ -23,18 +23,35 @@ def verify_password(plain: str, hashed: str) -> bool:
     return _password_hash.verify(plain, hashed)
 
 
-def create_access_token(subject: str) -> str:
+def _encode(subject: str, token_type: str, ttl: timedelta) -> str:
     now = datetime.now(timezone.utc)
-    payload = {
-        "sub": subject,
-        "iat": now,
-        "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
-    }
+    payload = {"sub": subject, "type": token_type, "iat": now, "exp": now + ttl}
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def create_access_token(subject: str) -> str:
+    return _encode(subject, "access", timedelta(minutes=settings.access_token_expire_minutes))
+
+
+def create_refresh_token(subject: str) -> str:
+    return _encode(subject, "refresh", timedelta(days=settings.refresh_token_expire_days))
 
 
 def decode_access_token(token: str) -> str:
     payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    # refresh 토큰을 액세스로 오용하는 것을 차단 (구버전 토큰은 type 이 없어 허용)
+    if payload.get("type") == "refresh":
+        raise jwt.InvalidTokenError("refresh 토큰은 액세스로 사용할 수 없습니다.")
+    sub = payload.get("sub")
+    if sub is None:
+        raise jwt.InvalidTokenError("sub 없음")
+    return str(sub)
+
+
+def decode_refresh_token(token: str) -> str:
+    payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    if payload.get("type") != "refresh":
+        raise jwt.InvalidTokenError("refresh 토큰이 아닙니다.")
     sub = payload.get("sub")
     if sub is None:
         raise jwt.InvalidTokenError("sub 없음")

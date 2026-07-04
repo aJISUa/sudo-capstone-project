@@ -22,5 +22,22 @@ def test_prod_blocks_default_secret():
 
 
 def test_prod_ok_with_real_secret():
-    s = Settings(_env_file=None, env="prod", jwt_secret="a-strong-random-secret-value")
+    s = Settings(
+        _env_file=None, env="prod",
+        jwt_secret="a-strong-random-secret-value",
+        cors_allow_origins="https://app.oncare.com",
+    )
     assert s.is_prod is True
+
+
+def test_demo_fallback_gated_by_env():
+    # 개발: 기본 허용
+    assert Settings(_env_file=None).demo_fallback_enabled is True
+    # 운영: 설정과 무관하게 비활성
+    prod = Settings(
+        _env_file=None, env="prod", jwt_secret="strong",
+        cors_allow_origins="https://app.oncare.com", allow_demo_fallback=True,
+    )
+    assert prod.demo_fallback_enabled is False
+    # 명시적으로 끄면 개발에서도 비활성
+    assert Settings(_env_file=None, allow_demo_fallback=False).demo_fallback_enabled is False

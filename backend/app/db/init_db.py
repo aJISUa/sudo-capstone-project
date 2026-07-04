@@ -29,10 +29,17 @@ def init_db() -> None:
     if settings.auto_create_tables:
         Base.metadata.create_all(bind=engine)
 
+    # 참조 데이터: 공공 식품영양성분 DB(데모/운영 무관, 멱등)
+    _seed_food_nutrients()
+    # 참조 데이터: 공공 코칭 가이드라인(RAG 공공 문서, 멱등·best-effort)
+    _seed_public_coach_docs()
+
     if settings.seed_demo_data:
         _seed_demo_user()
         _seed_demo_places()
         _seed_demo_notifications()
+
+    _promote_admins()  # ADMIN_EMAILS 사용자를 관리자로 승격(멱등)
 
 
 def _seed_demo_user() -> None:
@@ -48,6 +55,80 @@ def _seed_demo_user() -> None:
             )
             db.add(user)
             db.commit()
+    finally:
+        db.close()
+
+
+def _promote_admins() -> None:
+    """ADMIN_EMAILS(콤마구분)에 있는 사용자를 관리자로 승격(멱등)."""
+    from sqlalchemy import func
+
+    emails = get_settings().admin_email_set
+    if not emails:
+        return
+    db: Session = SessionLocal()
+    try:
+        users = db.scalars(
+            select(models.User).where(func.lower(models.User.email).in_(emails))
+        ).all()
+        changed = False
+        for u in users:
+            if not u.is_admin:
+                u.is_admin = True
+                changed = True
+        if changed:
+            db.commit()
+    finally:
+        db.close()
+
+
+def _seed_food_nutrients() -> None:
+    """공공 식품영양성분 DB 큐레이션 시드(멱등). name_norm 은 매칭기와 동일 규칙으로 생성."""
+    from app.data.food_nutrients_seed import FOOD_NUTRIENTS
+    from app.services.nutrition.matcher import normalize
+
+    db: Session = SessionLocal()
+    try:
+        if db.scalar(select(models.FoodNutrient).limit(1)):
+            return
+        for item in FOOD_NUTRIENTS:
+            db.add(models.FoodNutrient(
+                name=item["name"],
+                name_norm=normalize(item["name"]),
+                category=item.get("category", ""),
+                serving_size_g=item.get("serving_size_g"),
+                calories=item.get("calories", 0),
+                sodium_mg=item.get("sodium_mg", 0),
+                sugar_g=item.get("sugar_g", 0),
+                carbs_g=item.get("carbs_g"),
+                protein_g=item.get("protein_g"),
+                fat_g=item.get("fat_g"),
+            ))
+        db.commit()
+    finally:
+        db.close()
+
+
+def _seed_public_coach_docs() -> None:
+    """공공 코칭 가이드라인을 RAG 공공 문서로 적재(멱등). 임베딩 불가 시 조용히 스킵."""
+    from app.data.coach_public_docs import PUBLIC_DOCS
+    from app.services.coach.rag import ingest_document
+
+    db: Session = SessionLocal()
+    try:
+        exists = db.scalar(
+            select(models.CoachDocument).where(models.CoachDocument.user_id.is_(None)).limit(1)
+        )
+        if exists:
+            return
+        for doc in PUBLIC_DOCS:
+            try:
+                ingest_document(
+                    db, doc["content"], user_id=None,
+                    domain=doc["domain"], source="public", title=doc["title"],
+                )
+            except Exception:  # noqa: BLE001 — 적재 실패가 기동을 막지 않도록
+                db.rollback()
     finally:
         db.close()
 

@@ -60,6 +60,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // The app now boots into the sign-in screen; enter demo mode to reach
+    // the dashboard.
+    await tester.tap(find.text('데모로 시작'));
+    await tester.pumpAndSettle();
   }
 
   testWidgets('Dashboard data path renders schedule + week score', (

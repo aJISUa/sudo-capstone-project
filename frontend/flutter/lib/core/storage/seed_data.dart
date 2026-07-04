@@ -277,6 +277,40 @@ Future<void> seedIfEmpty(AppDatabase db) async {
           emoji: const Value('💪'),
           colorHex: const Value('#DCFCE7'),
         ),
+        // 월 전반에 흩뿌린 데모 일정(카테고리별) — 캘린더 색상 구분이
+        // 보이도록. colorHex 는 생략(프론트가 category 로 색칠).
+        ScheduleEventsCompanion.insert(
+          id: 'seed-evt-nutrition',
+          date: '${today.substring(0, 7)}-05',
+          time: '14:00',
+          title: '영양 상담',
+          category: 'meal',
+          emoji: const Value('🍽️'),
+        ),
+        ScheduleEventsCompanion.insert(
+          id: 'seed-evt-med',
+          date: '${today.substring(0, 7)}-12',
+          time: '09:00',
+          title: '혈압약 처방',
+          category: 'medication',
+          emoji: const Value('💊'),
+        ),
+        ScheduleEventsCompanion.insert(
+          id: 'seed-evt-family',
+          date: '${today.substring(0, 7)}-22',
+          time: '12:00',
+          title: '가족 모임',
+          category: 'other',
+          emoji: const Value('📌'),
+        ),
+        ScheduleEventsCompanion.insert(
+          id: 'seed-evt-pt',
+          date: '${today.substring(0, 7)}-26',
+          time: '19:00',
+          title: 'PT 세션',
+          category: 'exercise',
+          emoji: const Value('💪'),
+        ),
       ]);
     });
 

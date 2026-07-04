@@ -35,9 +35,16 @@ void main() {
       expect(diet, isNotEmpty);
       expect(diet.every((r) => r.date == today), isTrue,
           reason: 'all seeded diet rows must use today\'s date');
+      // Schedule seeds a couple of events on today (for the dashboard's
+      // "오늘의 일정") plus a few spread across the current month (for the
+      // calendar). All stay within the current month so the date-slide
+      // keeps them visible.
+      final ym = today.substring(0, 7);
       expect(sched, isNotEmpty);
-      expect(sched.every((r) => r.date == today), isTrue,
-          reason: 'all seeded schedule rows must use today\'s date');
+      expect(sched.every((r) => r.date.startsWith('$ym-')), isTrue,
+          reason: 'all seeded schedule rows must be in the current month');
+      expect(sched.any((r) => r.date == today), isTrue,
+          reason: 'at least one schedule row must be on today');
       expect(exercise, isNotEmpty,
           reason: 'exercise sessions for the current week must be seeded');
 

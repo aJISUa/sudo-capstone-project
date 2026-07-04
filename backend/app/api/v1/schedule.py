@@ -27,13 +27,16 @@ def list_events(
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
     date: str | None = Query(None, description="YYYY-MM-DD. 생략 시 오늘."),
+    month: str | None = Query(None, description="YYYY-MM. 지정 시 그 달 전체(캘린더용)."),
 ) -> list[ScheduleEvent]:
-    target = date or datetime.now().strftime("%Y-%m-%d")
+    stmt = select(ScheduleEvent).where(ScheduleEvent.user_id == current_user.id)
+    if month:
+        stmt = stmt.where(ScheduleEvent.date.like(f"{month}-%"))
+    else:
+        target = date or datetime.now().strftime("%Y-%m-%d")
+        stmt = stmt.where(ScheduleEvent.date == target)
     rows = db.scalars(
-        select(ScheduleEvent)
-        .where(ScheduleEvent.user_id == current_user.id)
-        .where(ScheduleEvent.date == target)
-        .order_by(ScheduleEvent.time.asc())
+        stmt.order_by(ScheduleEvent.date.asc(), ScheduleEvent.time.asc())
     ).all()
     return list(rows)
 

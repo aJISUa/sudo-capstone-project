@@ -18,13 +18,18 @@ DEMO_USER_ID = "user-demo"
 
 
 def init_db() -> None:
+    settings = get_settings()
+
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         conn.commit()
 
-    Base.metadata.create_all(bind=engine)
+    # 개발 편의: create_all(멱등). 운영은 Alembic(`alembic upgrade head`)을 정답으로 삼고
+    # AUTO_CREATE_TABLES=false 로 꺼둔다.
+    if settings.auto_create_tables:
+        Base.metadata.create_all(bind=engine)
 
-    if get_settings().seed_demo_data:
+    if settings.seed_demo_data:
         _seed_demo_user()
         _seed_demo_places()
         _seed_demo_notifications()

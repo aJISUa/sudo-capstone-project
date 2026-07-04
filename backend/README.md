@@ -25,6 +25,19 @@ docker compose up --build
 ```
 → http://localhost:8000/docs  (경로는 모두 /v1/...)
 
+## DB 마이그레이션 (Alembic)
+스키마는 **Alembic 마이그레이션**으로 관리합니다(베이스라인: `migrations/versions/0001_baseline.py`, 9테이블 + pgvector).
+DB URL 은 `.env` 의 `DATABASE_URL` 을 그대로 사용합니다(`migrations/env.py` 가 app 설정에서 읽음).
+
+```bash
+cd backend
+alembic upgrade head          # 최신 스키마로 반영 (운영/CI 는 이 명령으로 스키마 생성)
+alembic revision --autogenerate -m "설명"   # 모델 변경 후 새 마이그레이션 생성
+alembic downgrade -1          # 한 단계 롤백
+```
+> 개발 편의를 위해 앱 기동 시 `create_all()` 로도 테이블을 만들지만(멱등), **운영은 `alembic upgrade head`** 를 정답으로 삼습니다.
+> (운영에서 `create_all` 을 끄려면 `AUTO_CREATE_TABLES=false` — 설정 항목은 이후 커밋에서 추가)
+
 ## 프론트 연동 (실서버 전환)
 프론트에서:
 ```bash

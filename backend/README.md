@@ -32,7 +32,7 @@ flutter run --dart-define=USE_MOCK_API=false --dart-define=API_BASE_URL=http://l
 ```
 (LocalApiInterceptor 가 꺼지고 실제 /v1 서버로 요청)
 
-## 회원님 준비물
+## 준비물
 - Docker Desktop (무료, 가입 없음)
 - (STEP 3~) Gemini / OpenAI 키
 

@@ -26,7 +26,7 @@ class LiteLLMEmbedder(Embedder):
                 "(임베딩 모델이 없으면 EMBEDDER=openai 또는 gemini 를 사용하세요.)"
             )
         from openai import OpenAI
-        self._client = OpenAI(api_key=s.openai_api_key, timeout=20.0)
+        self._client = OpenAI(api_key=s.litellm_api_key, base_url=f"{s.litellm_base_url}/v1", timeout=20.0)
         self._model = s.litellm_embed_model
         self.dim = s.embed_dim
 

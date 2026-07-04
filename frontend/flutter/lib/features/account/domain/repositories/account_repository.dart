@@ -3,6 +3,11 @@ import 'package:oncare/features/account/domain/entities/user_profile.dart';
 abstract class AccountRepository {
   Future<UserProfile> fetchProfile();
 
+  /// DELETE /users/me — withdraw the account. The server cascade-deletes
+  /// the profile, diet/exercise/vitals, schedule, notifications and
+  /// linked social accounts.
+  Future<void> deleteAccount();
+
   /// POST /users/me/onboarding — first-run setup. All fields optional
   /// (partial save allowed); the backend marks the profile onboarded.
   Future<UserProfile> submitOnboarding({

@@ -47,6 +47,7 @@ class LocalApiInterceptor extends Interceptor {
     'GET /users/me': _usersMe,
     'GET /users/me/profile': _usersMeProfile,
     'PUT /users/me': _usersMeUpdate,
+    'DELETE /users/me': _usersMeDelete,
     'POST /users/me/onboarding': _usersMeOnboarding,
     'PUT /users/me/health-goals': _usersMeHealthGoals,
     'GET /users/me/health': _usersMeHealth,
@@ -796,6 +797,13 @@ class LocalApiInterceptor extends Interceptor {
     }
     await _mergeProfileOverlay(patch);
     return _ok(options, await _mergedProfile());
+  }
+
+  /// DELETE /users/me — withdraw. The demo wipes the profile overlay so a
+  /// subsequent session starts clean, mirroring FastAPI's cascade delete.
+  Future<Response<Object?>> _usersMeDelete(RequestOptions options) async {
+    await _db.putValue('profile_overlay', '');
+    return _ok(options, <String, Object?>{'status': 'deleted'});
   }
 
   /// POST /users/me/onboarding — first-run setup. Persists any provided

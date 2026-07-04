@@ -226,4 +226,20 @@ void main() {
     );
     expect(res.statusCode, 400);
   });
+
+  test('DELETE /users/me withdraws and resets the profile overlay', () async {
+    // Seed an overlay so we can prove the delete wiped it.
+    await dio.put<Map<String, Object?>>(
+      '/users/me',
+      data: <String, Object?>{'name': '탈퇴예정'},
+    );
+
+    final del = await dio.delete<Map<String, Object?>>('/users/me');
+    expect(del.statusCode, 200);
+    expect(del.data!['status'], 'deleted');
+
+    // Overlay wiped → profile back to defaults.
+    final prof = await dio.get<Map<String, Object?>>('/users/me/profile');
+    expect(prof.data!['name'], '김민수');
+  });
 }

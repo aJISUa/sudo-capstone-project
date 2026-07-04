@@ -23,7 +23,7 @@ from app.core.config import get_settings
 from app.db.session import get_db
 from app.models.models import DietEntry
 from app.schemas.diet_api import (
-    DietAnalyzeResponse, DietEntryOut, DietTodayResponse, Macros,
+    DietAnalyzeResponse, DietEntryOut, DietEntryUpdate, DietTodayResponse, Macros,
 )
 from app.services.coach.personal_ingest import record_diet
 from app.services.nutrition.enrich import enrich_analysis
@@ -140,6 +140,35 @@ async def diet_analyze(
     )
 
     return DietAnalyzeResponse(entry_id=entry.id, analysis=analysis)
+
+
+@router.put("/diet/entries/{entry_id}", response_model=DietEntryOut)
+def update_entry(
+    entry_id: str,
+    payload: DietEntryUpdate,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+) -> DietEntryOut:
+    """식단 기록의 끼니 분류/시간 수정(본인 소유만, 아니면 404)."""
+    row = db.scalar(
+        select(DietEntry)
+        .where(DietEntry.id == entry_id)
+        .where(DietEntry.user_id == current_user.id)
+    )
+    if row is None:
+        raise HTTPException(status_code=404, detail="식단 기록을 찾을 수 없습니다.")
+    if payload.meal_type is not None:
+        row.meal_type = payload.meal_type
+    if payload.time_label is not None:
+        row.time_label = payload.time_label
+    db.commit()
+    db.refresh(row)
+    foods = json.loads(row.foods_json) if row.foods_json else []
+    return DietEntryOut(
+        id=row.id, meal_type=row.meal_type, time_label=row.time_label,
+        foods=foods, total_calories=row.total_calories,
+        sodium_mg=row.sodium_mg, sugar_g=row.sugar_g,
+    )
 
 
 @router.delete("/diet/entries/{entry_id}")

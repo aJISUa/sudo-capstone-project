@@ -14,4 +14,13 @@ abstract class ExerciseRepository {
 
   /// DELETE /exercise/sessions/{id} — remove a workout session.
   Future<void> deleteSession(String id);
+
+  /// PUT /exercise/sessions/{id} — edit a workout session.
+  Future<ExerciseSession> updateSession({
+    required String id,
+    required ExerciseType type,
+    required int minutes,
+    required int calories,
+    required String dayLabel,
+  });
 }

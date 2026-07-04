@@ -45,4 +45,20 @@ class DioDietRepository implements DietRepository {
   Future<void> deleteEntry(String id) async {
     await _dio.delete<Map<String, Object?>>('/diet/entries/$id');
   }
+
+  @override
+  Future<DietEntry> updateEntry({
+    required String id,
+    String? mealType,
+    String? timeLabel,
+  }) async {
+    final res = await _dio.put<Map<String, Object?>>(
+      '/diet/entries/$id',
+      data: <String, Object?>{
+        'meal_type': ?mealType,
+        'time_label': ?timeLabel,
+      },
+    );
+    return DietEntry.fromJson(res.data!);
+  }
 }

@@ -17,4 +17,12 @@ abstract class DietRepository {
 
   /// DELETE /diet/entries/{id} — remove a diet entry.
   Future<void> deleteEntry(String id);
+
+  /// PUT /diet/entries/{id} — edit an entry's meal type / time. Foods and
+  /// nutrition come from analysis and are not edited here.
+  Future<DietEntry> updateEntry({
+    required String id,
+    String? mealType,
+    String? timeLabel,
+  });
 }

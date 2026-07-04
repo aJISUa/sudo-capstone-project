@@ -116,6 +116,12 @@ class LocalApiInterceptor extends Interceptor {
     if (method == 'DELETE' && path.startsWith('/exercise/sessions/')) {
       return _exerciseDelete;
     }
+    if (method == 'PUT' && path.startsWith('/diet/entries/')) {
+      return _dietUpdate;
+    }
+    if (method == 'PUT' && path.startsWith('/exercise/sessions/')) {
+      return _exerciseUpdate;
+    }
     return null;
   }
 
@@ -135,6 +141,72 @@ class LocalApiInterceptor extends Interceptor {
     )..where((t) => t.id.equals(id))).go();
     if (n == 0) return _notFound(options, '운동 기록을 찾을 수 없습니다.');
     return _ok(options, <String, Object?>{'status': 'deleted'});
+  }
+
+  Future<Response<Object?>> _exerciseUpdate(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final existing = await (_db.select(
+      _db.exerciseSessions,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return _notFound(options, '운동 기록을 찾을 수 없습니다.');
+    final body = _jsonBody(options);
+    final type = (body['type'] as String? ?? existing.type).trim();
+    final minutes = (body['minutes'] as num?)?.toInt() ?? existing.minutes;
+    final calories = (body['calories'] as num?)?.toInt() ?? existing.calories;
+    final dayRaw = (body['day_label'] as String? ?? '').trim();
+    final dayLabel = dayRaw.isEmpty ? existing.dayLabel : dayRaw;
+    await (_db.update(
+      _db.exerciseSessions,
+    )..where((t) => t.id.equals(id))).write(
+      ExerciseSessionsCompanion(
+        type: Value(type),
+        minutes: Value(minutes),
+        calories: Value(calories),
+        dayLabel: Value(dayLabel),
+      ),
+    );
+    return _ok(options, <String, Object?>{
+      'id': id,
+      'day_label': dayLabel,
+      'type': type,
+      'minutes': minutes,
+      'calories': calories,
+      'date_label': _dateLabelForDayLabel(dayLabel),
+      'time_label': _defaultTimeLabel(type),
+      'items': _defaultItems(type),
+    });
+  }
+
+  Future<Response<Object?>> _dietUpdate(RequestOptions options) async {
+    final id = options.path.split('/').last;
+    final existing = await (_db.select(
+      _db.dietEntries,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return _notFound(options, '식단 기록을 찾을 수 없습니다.');
+    final body = _jsonBody(options);
+    final mealType = (body['meal_type'] as String?)?.trim();
+    final timeLabel = (body['time_label'] as String?)?.trim();
+    await (_db.update(_db.dietEntries)..where((t) => t.id.equals(id))).write(
+      DietEntriesCompanion(
+        mealType: (mealType == null || mealType.isEmpty)
+            ? const Value.absent()
+            : Value(mealType),
+        timeLabel: timeLabel == null ? const Value.absent() : Value(timeLabel),
+      ),
+    );
+    final row = await (_db.select(
+      _db.dietEntries,
+    )..where((t) => t.id.equals(id))).getSingle();
+    final foods = jsonDecode(row.foodsJson) as List<Object?>;
+    return _ok(options, <String, Object?>{
+      'id': row.id,
+      'meal_type': row.mealType,
+      'time_label': row.timeLabel,
+      'foods': foods,
+      'total_calories': row.totalCalories,
+      'sodium_mg': row.sodiumMg,
+      'sugar_g': row.sugarG,
+    });
   }
 
   // ---- handlers ----

@@ -92,4 +92,22 @@ class MockExerciseRepository implements ExerciseRepository {
 
   @override
   Future<void> deleteSession(String id) async {}
+
+  @override
+  Future<ExerciseSession> updateSession({
+    required String id,
+    required ExerciseType type,
+    required int minutes,
+    required int calories,
+    required String dayLabel,
+  }) async {
+    return ExerciseSession(
+      id: id,
+      dayLabel: dayLabel,
+      type: type,
+      minutes: minutes,
+      calories: calories,
+      dateLabel: '오늘',
+    );
+  }
 }

@@ -77,4 +77,21 @@ class MockDietRepository implements DietRepository {
 
   @override
   Future<void> deleteEntry(String id) async {}
+
+  @override
+  Future<DietEntry> updateEntry({
+    required String id,
+    String? mealType,
+    String? timeLabel,
+  }) async {
+    return DietEntry(
+      id: id,
+      mealType: mealType != null
+          ? MealType.values.byName(mealType)
+          : MealType.lunch,
+      timeLabel: timeLabel ?? '',
+      totalCalories: 0,
+      foods: const <FoodItem>[],
+    );
+  }
 }

@@ -328,4 +328,69 @@ void main() {
     );
     expect(gone.statusCode, 404);
   });
+
+  test('PUT /diet/entries/{id} updates meal type + time; 404 when missing', () async {
+    await db
+        .into(db.dietEntries)
+        .insert(
+          DietEntriesCompanion.insert(
+            id: 'edit-diet-1',
+            date: '2026-07-04',
+            mealType: 'lunch',
+            timeLabel: '12:00',
+            foodsJson: '[]',
+            totalCalories: 100,
+          ),
+        );
+
+    final r = await dio.put<Map<String, Object?>>(
+      '/diet/entries/edit-diet-1',
+      data: <String, Object?>{'meal_type': 'dinner', 'time_label': '19:30'},
+    );
+    expect(r.statusCode, 200);
+    expect(r.data!['meal_type'], 'dinner');
+    expect(r.data!['time_label'], '19:30');
+
+    final gone = await dio.put<Map<String, Object?>>(
+      '/diet/entries/nope',
+      data: <String, Object?>{'meal_type': 'dinner'},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
+
+  test('PUT /exercise/sessions/{id} updates the session; 404 when missing', () async {
+    await db
+        .into(db.exerciseSessions)
+        .insert(
+          ExerciseSessionsCompanion.insert(
+            id: 'edit-ex-1',
+            weekStart: '2026-06-29',
+            dayLabel: '월',
+            type: 'cardio',
+            minutes: 30,
+            calories: 150,
+          ),
+        );
+
+    final r = await dio.put<Map<String, Object?>>(
+      '/exercise/sessions/edit-ex-1',
+      data: <String, Object?>{
+        'type': 'strength',
+        'minutes': 50,
+        'calories': 250,
+        'day_label': '화',
+      },
+    );
+    expect(r.statusCode, 200);
+    expect(r.data!['type'], 'strength');
+    expect(r.data!['minutes'], 50);
+
+    final gone = await dio.put<Map<String, Object?>>(
+      '/exercise/sessions/nope',
+      data: <String, Object?>{'type': 'cardio', 'minutes': 10},
+      options: Options(validateStatus: (int? s) => true),
+    );
+    expect(gone.statusCode, 404);
+  });
 }

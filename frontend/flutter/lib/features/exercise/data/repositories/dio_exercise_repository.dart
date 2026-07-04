@@ -38,4 +38,24 @@ class DioExerciseRepository implements ExerciseRepository {
   Future<void> deleteSession(String id) async {
     await _dio.delete<Map<String, Object?>>('/exercise/sessions/$id');
   }
+
+  @override
+  Future<ExerciseSession> updateSession({
+    required String id,
+    required ExerciseType type,
+    required int minutes,
+    required int calories,
+    required String dayLabel,
+  }) async {
+    final res = await _dio.put<Map<String, Object?>>(
+      '/exercise/sessions/$id',
+      data: <String, Object?>{
+        'type': type.name,
+        'minutes': minutes,
+        'calories': calories,
+        'day_label': dayLabel,
+      },
+    );
+    return ExerciseSession.fromJson(res.data!);
+  }
 }

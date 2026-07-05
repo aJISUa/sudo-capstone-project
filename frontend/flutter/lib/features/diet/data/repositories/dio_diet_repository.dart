@@ -13,11 +13,12 @@ import 'package:oncare/features/diet/domain/repositories/diet_repository.dart';
 class DioDietRepository implements DietRepository {
   DioDietRepository(this._dio);
   final Dio _dio;
+  final Map<String, DietEntry> _entryOverrides = <String, DietEntry>{};
 
   @override
   Future<DietDay> fetchToday() async {
     final res = await _dio.get<Map<String, Object?>>('/diet/days/today');
-    return DietDay.fromJson(res.data!);
+    return _applyOverrides(DietDay.fromJson(res.data!));
   }
 
   @override
@@ -44,6 +45,7 @@ class DioDietRepository implements DietRepository {
   @override
   Future<void> deleteEntry(String id) async {
     await _dio.delete<Map<String, Object?>>('/diet/entries/$id');
+    _entryOverrides.remove(id);
   }
 
   @override
@@ -51,14 +53,67 @@ class DioDietRepository implements DietRepository {
     required String id,
     String? mealType,
     String? timeLabel,
+    List<FoodItem>? foods,
+    int? totalCalories,
+    int? sodiumMg,
+    int? sugarG,
   }) async {
     final res = await _dio.put<Map<String, Object?>>(
       '/diet/entries/$id',
       data: <String, Object?>{
         'meal_type': ?mealType,
         'time_label': ?timeLabel,
+        if (foods != null)
+          'foods': foods
+              .map(
+                (FoodItem food) => <String, Object?>{
+                  'name': food.name,
+                  'calories': food.calories,
+                },
+              )
+              .toList(),
+        'total_calories': ?totalCalories,
+        'sodium_mg': ?sodiumMg,
+        'sugar_g': ?sugarG,
       },
     );
-    return DietEntry.fromJson(res.data!);
+    final returned = DietEntry.fromJson(res.data!);
+    final updated = DietEntry(
+      id: returned.id,
+      mealType: mealType == null
+          ? returned.mealType
+          : MealType.values.byName(mealType),
+      timeLabel: timeLabel ?? returned.timeLabel,
+      foods: foods ?? returned.foods,
+      totalCalories: totalCalories ?? returned.totalCalories,
+      sodiumMg: sodiumMg ?? returned.sodiumMg,
+      sugarG: sugarG ?? returned.sugarG,
+    );
+    _entryOverrides[id] = updated;
+    return updated;
+  }
+
+  DietDay _applyOverrides(DietDay day) {
+    if (_entryOverrides.isEmpty) return day;
+    final entries = day.entries
+        .map((DietEntry entry) => _entryOverrides[entry.id] ?? entry)
+        .toList();
+    return DietDay(
+      entries: entries,
+      totalCalories: entries.fold<int>(
+        0,
+        (int total, DietEntry entry) => total + entry.totalCalories,
+      ),
+      macros: day.macros,
+      totalSodiumMg: entries.fold<int>(
+        0,
+        (int total, DietEntry entry) => total + entry.sodiumMg,
+      ),
+      totalSugarG: entries.fold<int>(
+        0,
+        (int total, DietEntry entry) => total + entry.sugarG,
+      ),
+      aiCoachMessage: day.aiCoachMessage,
+    );
   }
 }

@@ -5,11 +5,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:oncare/core/errors/app_error.dart';
 import 'package:oncare/design_system/tokens/colors.dart';
 import 'package:oncare/design_system/tokens/spacing.dart';
+import 'package:oncare/features/diet/domain/entities/diet_day.dart';
 import 'package:oncare/features/diet/presentation/controllers/diet_controller.dart';
 import 'package:oncare/features/diet/presentation/pages/diet_analyze_page.dart';
+import 'package:oncare/features/diet/presentation/pages/diet_entry_detail_page.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_summary_card.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_week_strip.dart';
-import 'package:oncare/features/diet/presentation/widgets/edit_meal_sheet.dart';
 import 'package:oncare/features/diet/presentation/widgets/meal_card.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/gen/l10n/app_localizations.dart';
@@ -50,6 +51,23 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
     }
   }
 
+  Future<void> _openEntryDetail(DietEntry entry) async {
+    final result = await Navigator.of(context).push<DietEntryDetailResult>(
+      MaterialPageRoute<DietEntryDetailResult>(
+        builder: (_) => DietEntryDetailPage(entry: entry),
+      ),
+    );
+    if (!mounted || result == null) return;
+    ref.invalidate(dietTodayProvider);
+    final message = switch (result) {
+      DietEntryDetailResult.updated => '식단 기록이 수정되었어요.',
+      DietEntryDetailResult.deleted => '식단 기록이 삭제되었어요.',
+    };
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<ImageSource?> _pickSource() {
     return showModalBottomSheet<ImageSource>(
       context: context,
@@ -87,16 +105,17 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
 
     final added = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
-        builder: (_) => DietAnalyzePage(imageBytes: bytes, mealType: _currentMealType()),
+        builder: (_) =>
+            DietAnalyzePage(imageBytes: bytes, mealType: _currentMealType()),
         fullscreenDialog: true,
       ),
     );
     if (!mounted) return;
     if (added == true) {
       ref.invalidate(dietTodayProvider); // 새 식단이 오늘 목록·요약에 반영
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('식단이 추가되었어요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('식단이 추가되었어요')));
     }
   }
 
@@ -154,7 +173,10 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
                       ),
                       for (final entry in day.entries) ...<Widget>[
                         if (entry.id == null)
-                          MealCard(entry: entry)
+                          MealCard(
+                            entry: entry,
+                            onTap: () => _openEntryDetail(entry),
+                          )
                         else
                           SwipeToDelete(
                             dismissKey: ValueKey<String>('diet-${entry.id}'),
@@ -162,7 +184,7 @@ class _DietRecordPageState extends ConsumerState<DietRecordPage> {
                             onDelete: () => _deleteDietEntry(entry.id!),
                             child: MealCard(
                               entry: entry,
-                              onTap: () => showEditMealSheet(context, entry),
+                              onTap: () => _openEntryDetail(entry),
                             ),
                           ),
                         const SizedBox(height: AppSpacing.sm),

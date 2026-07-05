@@ -17,8 +17,20 @@ class MockDietRepository implements DietRepository {
     return const DietAnalysisResult(
       entryId: 'mock',
       foods: <RecognizedFood>[
-        RecognizedFood(name: '비빔밥', calories: 600, sodiumMg: 900, sugarG: 8, source: 'db'),
-        RecognizedFood(name: '김치', calories: 15, sodiumMg: 300, sugarG: 1, source: 'db'),
+        RecognizedFood(
+          name: '비빔밥',
+          calories: 600,
+          sodiumMg: 900,
+          sugarG: 8,
+          source: 'db',
+        ),
+        RecognizedFood(
+          name: '김치',
+          calories: 15,
+          sodiumMg: 300,
+          sugarG: 1,
+          source: 'db',
+        ),
       ],
       totalCalories: 615,
       totalSodiumMg: 1200,
@@ -33,6 +45,7 @@ class MockDietRepository implements DietRepository {
     return const DietDay(
       entries: <DietEntry>[
         DietEntry(
+          id: 'mock-breakfast',
           mealType: MealType.breakfast,
           timeLabel: '08:20',
           totalCalories: 315,
@@ -45,6 +58,7 @@ class MockDietRepository implements DietRepository {
           ],
         ),
         DietEntry(
+          id: 'mock-lunch',
           mealType: MealType.lunch,
           timeLabel: '12:40',
           totalCalories: 530,
@@ -56,6 +70,7 @@ class MockDietRepository implements DietRepository {
           ],
         ),
         DietEntry(
+          id: 'mock-dinner',
           mealType: MealType.dinner,
           timeLabel: '19:00',
           totalCalories: 575,
@@ -83,15 +98,24 @@ class MockDietRepository implements DietRepository {
     required String id,
     String? mealType,
     String? timeLabel,
+    List<FoodItem>? foods,
+    int? totalCalories,
+    int? sodiumMg,
+    int? sugarG,
   }) async {
+    final updatedFoods = foods ?? const <FoodItem>[];
     return DietEntry(
       id: id,
       mealType: mealType != null
           ? MealType.values.byName(mealType)
           : MealType.lunch,
       timeLabel: timeLabel ?? '',
-      totalCalories: 0,
-      foods: const <FoodItem>[],
+      totalCalories:
+          totalCalories ??
+          updatedFoods.fold<int>(0, (sum, food) => sum + food.calories),
+      sodiumMg: sodiumMg ?? 0,
+      sugarG: sugarG ?? 0,
+      foods: updatedFoods,
     );
   }
 }

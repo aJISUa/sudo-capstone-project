@@ -282,6 +282,7 @@ class _DietEntryDetailPageState extends ConsumerState<DietEntryDetailPage> {
                       const SizedBox(height: AppSpacing.xs),
                       TextFormField(
                         controller: _timeController,
+                        validator: _mealTimeValidator,
                         keyboardType: TextInputType.datetime,
                         onChanged: (_) => setState(() {}),
                         decoration: const InputDecoration(
@@ -384,6 +385,14 @@ String? _nonNegativeNumber(String? value) {
   if (value == null || value.trim().isEmpty) return '숫자를 입력해 주세요.';
   final parsed = int.tryParse(value.trim());
   if (parsed == null || parsed < 0) return '0 이상의 숫자만 입력해 주세요.';
+  return null;
+}
+
+String? _mealTimeValidator(String? value) {
+  final text = value?.trim() ?? '';
+  if (text.isEmpty) return '식사 시간을 입력해 주세요.';
+  final isValid = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$').hasMatch(text);
+  if (!isValid) return '식사 시간은 HH:mm 형식으로 입력해 주세요.';
   return null;
 }
 

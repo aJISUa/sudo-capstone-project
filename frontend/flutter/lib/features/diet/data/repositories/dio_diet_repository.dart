@@ -12,13 +12,18 @@ import 'package:oncare/features/diet/domain/repositories/diet_repository.dart';
 /// `USE_MOCK_API=false`.
 class DioDietRepository implements DietRepository {
   DioDietRepository(this._dio);
+  static const Duration _entryOverrideTtl = Duration(minutes: 5);
+
   final Dio _dio;
   final Map<String, DietEntry> _entryOverrides = <String, DietEntry>{};
+  final Map<String, DateTime> _entryOverrideUpdatedAt = <String, DateTime>{};
 
   @override
   Future<DietDay> fetchToday() async {
     final res = await _dio.get<Map<String, Object?>>('/diet/days/today');
-    return _applyOverrides(DietDay.fromJson(res.data!));
+    final day = DietDay.fromJson(res.data!);
+    _pruneStaleOverrides(day);
+    return _applyOverrides(day);
   }
 
   @override
@@ -46,6 +51,7 @@ class DioDietRepository implements DietRepository {
   Future<void> deleteEntry(String id) async {
     await _dio.delete<Map<String, Object?>>('/diet/entries/$id');
     _entryOverrides.remove(id);
+    _entryOverrideUpdatedAt.remove(id);
   }
 
   @override
@@ -90,7 +96,33 @@ class DioDietRepository implements DietRepository {
       sugarG: sugarG ?? returned.sugarG,
     );
     _entryOverrides[id] = updated;
+    _entryOverrideUpdatedAt[id] = DateTime.now();
     return updated;
+  }
+
+  void _pruneStaleOverrides(DietDay day) {
+    if (_entryOverrides.isEmpty) return;
+
+    final now = DateTime.now();
+    final serverIds = day.entries
+        .map((DietEntry entry) => entry.id)
+        .whereType<String>()
+        .toSet();
+    final staleIds = <String>[];
+
+    for (final id in _entryOverrides.keys) {
+      final updatedAt = _entryOverrideUpdatedAt[id];
+      final isExpired =
+          updatedAt == null || now.difference(updatedAt) > _entryOverrideTtl;
+      if (isExpired || !serverIds.contains(id)) {
+        staleIds.add(id);
+      }
+    }
+
+    for (final id in staleIds) {
+      _entryOverrides.remove(id);
+      _entryOverrideUpdatedAt.remove(id);
+    }
   }
 
   DietDay _applyOverrides(DietDay day) {

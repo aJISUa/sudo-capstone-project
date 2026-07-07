@@ -9,7 +9,7 @@
   </defs>
   <rect width="1100" height="760" fill="#ffffff"/>
   <text x="550" y="44" text-anchor="middle" font-size="20" font-weight="700" fill="#111827">System Architecture</text>
-  <text x="550" y="68" text-anchor="middle" font-size="13" fill="#6b7280">Flutter 클라이언트 · FastAPI 백엔드 · MySQL/Vision/RAG 서비스 · 외부 API 통합</text>
+  <text x="550" y="68" text-anchor="middle" font-size="13" fill="#6b7280">Flutter 클라이언트 · FastAPI 백엔드 · PostgreSQL/Vision/RAG 서비스 · 외부 API 통합</text>
   <rect x="130" y="100" width="840" height="80" rx="10" ry="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" filter="url(#soft)"/>
   <text x="550.0" y="134.0" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">Flutter Mobile App (iOS / Android / Web)</text>
   <text x="550.0" y="154.0" text-anchor="middle" font-size="12" fill="#6b7280">카메라 · 식단 · RAG 챗봇 · 운동 · 헬스장 · 일정 · 포인트 · 캘린더</text>
@@ -21,14 +21,14 @@
   <text x="550.0" y="294.0" text-anchor="middle" font-size="12" fill="#6b7280">인증 JWT · 식단 API · 운동 API · RAG Pipeline · 포인트 관리</text>
   <path d="M 130 390 a 125.0 10 0 0 0 250 0 V 510 a 125.0 10 0 0 1 -250 0 Z" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5" filter="url(#soft)"/>
   <ellipse cx="255.0" cy="390" rx="125.0" ry="10" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5"/>
-  <text x="255.0" y="418" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">MySQL RDS</text>
+  <text x="255.0" y="418" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">PostgreSQL RDS</text>
   <text x="255.0" y="444" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">사용자 · 식단 · 운동 · 포인트 · 일정</text>
   <text x="255.0" y="460" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">드리프트 로컬 DB 동일 스키마</text>
   <rect x="425.0" y="380" width="250" height="140" rx="10" ry="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5" filter="url(#soft)"/>
   <text x="550.0" y="406" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">Vision AI Pipeline</text>
-  <text x="550.0" y="436" text-anchor="middle" font-size="11" font-weight="600" fill="#111827">YOLOv8 (1차 필터링)</text>
-  <text x="550.0" y="454" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">→ Gemini Vision API (분석)</text>
-  <text x="550.0" y="472" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">→ 공공데이터 식품영양성분 DB</text>
+  <text x="550.0" y="436" text-anchor="middle" font-size="11" font-weight="600" fill="#111827">Gemini Vision (VLM 인식)</text>
+  <text x="550.0" y="454" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">→ 공공데이터 식품영양성분 DB</text>
+  <text x="550.0" y="472" text-anchor="middle" font-size="11" font-weight="400" fill="#6b7280">→ 나트륨·당·칼로리 교정</text>
   <rect x="720.0" y="380" width="250" height="140" rx="10" ry="10" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.5" filter="url(#soft)"/>
   <text x="845.0" y="406" text-anchor="middle" font-size="15" font-weight="600" fill="#111827">RAG Pipeline</text>
   <text x="845.0" y="436" text-anchor="middle" font-size="11" font-weight="600" fill="#111827">LangChain + Pinecone</text>

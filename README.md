@@ -33,8 +33,8 @@
 |------|------|
 | Project | On-Care — AI Healthcare Platform |
 | Target User | 20–30s at risk of hypertension / diabetes |
-| Frontend | Flutter (iOS · Android · Web) |
-| Backend | Flutter drift local (mock) · FastAPI · PostgreSQL(pgvector) · JWT |
+| Frontend | Flutter (iOS · Android · Web) · local mock (default) |
+| Backend | FastAPI · PostgreSQL(pgvector) · JWT |
 | AI | Gemini · Claude Vision 식단 인식 · RAG 코치 (pgvector · GPT-4o/Gemini) |
 | Status | Flutter MVP live · FastAPI 백엔드 + AI 엔진 구현 · 앱↔백엔드 플래그 전환 |
 
@@ -164,7 +164,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
   <img src="docs/diagrams/vision-pipeline.svg" alt="Vision AI 식단 인식 파이프라인" width="720"/>
 </p>
 
-> **핵심 설계** — 오픈보캐블러리 **Gemini Vision(VLM)** 이 한 번의 호출로 음식 종류·추정 섭취량을 인식합니다 (다중 음식·변형 한식·신메뉴까지 커버). 단, **나트륨·당·칼로리는 사진만으로 판별 불가**하므로 인식된 음식명을 **공공데이터 식품영양성분 DB** 와 매핑해 수치를 교정합니다 — VLM 의 환각을 검증된 DB 값으로 차단하는 하이브리드 구조입니다.
+> **핵심 설계** — **Gemini·Claude Vision(VLM)** 이 한 번의 호출로 음식 종류·추정 섭취량을 인식합니다 (다중 음식·변형 한식·신메뉴까지 커버). 단, **나트륨·당·칼로리는 사진만으로 판별 불가**하므로 인식된 음식명을 **공공데이터 식품영양성분 DB** 와 매핑해 수치를 교정합니다 — VLM 의 환각을 검증된 DB 값으로 차단하는 하이브리드 구조입니다.
 >
 > *식단 인식 아키텍처 3종(VLM 단독 · YOLO+VLM 2단계 · YOLO 단독)과 최신 비전 모델을 비용·정확도·지연·운영 부담 기준으로 정량 비교한 결과, **단일 VLM 인식 + 영양 DB 매핑**이 이 도메인에서 가장 우수한 구성이었습니다 — 최신 VLM이 다중 음식을 단일 호출로 인식하고, 나트륨·당은 어떤 방식이든 DB 조회가 필수이기 때문입니다.*
 

@@ -1,0 +1,83 @@
+"""RAG 코칭 연동.
+
+- 해시 임베더(결정론·유사도)는 순수(로컬 실행).
+- 공공/개인 문서 적재·검색·격리, /ai-coach/feedback 은 DB 필요(로컬 skip, CI 실행).
+"""
+from __future__ import annotations
+
+import math
+from uuid import uuid4
+
+
+# ---------- 순수: 오프라인 해시 임베더 ----------
+
+def _cos(a, b):
+    return sum(x * y for x, y in zip(a, b))
+
+
+def test_hash_embedder_deterministic_normalized():
+    from app.services.embedder.hash_embedder import HashEmbedder
+
+    e = HashEmbedder()
+    v1 = e.embed_one("나트륨 줄이기 저염 식단")
+    v2 = e.embed_one("나트륨 줄이기 저염 식단")
+    assert len(v1) == e.dim
+    assert v1 == v2  # 결정론적(프로세스 무관)
+    assert abs(math.sqrt(sum(x * x for x in v1)) - 1.0) < 1e-6  # L2 정규화
+
+
+def test_hash_embedder_similarity_orders_related_higher():
+    from app.services.embedder.hash_embedder import HashEmbedder
+
+    e = HashEmbedder()
+    base = e.embed_one("나트륨 관리")
+    related = _cos(base, e.embed_one("나트륨 줄이기"))
+    unrelated = _cos(base, e.embed_one("주말 영화 관람"))
+    assert related > unrelated
+
+
+# ---------- DB(CI): 적재·검색·격리 ----------
+
+def test_public_guidelines_seeded_and_retrieved(client, db_session):
+    from sqlalchemy import func, select
+
+    from app.models.models import CoachDocument
+    from app.services.coach.rag import retrieve
+
+    n_public = db_session.scalar(
+        select(func.count()).select_from(CoachDocument).where(CoachDocument.user_id.is_(None))
+    )
+    assert n_public and n_public > 0  # 공공 가이드라인이 시드됨
+
+    hits = retrieve(db_session, "나트륨을 줄이려면 어떻게 하나요", user_id="user-demo", domain="diet")
+    assert hits["public"]  # 공공 문서가 검색됨
+
+
+def test_personal_docs_are_isolated_between_users(client, db_session):
+    from app.services.coach.rag import ingest_personal_text, retrieve
+
+    a = client.post(
+        "/v1/auth/register",
+        json={"email": f"raga-{uuid4().hex[:8]}@oncare.com", "password": "pw!", "name": "A"},
+    ).json()["id"]
+    b = client.post(
+        "/v1/auth/register",
+        json={"email": f"ragb-{uuid4().hex[:8]}@oncare.com", "password": "pw!", "name": "B"},
+    ).json()["id"]
+
+    ingest_personal_text(db_session, a, "나는 김치찌개를 자주 먹어 나트륨이 높다", domain="diet", source="diet")
+    ingest_personal_text(db_session, b, "B사용자 비밀 삼겹살 기록", domain="diet", source="diet")
+
+    hits = retrieve(db_session, "나트륨 관리", user_id=a, domain="diet")
+    personal_text = " ".join(d.content for d in hits["personal"])
+    assert hits["personal"]                    # A의 개인 문서가 검색됨
+    assert "비밀 삼겹살" not in personal_text   # B의 개인 문서는 절대 섞이지 않음
+
+
+def test_ai_coach_feedback_shape(client):
+    r = client.get("/v1/ai-coach/feedback")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["greeting"]
+    assert len(body["suggestions"]) >= 2
+    assert all("tag" in s and "title" in s and "body" in s for s in body["suggestions"])

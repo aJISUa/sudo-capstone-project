@@ -8,8 +8,11 @@ import 'package:oncare/app/router/routes.dart';
 import 'package:oncare/core/config/app_config.dart';
 import 'package:oncare/core/logging/app_logger.dart';
 import 'package:oncare/design_system/catalog/ui_catalog_page.dart';
+import 'package:oncare/features/account/presentation/pages/onboarding_page.dart';
 import 'package:oncare/features/ai_coach/presentation/pages/ai_coach_page.dart';
+import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
 import 'package:oncare/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:oncare/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:oncare/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:oncare/features/diet/presentation/pages/diet_record_page.dart';
 import 'package:oncare/features/exercise/presentation/pages/exercise_page.dart';
@@ -17,19 +20,52 @@ import 'package:oncare/features/my_health/presentation/pages/my_health_page.dart
 import 'package:oncare/features/notification/presentation/pages/notification_page.dart';
 import 'package:oncare/features/place/presentation/pages/place_page.dart';
 
+/// Pure auth-guard policy for the router's `redirect`. Kept free of
+/// `BuildContext`/`GoRouterState` so it can be unit-tested directly.
+///
+/// - signed-out (or still restoring the session) → forced onto the
+///   sign-in screen;
+/// - already in the app (demo or authenticated) → kept off the sign-in
+///   screen (bounced to the dashboard).
+///
+/// Returning `null` means "no redirect — stay put".
+String? sessionRedirect(SessionStatus status, String location) {
+  final onAuthRoute =
+      location == AppRoutes.signIn || location == AppRoutes.signUp;
+  switch (status) {
+    case SessionStatus.unknown:
+    case SessionStatus.signedOut:
+      return onAuthRoute ? null : AppRoutes.signIn;
+    case SessionStatus.demo:
+    case SessionStatus.authenticated:
+      return onAuthRoute ? AppRoutes.dashboard : null;
+  }
+}
+
 /// Single source of truth for the app's routing tree. The `config`
 /// is read once at build time — dev-only routes (UI catalog) are
 /// excluded from prod builds.
+///
+/// When [readStatus] is supplied the router enforces [sessionRedirect];
+/// [refresh] should fire whenever the session changes so the guard is
+/// re-evaluated without rebuilding the router (which drops nav state).
 GoRouter buildAppRouter({
   required AppConfig config,
   NavigatorObserver? observer,
+  SessionStatus Function()? readStatus,
+  Listenable? refresh,
 }) {
   return GoRouter(
-    initialLocation: AppRoutes.dashboard,
+    initialLocation: AppRoutes.signIn,
     debugLogDiagnostics: !config.isProd,
     observers: observer == null
         ? const <NavigatorObserver>[]
         : <NavigatorObserver>[observer],
+    refreshListenable: refresh,
+    redirect: readStatus == null
+        ? null
+        : (context, state) =>
+              sessionRedirect(readStatus(), state.matchedLocation),
     routes: <RouteBase>[
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -85,6 +121,14 @@ GoRouter buildAppRouter({
         path: AppRoutes.signIn,
         builder: (context, state) => const SignInPage(),
       ),
+      GoRoute(
+        path: AppRoutes.signUp,
+        builder: (context, state) => const SignUpPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (context, state) => const OnboardingPage(),
+      ),
       if (!config.isProd)
         GoRoute(
           path: AppRoutes.uiCatalog,
@@ -100,5 +144,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final observer = config.isProd
       ? null
       : NavLoggerObserver(ref.watch(appLoggerProvider));
-  return buildAppRouter(config: config, observer: observer);
+  // Bridge session changes into a Listenable so the router re-evaluates its
+  // login guard without rebuilding — a rebuild would drop the navigation
+  // stack. The status itself is read lazily inside `redirect`.
+  final refresh = ValueNotifier<int>(0);
+  ref.listen<SessionState>(
+    sessionControllerProvider,
+    (_, _) => refresh.value++,
+  );
+  ref.onDispose(refresh.dispose);
+  return buildAppRouter(
+    config: config,
+    observer: observer,
+    readStatus: () => ref.read(sessionControllerProvider).status,
+    refresh: refresh,
+  );
 });

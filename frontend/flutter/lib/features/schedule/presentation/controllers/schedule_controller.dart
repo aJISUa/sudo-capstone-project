@@ -17,3 +17,10 @@ final scheduleEventsProvider = FutureProvider.autoDispose
       (ref, date) => ref.watch(scheduleRepositoryProvider).fetchByDate(date),
       name: 'scheduleEvents',
     );
+
+/// Events for a given `YYYY-MM` month (calendar grid). Auto-disposes.
+final scheduleMonthProvider = FutureProvider.autoDispose
+    .family<List<ScheduleEvent>, String>(
+      (ref, month) => ref.watch(scheduleRepositoryProvider).fetchByMonth(month),
+      name: 'scheduleMonth',
+    );

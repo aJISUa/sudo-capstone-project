@@ -32,21 +32,3 @@ final myGymProvider = FutureProvider<Gym?>((ref) {
 final nearbyGymsProvider = FutureProvider<List<Gym>>((ref) {
   return ref.watch(gymRepositoryProvider).fetchNearby();
 }, name: 'nearbyGyms');
-
-/// Sessions added through the floating "운동 기록 추가" FAB. Layered on
-/// top of [exerciseWeekProvider] so they show up immediately in the
-/// list without round-tripping through drift.
-class AddedSessionsNotifier extends Notifier<List<ExerciseSession>> {
-  @override
-  List<ExerciseSession> build() => const <ExerciseSession>[];
-
-  void add(ExerciseSession session) {
-    state = <ExerciseSession>[session, ...state];
-  }
-}
-
-final addedSessionsProvider =
-    NotifierProvider<AddedSessionsNotifier, List<ExerciseSession>>(
-      AddedSessionsNotifier.new,
-      name: 'addedSessions',
-    );

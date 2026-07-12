@@ -13,14 +13,16 @@ String _mealLabel(MealType m) => switch (m) {
 };
 
 class MealCard extends StatelessWidget {
-  const MealCard({required this.entry, super.key});
+  const MealCard({required this.entry, this.onTap, super.key});
   final DietEntry entry;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return AppCard(
       outlined: true,
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

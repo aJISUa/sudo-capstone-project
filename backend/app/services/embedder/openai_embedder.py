@@ -13,7 +13,7 @@ class OpenAIEmbedder(Embedder):
         if not s.openai_api_key:
             raise RuntimeError("OPENAI_API_KEY 가 설정되지 않았습니다.")
         from openai import OpenAI
-        self._client = OpenAI(api_key=s.openai_api_key)
+        self._client = OpenAI(api_key=s.openai_api_key, timeout=20.0)
         self._model = s.openai_embed_model
         self.dim = s.embed_dim
 

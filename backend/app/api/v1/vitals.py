@@ -26,6 +26,7 @@ from app.models.models import Vital
 from app.schemas.vitals_api import (
     BloodPressureIn, BloodSugarIn, VitalOut, WeightIn,
 )
+from app.services.coach.personal_ingest import record_vital
 
 router = APIRouter(tags=["vitals"])
 
@@ -34,6 +35,8 @@ _VALID_KINDS = {"weight", "blood-pressure", "blood-sugar"}
 
 def _save_vital(db: Session, user_id: str, kind: str, value: dict,
                 recorded_at: datetime | None) -> Vital:
+    if recorded_at is not None and recorded_at.tzinfo is None:
+        recorded_at = recorded_at.replace(tzinfo=timezone.utc)
     row = Vital(
         id=f"vital-{uuid.uuid4().hex[:12]}",
         user_id=user_id,
@@ -44,6 +47,8 @@ def _save_vital(db: Session, user_id: str, kind: str, value: dict,
     db.add(row)
     db.commit()
     db.refresh(row)
+    # 개인 RAG 문서로 적재(코치가 내 최근 혈압·혈당·체중을 검색하도록). best-effort.
+    record_vital(db, user_id, kind=kind, value=value)
     return row
 
 

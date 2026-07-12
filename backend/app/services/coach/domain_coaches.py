@@ -11,7 +11,7 @@
 STEP 8 챗봇은 retrieve_context + get_coach_llm 을 직접 재사용.
 """
 from __future__ import annotations
-
+import logging
 from sqlalchemy.orm import Session
 
 from app.schemas.misc_api import CoachSuggestion
@@ -19,6 +19,8 @@ from app.services.coach.llm import get_coach_llm
 from app.services.coach.rag import retrieve_context
 # STEP 6 규칙 기반(폴백)
 from app.services.coach_service import _diet_suggestion, _exercise_suggestion
+
+logger = logging.getLogger(__name__)
 
 _DIET_SYSTEM = (
     "당신은 고혈압·당뇨 위험군을 돕는 전문 영양 코치입니다. "
@@ -48,9 +50,11 @@ def _rag_suggestion(
             return fallback
         return CoachSuggestion(tag=tag, title=title, body=result.text.strip())
     except Exception:
-        # 키 미설정/네트워크/모델 오류 → 안전하게 규칙 기반 폴백
+        # 키 미설정/네트워크/모델 오류 → 안전하게 규칙 기반 폴백 (단, 로그는 남긴다)
+        logger.exception(
+            "RAG 코칭 생성 실패 (domain=%s, user_id=%s) → 규칙 기반 폴백 사용", domain, user_id
+        )
         return fallback
-
 
 def diet_coach(db: Session, user_id: str) -> CoachSuggestion:
     fallback = _diet_suggestion(db, user_id)

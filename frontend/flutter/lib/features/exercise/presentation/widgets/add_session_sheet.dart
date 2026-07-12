@@ -11,11 +11,14 @@ import 'package:oncare/features/exercise/presentation/controllers/exercise_contr
 const List<String> _weekdayLabels = <String>['월', '화', '수', '목', '금', '토', '일'];
 
 /// Bottom-sheet form mirroring the prototype's "운동 기록 추가" modal:
-/// type chips (유산소 / 근력 / 스트레칭 / 기타), minutes, free-text
-/// items, save button. On save, appends the new session to the local
-/// [addedSessionsProvider] overlay so it appears at the top of the
-/// list immediately.
-Future<void> showAddSessionSheet(BuildContext context) {
+/// type chips (유산소 / 근력 / 스트레칭 / 기타), minutes, free-text items,
+/// save button. Pass [session] to open in edit mode (pre-filled → PUT);
+/// omit it to add a new session (POST). On save the weekly data is
+/// invalidated so stats/chart/list all reflect the change.
+Future<void> showAddSessionSheet(
+  BuildContext context, {
+  ExerciseSession? session,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -23,24 +26,32 @@ Future<void> showAddSessionSheet(BuildContext context) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (BuildContext ctx) => const Padding(
-      padding: EdgeInsets.only(top: AppSpacing.sm),
-      child: _AddSessionForm(),
+    builder: (BuildContext ctx) => Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: _AddSessionForm(session: session),
     ),
   );
 }
 
 class _AddSessionForm extends ConsumerStatefulWidget {
-  const _AddSessionForm();
+  const _AddSessionForm({this.session});
+  final ExerciseSession? session;
 
   @override
   ConsumerState<_AddSessionForm> createState() => _AddSessionFormState();
 }
 
 class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
-  ExerciseType _type = ExerciseType.cardio;
-  final TextEditingController _minutesController = TextEditingController();
-  final TextEditingController _itemsController = TextEditingController();
+  late ExerciseType _type = widget.session?.type ?? ExerciseType.cardio;
+  late final TextEditingController _minutesController = TextEditingController(
+    text: widget.session != null ? '${widget.session!.minutes}' : '',
+  );
+  late final TextEditingController _itemsController = TextEditingController(
+    text: widget.session?.items.join(', ') ?? '',
+  );
+  bool _saving = false;
+
+  bool get _isEdit => widget.session != null;
 
   @override
   void dispose() {
@@ -49,39 +60,53 @@ class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
+    if (_saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final minutes = int.tryParse(_minutesController.text.trim()) ?? 0;
     if (minutes <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('운동 시간을 입력해주세요')));
+      messenger.showSnackBar(const SnackBar(content: Text('운동 시간을 입력해주세요')));
       return;
     }
-    final raw = _itemsController.text.trim();
-    final items = raw.isEmpty
-        ? const <String>[]
-        : raw
-              .split(RegExp(r'[,\n]'))
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
-    final now = DateTime.now();
-    final session = ExerciseSession(
-      id: 'ux-${now.microsecondsSinceEpoch}',
-      dateLabel: '오늘',
-      timeLabel:
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-      dayLabel: _weekdayLabels[now.weekday - 1],
-      type: _type,
-      minutes: minutes,
-      calories: _estimateCalories(_type, minutes),
-      items: items,
-    );
-    ref.read(addedSessionsProvider.notifier).add(session);
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('운동 기록이 추가되었어요')));
+    setState(() => _saving = true);
+    final calories = _estimateCalories(_type, minutes);
+    try {
+      // 서버(mock 모드는 drift)에 저장 → 주간 데이터 무효화로 통계·차트·목록 모두 반영.
+      final session = widget.session;
+      if (session != null) {
+        await ref
+            .read(exerciseRepositoryProvider)
+            .updateSession(
+              id: session.id!,
+              type: _type,
+              minutes: minutes,
+              calories: calories,
+              dayLabel: session.dayLabel,
+            );
+      } else {
+        await ref
+            .read(exerciseRepositoryProvider)
+            .addSession(
+              type: _type,
+              minutes: minutes,
+              calories: calories,
+              dayLabel: _weekdayLabels[DateTime.now().weekday - 1],
+            );
+      }
+      ref.invalidate(exerciseWeekProvider);
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(_isEdit ? '운동 기록이 수정되었어요' : '운동 기록이 추가되었어요'),
+        ),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('저장에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
   }
 
   @override
@@ -103,7 +128,7 @@ class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  '운동 기록 추가',
+                  _isEdit ? '운동 기록 수정' : '운동 기록 추가',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -189,14 +214,23 @@ class _AddSessionFormState extends ConsumerState<_AddSessionForm> {
           SizedBox(
             height: 48,
             child: FilledButton(
-              onPressed: _save,
+              onPressed: _saving ? null : _save,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(AppRadius.lg),
                 ),
               ),
-              child: const Text('저장하기'),
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(_isEdit ? '수정하기' : '저장하기'),
             ),
           ),
         ],

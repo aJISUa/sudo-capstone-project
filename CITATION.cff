@@ -6,7 +6,7 @@ abstract: >-
   the 20-30 age group at risk of hypertension and diabetes. It integrates
   Vision AI food recognition (Gemini/Claude VLM + Korean public nutrition
   database), RAG-based personalized health coaching (pgvector +
-  GPT-4o/Gemini), and offline-to-online trainer connectivity, addressing the three
+  Claude/Gemini), and offline-to-online trainer connectivity, addressing the three
   structural limitations of existing healthcare apps — recording friction,
   context-less generic advice, and online-offline disconnection.
 type: software

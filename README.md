@@ -35,7 +35,7 @@
 | Target User | 20–30s at risk of hypertension / diabetes |
 | Frontend | Flutter (iOS · Android · Web) · local mock (default) |
 | Backend | FastAPI · PostgreSQL(pgvector) · JWT |
-| AI | Gemini · Claude Vision 식단 인식 · RAG 코치 (pgvector · GPT-4o/Gemini) |
+| AI | Gemini · Claude Vision 식단 인식 · RAG 코치 (pgvector · Claude/Gemini) |
 | Status | Flutter MVP live · FastAPI 백엔드 + AI 엔진 구현 · 앱↔백엔드 플래그 전환 |
 
 <br/>
@@ -51,7 +51,7 @@
 | 디자인 시스템 · 로컬 백엔드(drift + LocalApiInterceptor) · 테스트·자동 배포 | ✅ | `frontend/flutter/` · `.github/workflows/deploy.yml` |
 | FastAPI 백엔드 — 9개 라우터 · PostgreSQL(pgvector) · JWT 인증 · 16개 테스트 | ✅ | `backend/app/` · `backend/tests/` |
 | Gemini · Claude Vision 식단 인식 (엔진 교체형) | ✅ | `backend/app/services/recognizer/` |
-| RAG 코치 — pgvector 검색 + GPT-4o/Gemini 생성 (임베더 폴백) | ✅ | `backend/app/services/coach/` |
+| RAG 코치 — pgvector 검색 + Claude/Gemini 생성 (임베더 폴백) | ✅ | `backend/app/services/coach/` |
 | 공공데이터 영양성분 DB 매핑 | 🟡 | `backend/app/services/nutrition/` (구조 ✅ · 데이터 규모 제한) |
 | 카카오맵 실연동 · Firebase FCM 푸시 | 🟡 | `backend/app/api/v1/places.py` (엔드포인트 ✅ · 실연동 pending) |
 
@@ -92,7 +92,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 | 마찰 | On-Care 의 해법 |
 |------|----------------|
 | 기록의 번거로움 | **Gemini Vision 파이프라인** — Gemini(VLM)가 음식 인식·추정, 나트륨·당·칼로리는 공공데이터 영양성분 DB 로 교정 |
-| 맥락 없는 조언 | **RAG 기반 AI 코치** — 사용자 인바디·식단·운동·질환 이력을 pgvector 에 임베딩, GPT-4o/Gemini 에 실시간 컨텍스트로 주입 |
+| 맥락 없는 조언 | **RAG 기반 AI 코치** — 사용자 인바디·식단·운동·질환 이력을 pgvector 에 임베딩, Claude/Gemini 에 실시간 컨텍스트로 주입 |
 | 질환 무관 설계 | **2030 고혈압·당뇨 위험군 도메인 특화** — 나트륨 추적·GI 분류·불규칙 식사 패턴 감지 |
 | 온·오프라인 분리 | **O2O 통합** — 카카오맵 기반 헬스장 검색·예약, 트레이너 인앱 채팅, 건강 요약 자동 전달 |
 
@@ -105,7 +105,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 | 기능 | 상태 | 설명 | 핵심 기술 |
 |------|------|------|-----------|
 | **Vision AI 식단 자동 인식** | ✅ 구현 | 음식 사진 1장으로 식품 종류·영양소를 분석·기록 | Flutter UI + 백엔드 <br> *(Gemini·Claude 인식 + 영양 DB)* |
-| **RAG 기반 AI 헬스 챗봇** | ✅ 구현 | 사용자 건강 이력을 실시간 컨텍스트로 주입해 개인 맞춤 코칭 제공 | Flutter UI + 백엔드 <br> *(pgvector · GPT-4o/Gemini)* |
+| **RAG 기반 AI 헬스 챗봇** | ✅ 구현 | 사용자 건강 이력을 실시간 컨텍스트로 주입해 개인 맞춤 코칭 제공 | Flutter UI + 백엔드 <br> *(pgvector · Claude/Gemini)* |
 | **AI 맞춤 운동 코칭** | ✅ 구현 | 체력·목적·건강 상태 기반 운동 루틴·피드백 | Flutter UI + 백엔드 <br> *(운동 도메인 RAG 코치)* |
 | **헬스장 검색 & 트레이너 연동** | 🟡 부분 | 위치 기반 검색·예약·트레이너 인앱 채팅 UX | Flutter UI + 백엔드 <br> *(카카오맵 실연동 pending)* |
 | **통합 건강 일정 관리** | ✅ 구현 | 식단·운동·병원 예약 캘린더 통합 및 대시보드 연동 | Flutter + FastAPI |
@@ -171,7 +171,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 <br/>
 
 ## RAG Pipeline
-> RAG 코치가 [`backend/app/services/coach/`](backend/app/services/coach/) 에 구현되어 있습니다: **PostgreSQL pgvector 벡터 검색 + GPT-4o/Gemini 생성** (임베더는 OpenAI/Gemini, 키 없으면 해시 폴백으로 오프라인 동작). 사용자 건강 기록을 실시간 컨텍스트로 주입해 개인화 코칭을 만듭니다.
+> RAG 코치가 [`backend/app/services/coach/`](backend/app/services/coach/) 에 구현되어 있습니다: **PostgreSQL pgvector 벡터 검색 + Claude/Gemini 생성** (임베더는 OpenAI/Gemini, 키 없으면 해시 폴백으로 오프라인 동작). 사용자 건강 기록을 실시간 컨텍스트로 주입해 개인화 코칭을 만듭니다.
 
 사용자의 질문이 어떻게 개인화된 답변으로 변환되는지:
 
@@ -215,7 +215,7 @@ On-Care 는 위 다섯 가지 마찰을 다음의 네 가지 기술적 의사결
 
 ![Gemini](https://img.shields.io/badge/Gemini_Vision-Recognition-4285F4?style=flat-square)
 ![Claude](https://img.shields.io/badge/Claude_Vision-LiteLLM-D97757?style=flat-square)
-![GPT-4o](https://img.shields.io/badge/GPT--4o-Coach_LLM-412991?style=flat-square)
+![Claude](https://img.shields.io/badge/Claude-Coach_LLM-D97757?style=flat-square)
 ![pgvector](https://img.shields.io/badge/pgvector-RAG_Search-4169E1?style=flat-square)
 
 **Platform & APIs**
@@ -254,7 +254,7 @@ On-Care는 Ideation을 넘어 **Flutter MVP · FastAPI 백엔드 · AI 파이프
 | **S2 · Flutter MVP** | 디자인 시스템 구축 · Riverpod 상태 관리 · MVP 핵심 화면 구현 | ✅ 완료 |
 | **S3 · FastAPI Backend** | FastAPI 서버 · PostgreSQL(pgvector) · JWT 인증 · REST API · 테스트 | ✅ 완료 |
 | **S4 · Vision AI** | Gemini · Claude Vision 인식 + 공공데이터 영양성분 DB 매핑 (엔진 교체형) | ✅ 완료 |
-| **S5 · RAG Coach** | pgvector 기반 GPT-4o/Gemini 개인화 맥락 코칭 엔진 | ✅ 완료 |
+| **S5 · RAG Coach** | pgvector 기반 Claude/Gemini 개인화 맥락 코칭 엔진 | ✅ 완료 |
 | **S6 · O2O & Reward** | 카카오맵 실연동 · 트레이너 채팅 · Streak 보상 · 앱↔백엔드 연동 · 배포 | 🚧 진행 중 |
 
 <br/>

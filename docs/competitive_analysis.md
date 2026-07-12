@@ -83,7 +83,7 @@
 
 ### 3.2 RAG 기반 초개인화 AI 코칭 🤖
 
-Noom의 인간 코칭이나 필라이즈의 AI 코치는 정해진 규칙이나 단편적인 데이터 답변에 그치는 경우가 많습니다. On-Care는 **PostgreSQL pgvector + GPT-4o/Gemini 기반 RAG(검색 증강 생성) 아키텍처**를 구현했습니다.
+Noom의 인간 코칭이나 필라이즈의 AI 코치는 정해진 규칙이나 단편적인 데이터 답변에 그치는 경우가 많습니다. On-Care는 **PostgreSQL pgvector + Claude/Gemini 기반 RAG(검색 증강 생성) 아키텍처**를 구현했습니다.
 
 * **맥락이 살아있는 피드백:** 사용자의 인바디, 식단 기록, 운동 로그, 질환 프로필을 **PostgreSQL pgvector**에 실시간 임베딩하여 저장합니다.
 * 사용자가 *"오늘 저녁 식단 어때?"*라고 질문하면, 일반적인 영양학 답변을 하는 것이 아니라, "이번 주 탄수화물 목표를 이미 12% 초과하셨고 고혈압 위험군이시니, 나트륨이 적은 닭가슴살 샐러드를 추천합니다"와 같이 누적 이력을 기반으로 한 맥락적 조언을 제공합니다.
@@ -110,7 +110,7 @@ Noom의 인간 코칭이나 필라이즈의 AI 코치는 정해진 규칙이나 
 
 * **Frontend:** Flutter (iOS·Android 단일 코드베이스로 완벽히 동일한 사용자 경험 제공)
 * **Backend:** FastAPI (비동기 REST) · PostgreSQL(pgvector) · SQLAlchemy · JWT 인증 · Docker
-* **AI:** Gemini · Claude Vision(VLM) 인식 (엔진 교체형) · GPT-4o/Gemini 코치 LLM · pgvector RAG
+* **AI:** Gemini · Claude Vision(VLM) 인식 (엔진 교체형) · Claude/Gemini 코치 LLM · pgvector RAG
 
 ---
 

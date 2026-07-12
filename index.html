@@ -601,7 +601,7 @@
       <span class="header-chip">Flutter 3.x</span>
       <span class="header-chip">FastAPI</span>
       <span class="header-chip">Gemini · Claude Vision (VLM)</span>
-      <span class="header-chip">GPT-4o · RAG Pipeline</span>
+      <span class="header-chip">Claude · RAG Pipeline</span>
       <span class="header-chip">PostgreSQL · pgvector</span>
     </div>
   </header>
@@ -679,7 +679,7 @@
           </div>
           <div style="background:var(--blue-pale); border-radius:var(--radius-sm); padding:14px 16px;">
             <div style="font-size:0.8rem; font-weight:700; color:var(--blue); margin-bottom:5px;">② RAG 기반 맥락 참조 AI 코치</div>
-            <div style="font-size:0.82rem; color:#1a4a7a; line-height:1.6;">사용자의 인바디·식단 로그·운동 이력을 PostgreSQL pgvector에 임베딩하여 GPT-4o/Gemini에 실시간 컨텍스트로 주입</div>
+            <div style="font-size:0.82rem; color:#1a4a7a; line-height:1.6;">사용자의 인바디·식단 로그·운동 이력을 PostgreSQL pgvector에 임베딩하여 Claude/Gemini에 실시간 컨텍스트로 주입</div>
           </div>
           <div style="background:var(--accent-pale); border-radius:var(--radius-sm); padding:14px 16px;">
             <div style="font-size:0.8rem; font-weight:700; color:#b87a00; margin-bottom:5px;">③ 온·오프라인(O2O) 솔루션 통합</div>
@@ -700,9 +700,9 @@
           <p>음식 사진 1장으로 식품 종류·섭취량·칼로리·영양소를 자동 인식. Gemini·Claude Vision(VLM)이 인식하고 공공데이터 영양성분 DB로 나트륨·당·칼로리를 교정.</p>
         </div>
         <div class="card blue-card">
-          <span class="tag tag-blue">RAG · GPT-4o</span> <span class="tag tag-green">✅ 구현</span>
+          <span class="tag tag-blue">RAG · Claude</span> <span class="tag tag-green">✅ 구현</span>
           <h3>🤖 RAG 기반 AI 헬스 챗봇</h3>
-          <p>사용자의 누적 건강 데이터 이력과 pgvector 컨텍스트를 GPT-4o/Gemini에 실시간 주입하여 일반론이 아닌 '내 이번 주 기록 기준'의 밀착 코칭 제공.</p>
+          <p>사용자의 누적 건강 데이터 이력과 pgvector 컨텍스트를 Claude/Gemini에 실시간 주입하여 일반론이 아닌 '내 이번 주 기록 기준'의 밀착 코칭 제공.</p>
         </div>
         <div class="card">
           <span class="tag tag-green">운동 코치</span> <span class="tag tag-green">✅ 구현</span>
@@ -773,7 +773,7 @@
             <div class="arch-layer-title">Coaching Engine</div>
             <div class="arch-items">
               <span class="arch-item ai">Closed-domain RAG</span>
-              <span class="arch-item ai">OpenAI GPT-4o</span>
+              <span class="arch-item ai">Anthropic Claude</span>
             </div>
           </div>
         </div>
@@ -871,8 +871,8 @@
               <div class="step-num">3</div>
             </div>
             <div class="step-body">
-              <strong>GPT-4o 오케스트레이션 및 프롬프트 가드레일 통과</strong>
-              <span>수집된 컨텍스트 조각들을 GPT-4o 프롬프트 가드레일에 실시간 주입하여 의료 행위 위험성을 원천 차단한 안전한 밀착 맞춤 피드백을 형성합니다.</span>
+              <strong>Claude 오케스트레이션 및 프롬프트 가드레일 통과</strong>
+              <span>수집된 컨텍스트 조각들을 Claude 프롬프트 가드레일에 실시간 주입하여 의료 행위 위험성을 원천 차단한 안전한 밀착 맞춤 피드백을 형성합니다.</span>
               <div class="step-result">
                 🤖 온이의 피드백 코칭 결과 — "오늘 점심 나트륨 섭취량이 높아요. 저녁에는 담백한 구이나 샐러드를 추천해요!"
               </div>
@@ -981,7 +981,7 @@
           <div class="chips">
             <span class="chip chip-blue">Gemini Vision API</span>
             <span class="chip chip-blue">Claude Vision (LiteLLM)</span>
-            <span class="chip chip-blue">GPT-4o</span>
+            <span class="chip chip-blue">Claude · Gemini (Coach)</span>
             <span class="chip chip-blue">pgvector</span>
             <span class="chip chip-blue">text-embedding-3-small</span>
           </div>

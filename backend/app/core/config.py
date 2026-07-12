@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     nutrition_db_enrich: bool = True
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
-    coach_llm: str = "openai"         # openai | gemini | litellm
+    coach_llm: str = "gemini"         # openai | gemini | litellm
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-4o"
     embedder: str = "openai"          # openai | gemini | litellm

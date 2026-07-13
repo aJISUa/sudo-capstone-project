@@ -4,9 +4,9 @@ title: "On-Care: AI-powered chronic disease management platform for 20-30s hyper
 abstract: >-
   On-Care is a Flutter-based cross-platform healthcare application targeting
   the 20-30 age group at risk of hypertension and diabetes. It integrates
-  Vision AI food recognition (YOLOv8 + Gemini Vision + Korean public nutrition
-  database), RAG-based personalized health coaching (LangChain + Pinecone +
-  GPT-4o), and offline-to-online trainer connectivity, addressing the three
+  Vision AI food recognition (Gemini/Claude VLM + Korean public nutrition
+  database), RAG-based personalized health coaching (pgvector +
+  Claude/Gemini), and offline-to-online trainer connectivity, addressing the three
   structural limitations of existing healthcare apps — recording friction,
   context-less generic advice, and online-offline disconnection.
 type: software

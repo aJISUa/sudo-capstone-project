@@ -600,9 +600,9 @@
     <div class="header-chips">
       <span class="header-chip">Flutter 3.x</span>
       <span class="header-chip">FastAPI</span>
-      <span class="header-chip">YOLOv8 + Gemini Vision</span>
-      <span class="header-chip">GPT-4o · RAG Pipeline</span>
-      <span class="header-chip">Pinecone Vector DB</span>
+      <span class="header-chip">Gemini · Claude Vision (VLM)</span>
+      <span class="header-chip">Claude · RAG Pipeline</span>
+      <span class="header-chip">PostgreSQL · pgvector</span>
     </div>
   </header>
 
@@ -614,9 +614,9 @@
       <table class="info-table">
         <tr><th>프로젝트명</th><td>HealthMate AI: 불규칙한 생활 속 2030을 위한 고혈압·당뇨 위험군 대상 식단 인식·코칭 통합 헬스케어 플랫폼</td></tr>
         <tr><th>서비스명 (브랜드)</th><td>온케어 (On-Care)</td></tr>
-        <tr><th>트랙</th><td>산학 연계 (Industry-Academic Track)</td></tr>
+        <tr><th>트랙</th><td>산학</td></tr>
         <tr><th>팀명</th><td>Sudo (Team 02)</td></tr>
-        <tr><th>팀 구성</th><td>최지수 (Data Analyst & Backend), 박서연 (DevOps & Backend), 신수빈 (AI & Frontend)</td></tr>
+        <tr><th>팀 구성</th><td>최지수, 박서연, 신수빈</td></tr>
         <tr><th>지도 교수</th><td>황의원 교수님 · 이화여자대학교 컴퓨터공학전공</td></tr>
       </table>
     </section>
@@ -636,7 +636,7 @@
           <li class="timeline-item"><span class="timeline-time">[00:03]</span><span>시연 시나리오 및 기저질환 위험군 김민수 페르소나 도입부 설명</span></li>
           <li class="timeline-item"><span class="timeline-time">[00:11]</span><span><strong>Scenario 1. 홈 탭</strong>: 체중·혈압·혈당 입력 및 건강 데이터 저장 흐름 확인</span></li>
           <li class="timeline-item"><span class="timeline-time">[00:44]</span><span><strong>Scenario 2. My 탭</strong>: 누적 건강 기록과 고혈압·당뇨 위험 주의 알림 카드 확인</span></li>
-          <li class="timeline-item"><span class="timeline-time">[01:10]</span><span><strong>Scenario 3. 식단 관리</strong>: 주간 식단 기록 조회 및 YOLOv8 + Gemini Vision 기반 음식 사진 자동 분석</span></li>
+          <li class="timeline-item"><span class="timeline-time">[01:10]</span><span><strong>Scenario 3. 식단 관리</strong>: 주간 식단 기록 조회 및 Gemini·Claude Vision(VLM) 기반 음식 사진 자동 분석</span></li>
           <li class="timeline-item"><span class="timeline-time">[02:15]</span><span><strong>Scenario 4. 운동 관리</strong>: 운동 기록 입력 및 주간 운동 현황 그래프 시각화</span></li>
           <li class="timeline-item"><span class="timeline-time">[03:00]</span><span><strong>Scenario 5. 헬스장 연동</strong>: 트레이너 1:1 상담과 위치 기반 헬스장 찾기 기능 확인</span></li>
           <li class="timeline-item"><span class="timeline-time">[03:58]</span><span><strong>Scenario 6. 통합 일정 관리</strong>: 병원 정기검진·건강검진·헬스장 운동 일정 통합 캘린더 확인</span></li>
@@ -649,7 +649,7 @@
           <p><strong>[00:03] 도입 및 홈 탭:</strong> "최근 건강검진에서 고혈압과 당뇨 위험군 판정을 받은 27세 직장인 김민수 씨의 하루를 통해 On-care 서비스 데모를 시연하겠습니다. 홈 화면 상단에서는 만성질환 위험군이 매일 확인해야 하는 핵심 건강 지표인 체중, 혈압, 혈당을 바로 입력하고 저장할 수 있습니다."</p>
           <p><strong>[00:44] My 탭 — 누적 건강 기록 및 위험 알림:</strong> "My 탭에서는 앞에서 입력한 건강 데이터가 개인 건강 기록으로 누적되어 표시됩니다. 프로필 아래의 ‘고혈압·당뇨 위험 주의’ 알림 카드를 통해 최근 혈압과 혈당 추세가 다소 높다는 정보를 확인할 수 있으며, 사용자는 자신의 위험 신호를 지속적으로 점검할 수 있습니다."</p>
           <p><strong>[01:10] 식단 관리 — 식단 기록 조회:</strong> "식단 관리 화면에서는 상단의 주간 스트립 캘린더를 통해 오늘뿐만 아니라 이전 날짜의 식단 기록도 쉽게 확인할 수 있습니다. 오늘 날짜를 선택하면 기록된 아침과 점심 메뉴가 표시되고, 각 메뉴별 칼로리, 나트륨, 당류 정보를 함께 확인할 수 있습니다."</p>
-          <p><strong>[01:40] Vision AI 식단 기록 — 음식 사진 자동 분석:</strong> "식단을 새로 기록할 때는 음식 사진을 업로드하면 됩니다. 먼저 YOLOv8 필터가 해당 이미지가 음식 사진인지 확인하고, 이후 Gemini Vision API가 음식 이미지를 분석해 메뉴와 영양 정보를 계산합니다. 분석 결과는 음식명, 칼로리, 나트륨, 당류 정보로 자동 추가되어 직접 검색하고 입력해야 하는 번거로움을 줄여줍니다."</p>
+          <p><strong>[01:40] Vision AI 식단 기록 — 음식 사진 자동 분석:</strong> "식단을 새로 기록할 때는 음식 사진을 업로드하면 됩니다. Gemini·Claude Vision(VLM)이 음식 이미지를 분석해 메뉴와 추정 섭취량을 인식하고, 공공데이터 식품영양성분 DB로 나트륨·당류·칼로리 수치를 교정합니다. 분석 결과는 음식명, 칼로리, 나트륨, 당류 정보로 자동 추가되어 직접 검색하고 입력해야 하는 번거로움을 줄여줍니다."</p>
           <p><strong>[02:15] 운동 관리 — 주간 운동 현황 시각화:</strong> "운동 관리 화면에서는 사용자가 자신의 운동 기록을 입력하고, 이번 주 운동 현황을 한눈에 확인할 수 있습니다. 주간 누적 운동 시간은 유산소, 근력 운동 등 운동 유형별 막대그래프로 표시되어 목표 대비 운동량이 충분한지 파악할 수 있습니다."</p>
           <p><strong>[02:42] 운동 기록 추가 — 데이터 반영:</strong> "운동 유형과 운동 시간을 입력한 뒤 저장하면 해당 운동 기록이 오늘의 운동 데이터에 추가됩니다. 저장된 기록은 주간 운동 현황 그래프에도 반영되어 사용자가 자신의 운동 패턴을 지속적으로 관리할 수 있도록 돕습니다."</p>
           <p><strong>[03:00] 트레이너 상담 연동 — 건강 데이터 기반 1:1 상담:</strong> "On-care는 내부 기록에만 머무르지 않고 오프라인 건강 관리 서비스와도 연결됩니다. 트레이너 상담 화면에서는 사용자의 최근 운동 기록, 선호 운동 유형, 고혈압 위험군 정보가 건강 데이터 요약본 형태로 제공되어, 트레이너가 기존 데이터를 바탕으로 맞춤 운동 상담을 이어갈 수 있습니다."</p>
@@ -670,16 +670,16 @@
           2030세대의 만성질환 유병률이 구조적으로 급증하는 가운데, 기존의 디지털 헬스케어 서비스들은 여전히 <strong>기록의 번거로움</strong>, <strong>맥락 없는 획일적 조언</strong>, 그리고 <strong>온·오프라인의 단절</strong>이라는 임계점을 보이고 있습니다.
         </p>
         <p style="font-size:0.93rem; color:var(--text); line-height:1.8; margin-top:12px;">
-          <strong>On-Care</strong>는 이러한 파편화와 마찰을 정면으로 해결하기 위해 구축 중인 통합 AI 헬스케어 플랫폼입니다. (현재 Flutter MVP 동작 · 핵심 AI 엔진은 프로토타입·설계 단계)
+          <strong>On-Care</strong>는 이러한 파편화와 마찰을 정면으로 해결하기 위해 구축한 통합 AI 헬스케어 플랫폼입니다. (Flutter MVP + FastAPI 백엔드 · AI 인식·RAG 코치 구현 — 앱은 mock 기본, 빌드 플래그로 백엔드 연동)
         </p>
         <div class="card-grid" style="margin-top:16px; gap:12px;">
           <div style="background:var(--primary-pale); border-radius:var(--radius-sm); padding:14px 16px;">
-            <div style="font-size:0.8rem; font-weight:700; color:var(--primary); margin-bottom:5px;">① Vision AI 2-stage 파이프라인</div>
-            <div style="font-size:0.82rem; color:#1a4060; line-height:1.6;">YOLOv8 푸드 필터와 Gemini Vision을 연동하여 불필요한 비용을 막고 영양 분석의 한국 표준 정확도 확보</div>
+            <div style="font-size:0.8rem; font-weight:700; color:var(--primary); margin-bottom:5px;">① Vision AI(VLM) 파이프라인</div>
+            <div style="font-size:0.82rem; color:#1a4060; line-height:1.6;">Gemini·Claude Vision(VLM) 단독 인식 후 공공데이터 영양성분 DB로 나트륨·당·칼로리를 교정해 한국 표준 정확도 확보</div>
           </div>
           <div style="background:var(--blue-pale); border-radius:var(--radius-sm); padding:14px 16px;">
             <div style="font-size:0.8rem; font-weight:700; color:var(--blue); margin-bottom:5px;">② RAG 기반 맥락 참조 AI 코치</div>
-            <div style="font-size:0.82rem; color:#1a4a7a; line-height:1.6;">사용자의 인바디·식단 로그·운동 이력을 Pinecone DB에 임베딩하여 GPT-4o에 실시간 컨텍스트로 주입</div>
+            <div style="font-size:0.82rem; color:#1a4a7a; line-height:1.6;">사용자의 인바디·식단 로그·운동 이력을 PostgreSQL pgvector에 임베딩하여 Claude/Gemini에 실시간 컨텍스트로 주입</div>
           </div>
           <div style="background:var(--accent-pale); border-radius:var(--radius-sm); padding:14px 16px;">
             <div style="font-size:0.8rem; font-weight:700; color:#b87a00; margin-bottom:5px;">③ 온·오프라인(O2O) 솔루션 통합</div>
@@ -692,25 +692,25 @@
     <!-- Key Features -->
     <section>
       <h2>✨ 핵심 기능</h2>
-      <p style="font-size:0.8rem; color:var(--text); opacity:0.72; margin:-4px 0 14px;">상태 — ✅ 구현 · 🟡 프로토타입(별도 PoC) · 🔵 설계 단계 (UI 구현 = 화면 동작)</p>
+      <p style="font-size:0.8rem; color:var(--text); opacity:0.72; margin:-4px 0 14px;">상태 — ✅ 구현 · 🟡 부분 구현 (앱은 mock 기본, 빌드 플래그로 백엔드 연동)</p>
       <div class="card-grid">
         <div class="card">
-          <span class="tag tag-green">Vision AI</span> <span class="tag tag-accent">🟡 프로토타입</span>
+          <span class="tag tag-green">Vision AI</span> <span class="tag tag-green">✅ 구현</span>
           <h3>🍱 Vision AI 식단 자동 인식</h3>
-          <p>음식 사진 1장으로 식품 종류·섭취량·칼로리·영양소를 자동 인식. YOLOv8로 음식 여부를 가려낸 뒤 Gemini Vision 분석 후 국가 영양성분 DB 매핑.</p>
+          <p>음식 사진 1장으로 식품 종류·섭취량·칼로리·영양소를 자동 인식. Gemini·Claude Vision(VLM)이 인식하고 공공데이터 영양성분 DB로 나트륨·당·칼로리를 교정.</p>
         </div>
         <div class="card blue-card">
-          <span class="tag tag-blue">RAG · GPT-4o</span> <span class="tag tag-blue">🔵 설계</span>
+          <span class="tag tag-blue">RAG · Claude</span> <span class="tag tag-green">✅ 구현</span>
           <h3>🤖 RAG 기반 AI 헬스 챗봇</h3>
-          <p>사용자의 누적 건강 데이터 이력과 Vector DB 컨텍스트를 GPT-4o에 실시간 주입하여 일반론이 아닌 '내 이번 주 기록 기준'의 밀착 코칭 제공.</p>
+          <p>사용자의 누적 건강 데이터 이력과 pgvector 컨텍스트를 Claude/Gemini에 실시간 주입하여 일반론이 아닌 '내 이번 주 기록 기준'의 밀착 코칭 제공.</p>
         </div>
         <div class="card">
-          <span class="tag tag-green">하이브리드 엔진</span> <span class="tag tag-blue">🔵 설계 (UI 구현)</span>
+          <span class="tag tag-green">운동 코치</span> <span class="tag tag-green">✅ 구현</span>
           <h3>🏃 AI 맞춤 운동 코칭</h3>
           <p>개인별 체력 상태, 운동 목적, 기저 질환 상태에 맞춰 운동 루틴을 생성하고 피드백 루프에 따라 강도 및 스트레칭 세션을 동적 재조정.</p>
         </div>
         <div class="card accent-card">
-          <span class="tag tag-accent">O2O 커넥션</span> <span class="tag tag-blue">🔵 설계 (UI 구현)</span>
+          <span class="tag tag-accent">O2O 커넥션</span> <span class="tag tag-accent">🟡 부분</span>
           <h3>🏋️ 헬스장 검색 &amp; 트레이너 연동</h3>
           <p>카카오맵 API 기반 시설 예약 및 트레이너 인앱 채팅 연동. 플랫폼에 축적된 식단 및 운동 건강 데이터 요약본을 트레이너에게 안전하고 간편하게 자동 전송.</p>
         </div>
@@ -720,7 +720,7 @@
           <p>식단, 운동, 헬스장 예약 스케줄, 병원 정기검진과 종합 건강검진 일정을 단일 캘린더 아키텍처로 통합 관리.</p>
         </div>
         <div class="card purple-card">
-          <span class="tag tag-purple">게이미피케이션</span> <span class="tag tag-blue">🔵 설계</span>
+          <span class="tag tag-purple">게이미피케이션</span> <span class="tag tag-accent">🟡 부분</span>
           <h3>🏆 포인트 &amp; Streak 보상 시스템</h3>
           <p>일일 건강 지표 및 식단/운동 연속 달성 기록에 따른 리워드(Streak) 부여로 유저의 지속적인 자가 관리 유도.</p>
         </div>
@@ -748,7 +748,7 @@
           <div class="arch-items">
             <span class="arch-item">JWT 보호 인증</span>
             <span class="arch-item">식단/운동 비동기 API</span>
-            <span class="arch-item">LangChain RAG Pipeline</span>
+            <span class="arch-item">RAG Pipeline (pgvector)</span>
             <span class="arch-item">O2O 매핑 로직</span>
             <span class="arch-item">GitHub Actions CI/CD</span>
           </div>
@@ -758,22 +758,22 @@
           <div class="arch-layer">
             <div class="arch-layer-title">Persistence &amp; Memory</div>
             <div class="arch-items">
-              <span class="arch-item">MySQL (AWS RDS)</span>
-              <span class="arch-item">Pinecone Vector DB</span>
+              <span class="arch-item">PostgreSQL (AWS RDS)</span>
+              <span class="arch-item">pgvector (벡터 검색)</span>
             </div>
           </div>
           <div class="arch-layer">
             <div class="arch-layer-title">Vision AI Pipeline</div>
             <div class="arch-items">
-              <span class="arch-item ai">YOLOv8 이미지 필터</span>
-              <span class="arch-item ai">Gemini Vision 추론 Engine</span>
+              <span class="arch-item ai">Gemini·Claude Vision (VLM)</span>
+              <span class="arch-item ai">공공데이터 영양성분 DB 매핑</span>
             </div>
           </div>
           <div class="arch-layer">
             <div class="arch-layer-title">Coaching Engine</div>
             <div class="arch-items">
               <span class="arch-item ai">Closed-domain RAG</span>
-              <span class="arch-item ai">OpenAI GPT-4o</span>
+              <span class="arch-item ai">Anthropic Claude</span>
             </div>
           </div>
         </div>
@@ -784,6 +784,7 @@
             <span class="arch-item ext">카카오맵 API</span>
             <span class="arch-item ext">공공데이터포털 식품영양성분 DB</span>
             <span class="arch-item ext">Google Gemini API</span>
+            <span class="arch-item ext">Anthropic Claude API</span>
             <span class="arch-item ext">Firebase Cloud Messaging (FCM)</span>
           </div>
         </div>
@@ -803,25 +804,14 @@
               <div class="step-line"></div>
             </div>
             <div class="step-body">
-              <strong>YOLOv8 음식 필터 단계</strong>
-              <span>촬영된 원본 이미지 내 음식 객체의 포함 여부를 먼저 선행 판별합니다. 불필요한 멀티모달 LLM 호출을 사전 차단하여 시스템 인프라 비용 효율과 응답 속도를 향상시킵니다.</span>
+              <strong>Gemini · Claude Vision(VLM) 인식 단계</strong>
+              <span>업로드된 음식 이미지를 VLM이 한 번의 호출로 분석해 음식 종류와 추정 섭취량을 다품목 동시 식별합니다. 인식 엔진은 Gemini / Claude 교체 가능한 팩토리 구조로 구현되어 있습니다.</span>
             </div>
           </div>
 
           <div class="step">
             <div class="step-connector">
               <div class="step-num">2</div>
-              <div class="step-line"></div>
-            </div>
-            <div class="step-body">
-              <strong>Gemini Vision API 정밀 분석 단계</strong>
-              <span>음식 이미지로 유효성이 확인된 데이터에 한하여 세밀한 영양 분석 및 다품목 동시 식별 프로세스를 수행합니다.</span>
-            </div>
-          </div>
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">3</div>
               <div class="step-line"></div>
             </div>
             <div class="step-body">
@@ -832,7 +822,7 @@
 
           <div class="step">
             <div class="step-connector">
-              <div class="step-num">4</div>
+              <div class="step-num">3</div>
             </div>
             <div class="step-body">
               <strong>식단 로그 누적 적립 및 RAG 컨텍스트 동기화</strong>
@@ -871,7 +861,7 @@
               <div class="step-line"></div>
             </div>
             <div class="step-body">
-              <strong>Pinecone Vector DB 컨텍스트 검색</strong>
+              <strong>pgvector 컨텍스트 검색</strong>
               <span>사용자의 도메인 프로필(예: 고혈압·당뇨 위험군)에 매핑되는 핵심 건강 이력 및 영양학 가이드라인의 상관 데이터를 탐색합니다.</span>
             </div>
           </div>
@@ -881,8 +871,8 @@
               <div class="step-num">3</div>
             </div>
             <div class="step-body">
-              <strong>GPT-4o 오케스트레이션 및 프롬프트 가드레일 통과</strong>
-              <span>수집된 컨텍스트 조각들을 GPT-4o 프롬프트 가드레일에 실시간 주입하여 의료 행위 위험성을 원천 차단한 안전한 밀착 맞춤 피드백을 형성합니다.</span>
+              <strong>Claude 오케스트레이션 및 프롬프트 가드레일 통과</strong>
+              <span>수집된 컨텍스트 조각들을 Claude 프롬프트 가드레일에 실시간 주입하여 의료 행위 위험성을 원천 차단한 안전한 밀착 맞춤 피드백을 형성합니다.</span>
               <div class="step-result">
                 🤖 온이의 피드백 코칭 결과 — "오늘 점심 나트륨 섭취량이 높아요. 저녁에는 담백한 구이나 샐러드를 추천해요!"
               </div>
@@ -940,7 +930,7 @@
               <td>직접 검색 및 수동 입력 위주</td>
               <td>사진 기반 AI 인식 지원</td>
               <td>사진 저장 및 빠른 입력 중심</td>
-              <td class="ours">사진 1장 → YOLOv8 필터링 + Gemini Vision AI 영양 분석</td>
+              <td class="ours">사진 1장 → Gemini·Claude Vision(VLM) 인식 + 공공데이터 영양 DB 매핑</td>
             </tr>
             <tr>
               <td><strong>한국 음식 정확도</strong></td>
@@ -989,15 +979,13 @@
         <div class="tech-group">
           <div class="tech-group-label">AI / ML Engine</div>
           <div class="chips">
-            <span class="chip chip-blue">YOLOv8</span>
             <span class="chip chip-blue">Gemini Vision API</span>
-            <span class="chip chip-blue">GPT-4o</span>
-            <span class="chip chip-blue">LangChain</span>
-            <span class="chip chip-blue">Pinecone Vector DB</span>
+            <span class="chip chip-blue">Claude Vision (LiteLLM)</span>
+            <span class="chip chip-blue">Claude · Gemini (Coach)</span>
+            <span class="chip chip-blue">pgvector</span>
             <span class="chip chip-blue">text-embedding-3-small</span>
-            <span class="chip chip-blue">PyTorch Inference</span>
           </div>
-          <div class="tech-note">YOLOv8 객체 탐지와 멀티모달 프롬프트 엔지니어링을 결합한 하이브리드 파이프라인. 한국영양학회 등 공인 가이드를 벡터화한 Closed-domain RAG 파이프라인이 탑재되어 있습니다.</div>
+          <div class="tech-note">Gemini·Claude Vision(VLM) 단독 인식 + 공공데이터 영양성분 DB 교정을 결합한 하이브리드 파이프라인. 한국영양학회 등 공인 가이드를 pgvector에 인덱싱한 Closed-domain RAG 파이프라인이 탑재되어 있습니다.</div>
         </div>
         <div class="tech-group">
           <div class="tech-group-label">Mobile Client</div>
@@ -1014,7 +1002,7 @@
           <div class="tech-group-label">Backend Web Server</div>
           <div class="chips">
             <span class="chip chip-green">FastAPI</span>
-            <span class="chip chip-green">MySQL (AWS RDS)</span>
+            <span class="chip chip-green">PostgreSQL (pgvector)</span>
             <span class="chip chip-dark">JWT Authentication</span>
             <span class="chip chip-dark">SQLAlchemy</span>
             <span class="chip chip-dark">Uvicorn</span>

@@ -36,6 +36,25 @@ def test_hash_embedder_similarity_orders_related_higher():
     assert related > unrelated
 
 
+def test_litellm_embedder_falls_back_to_hash_without_embed_model(monkeypatch):
+    """LiteLLM 프록시에 임베딩 모델이 없으면 해시 임베더로 폴백한다.
+
+    그러지 않으면 LiteLLMEmbedder 가 기동 중 RuntimeError 를 던져 공공/개인 문서가
+    하나도 적재되지 않고, RAG 검색이 비어 코치가 규칙 기반 폴백에 갇힌다(#155).
+    """
+    from app.core.config import get_settings
+    from app.services.embedder.factory import get_embedder
+    from app.services.embedder.hash_embedder import HashEmbedder
+
+    # 로컬 .env / CI 환경변수에 값이 있어도 결정적이도록, LiteLLM 설정을 직접 비운다.
+    settings = get_settings()
+    monkeypatch.setattr(settings, "litellm_base_url", "")
+    monkeypatch.setattr(settings, "litellm_api_key", "")
+    monkeypatch.setattr(settings, "litellm_embed_model", "")
+
+    assert isinstance(get_embedder("litellm"), HashEmbedder)
+
+
 # ---------- DB(CI): 적재·검색·격리 ----------
 
 def test_public_guidelines_seeded_and_retrieved(client, db_session):

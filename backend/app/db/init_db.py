@@ -7,12 +7,16 @@ DB 초기화 + 데모 데이터 시드.
 """
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.session import Base, SessionLocal, engine
 from app.models import models  # noqa: F401
+
+logger = logging.getLogger(__name__)
 
 DEMO_USER_ID = "user-demo"
 
@@ -110,7 +114,7 @@ def _seed_food_nutrients() -> None:
 
 
 def _seed_public_coach_docs() -> None:
-    """공공 코칭 가이드라인을 RAG 공공 문서로 적재(멱등). 임베딩 불가 시 조용히 스킵."""
+    """공공 코칭 가이드라인을 RAG 공공 문서로 적재(멱등). 임베딩 불가 시 경고 로그 후 스킵."""
     from app.data.coach_public_docs import PUBLIC_DOCS
     from app.services.coach.rag import ingest_document
 
@@ -128,6 +132,12 @@ def _seed_public_coach_docs() -> None:
                     domain=doc["domain"], source="public", title=doc["title"],
                 )
             except Exception:  # noqa: BLE001 — 적재 실패가 기동을 막지 않도록
+                # 조용히 삼키면 RAG 가 빈 채로 코치가 규칙 폴백에 갇혀 원인 파악이 어렵다.
+                logger.warning(
+                    "공공 코칭 문서 적재 실패 — 임베딩 제공자(EMBEDDER) 설정 확인 필요: %s",
+                    doc.get("title"),
+                    exc_info=True,
+                )
                 db.rollback()
     finally:
         db.close()

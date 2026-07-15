@@ -1,11 +1,11 @@
 {
-    "name": "oncare_trainer",
-    "short_name": "oncare_trainer",
+    "name": "온케어 트레이너",
+    "short_name": "온케어 트레이너",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FF7A45",
+    "theme_color": "#FF7A45",
+    "description": "On-Care 트레이너 앱 — 트레이너용 고객 관리 / AI 루틴 / 스케줄 (Android / iOS / Web).",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -61,11 +61,9 @@ void main() {
     ) async {
       await pumpTrainerApp(tester, token: 'demo-trainer-token');
 
+      // Top-of-list assertions first (the header/badge/AI card scroll away
+      // once we scroll down to reach the lazily-built third card).
       expect(find.text('고객 관리'), findsWidgets);
-      expect(find.text('김민수'), findsOneWidget);
-      expect(find.text('이지수'), findsOneWidget);
-      expect(find.text('박성호'), findsOneWidget);
-
       // 2 clients over the sodium target (김민수 2100, 박성호 2400).
       // The AI summary is a Text.rich, so match with findRichText.
       expect(
@@ -74,6 +72,11 @@ void main() {
       );
       // 4 booked sessions today (6 slots − 2 gaps).
       expect(find.text('오늘 4명 예약'), findsOneWidget);
+
+      expect(find.text('김민수'), findsOneWidget);
+      expect(find.text('이지수'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('박성호'), 150);
+      expect(find.text('박성호'), findsOneWidget);
     });
 
     testWidgets('tapping a client card opens the detail screen', (

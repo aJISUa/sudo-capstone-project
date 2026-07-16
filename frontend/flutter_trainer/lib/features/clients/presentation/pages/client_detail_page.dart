@@ -11,6 +11,8 @@ import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.d
 import 'package:oncare_trainer/features/clients/presentation/widgets/chat_view.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/client_avatar.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/diet_view.dart';
+import 'package:oncare_trainer/features/clients/presentation/widgets/workout_view.dart';
+import 'package:oncare_trainer/shared/widgets/brand_header.dart';
 
 /// Client detail screen — header + 채팅/식단/운동기록 sub-tabs. This issue
 /// completes the 채팅 tab; 식단 and 운동기록 ship in their own issues.
@@ -36,6 +38,7 @@ class _ClientDetailPageState extends ConsumerState<ClientDetailPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: const BrandHeader(),
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -64,7 +67,9 @@ class _ClientDetailPageState extends ConsumerState<ClientDetailPage> {
             ? const Center(child: CircularProgressIndicator())
             : DietView(client: client);
       default:
-        return const _ComingSoon(label: '운동기록');
+        return client == null
+            ? const Center(child: CircularProgressIndicator())
+            : WorkoutView(client: client);
     }
   }
 }
@@ -192,18 +197,3 @@ class _SubTabs extends StatelessWidget {
   }
 }
 
-class _ComingSoon extends StatelessWidget {
-  const _ComingSoon({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$label 화면은 곧 준비됩니다',
-        style: const TextStyle(color: AppColors.mutedForeground),
-      ),
-    );
-  }
-}

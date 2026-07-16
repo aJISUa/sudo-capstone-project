@@ -11,14 +11,19 @@ import 'package:flutter/painting.dart';
 class AppColors {
   AppColors._();
 
-  // --- Brand (trainer = orange) ---
-  /// Primary orange used for CTAs / active nav / trainer accents.
-  static const Color primary = Color(0xFFFF7A45);
+  // --- Brand (service = blue; orange demoted to identity/warning accents) ---
+  /// Primary blue used for CTAs / active nav / links — the service's
+  /// main color (matches the member app's teal-blue).
+  static const Color primary = Color(0xFF3EAFDF);
   static const Color primaryForeground = Color(0xFFFFFFFF);
 
-  /// Secondary orange (gradient second stop in the mock's stat cards).
-  static const Color secondary = Color(0xFFFF953C);
+  /// Deeper blue — gradient second stop for primary CTAs.
+  static const Color secondary = Color(0xFF2A8FBD);
   static const Color secondaryForeground = Color(0xFFFFFFFF);
+
+  /// Trainer identity orange — kept only as a small accent (the
+  /// "트레이너" brand word, MY-tab highlights), not as the main color.
+  static const Color brandOrange = Color(0xFFFF7A45);
 
   // --- Accent (client blue) ---
   /// Blue used for client avatars, info chips, and the "AI 요약" card.
@@ -31,6 +36,11 @@ class AppColors {
   /// Purple used for the 당류(sugar) metric on the diet summary
   /// (mock: App.tsx 식단 서브탭, `#9B8FD4`).
   static const Color accentPurple = Color(0xFF9B8FD4);
+
+  /// AI-summary card gradient (mock: `linear-gradient(135deg,#C8E8F6,
+  /// #A8D8F0)` on the 고객 탭 "AI 요약" card).
+  static const Color aiCardGradientStart = Color(0xFFC8E8F6);
+  static const Color aiCardGradientEnd = Color(0xFFA8D8F0);
 
   // --- Surface / text ---
   /// App canvas behind cards (mock uses `#F8FAFC`).

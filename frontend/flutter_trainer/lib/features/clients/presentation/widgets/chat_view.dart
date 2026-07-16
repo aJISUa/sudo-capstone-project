@@ -93,6 +93,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     _Bubble(message: m, avatar: widget.clientAvatar),
                     const SizedBox(height: AppSpacing.md),
                   ],
+                  _SentBanner(clientName: widget.clientName),
                 ],
               );
             },
@@ -136,6 +137,56 @@ class _SystemBanner extends StatelessWidget {
             const SizedBox(height: 2),
             const Text(
               '트레이너님께 요약 리포트가 전송됐어요',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 9.5,
+                color: AppColors.mutedForeground,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The "루틴 전송됨" system banner at the end of the seeded thread (mock:
+/// the green centered notice under the last message).
+class _SentBanner extends StatelessWidget {
+  const _SentBanner({required this.clientName});
+
+  final String clientName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.success.withValues(alpha: 0.08),
+          borderRadius: const BorderRadius.all(AppRadius.card),
+          border: Border.all(
+            color: AppColors.success.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Column(
+          children: <Widget>[
+            Text(
+              '✓ AI 분석 기반 루틴이 $clientName님에게 전송됐어요',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.success,
+              ),
+            ),
+            const SizedBox(height: 2),
+            const Text(
+              '고객 앱에 알림이 전달됐어요',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 9.5,

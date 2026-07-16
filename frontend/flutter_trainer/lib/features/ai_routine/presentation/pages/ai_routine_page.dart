@@ -504,33 +504,10 @@ class _RoutineCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: editingName
-                    ? TextField(
-                        autofocus: true,
-                        controller: TextEditingController(text: name)
-                          ..selection = TextSelection.collapsed(
-                            offset: name.length,
-                          ),
+                    ? _NameEditField(
+                        initial: name,
                         onChanged: onNameChanged,
-                        onSubmitted: (_) => onNameDone?.call(),
-                        onTapOutside: (_) => onNameDone?.call(),
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.foreground,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          filled: true,
-                          fillColor: AppColors.accentSurface,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: 6,
-                          ),
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(AppRadius.sm),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
+                        onDone: onNameDone,
                       )
                     : GestureDetector(
                         onTap: onNameTap,
@@ -604,6 +581,65 @@ class _RoutineCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Inline name editor with a properly owned controller (creating a
+/// TextEditingController inside build leaks it and resets state on
+/// rebuild — /code-review finding).
+class _NameEditField extends StatefulWidget {
+  const _NameEditField({
+    required this.initial,
+    required this.onChanged,
+    required this.onDone,
+  });
+
+  final String initial;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onDone;
+
+  @override
+  State<_NameEditField> createState() => _NameEditFieldState();
+}
+
+class _NameEditFieldState extends State<_NameEditField> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initial)
+        ..selection = TextSelection.collapsed(offset: widget.initial.length);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      autofocus: true,
+      controller: _controller,
+      onChanged: widget.onChanged,
+      onSubmitted: (_) => widget.onDone?.call(),
+      onTapOutside: (_) => widget.onDone?.call(),
+      style: const TextStyle(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.foreground,
+      ),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: true,
+        fillColor: AppColors.accentSurface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 6,
+        ),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(AppRadius.sm),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }

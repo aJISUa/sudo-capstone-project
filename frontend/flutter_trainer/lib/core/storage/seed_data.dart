@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'package:oncare_trainer/core/storage/app_database.dart';
+import 'package:oncare_trainer/core/utils/date_format.dart';
 
 /// Idempotent seeder for the trainer app's local DB. Runs at bootstrap.
 ///
@@ -22,7 +23,7 @@ import 'package:oncare_trainer/core/storage/app_database.dart';
 /// Source data mirrors the On-Care Figma trainer mock
 /// (`TRAINER_CLIENTS` / `TRAINER_SCHEDULE`).
 Future<void> seedIfEmpty(AppDatabase db) async {
-  final today = _fmtDate(DateTime.now());
+  final today = ymd(DateTime.now());
 
   if (await db.readValue('trainer_seeded_v1') == today) return;
 
@@ -162,10 +163,6 @@ Future<void> seedIfEmpty(AppDatabase db) async {
   });
 }
 
-String _fmtDate(DateTime d) =>
-    '${d.year.toString().padLeft(4, '0')}-'
-    '${d.month.toString().padLeft(2, '0')}-'
-    '${d.day.toString().padLeft(2, '0')}';
 
 // ---------------------------------------------------------------------------
 // Seed data (from On-Care_figma/src/app/App.tsx — TRAINER_CLIENTS /

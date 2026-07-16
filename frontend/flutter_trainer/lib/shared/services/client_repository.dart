@@ -4,9 +4,10 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare_trainer/core/storage/app_database.dart';
+import 'package:oncare_trainer/core/utils/date_format.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/client_diet_entry.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/routine_history_entry.dart';
-import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
+import 'package:oncare_trainer/shared/models/trainer_client.dart';
 
 /// Reads client + schedule data from the local drift DB for the
 /// 고객 관리 tab. Returns reactive streams so the UI updates if the
@@ -32,7 +33,7 @@ class ClientRepository {
   /// that isn't a gap (`공백`). Drives the "오늘 N명 예약" header badge.
   /// Uses a SQL `COUNT(*)` aggregate rather than loading every row.
   Stream<int> watchTodayReservationCount() {
-    final today = _todayString();
+    final today = ymd(DateTime.now());
     final table = _db.trainerScheduleEntries;
     final count = countAll();
     final query = _db.selectOnly(table)
@@ -88,12 +89,6 @@ class ClientRepository {
     );
   }
 
-  static String _todayString() {
-    final now = DateTime.now();
-    return '${now.year.toString().padLeft(4, '0')}-'
-        '${now.month.toString().padLeft(2, '0')}-'
-        '${now.day.toString().padLeft(2, '0')}';
-  }
 
   TrainerClient _toEntity(TrainerClientRow row) {
     final week = (jsonDecode(row.weekCompletionJson) as List<Object?>)

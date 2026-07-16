@@ -1,11 +1,11 @@
 {
   "@@locale": "ko",
-  "appTitle": "Oncare",
+  "appTitle": "On-Care",
 
   "navDashboard": "홈",
   "navDiet": "식단",
   "navExercise": "운동",
-  "navMyHealth": "My",
+  "navMyHealth": "MY",
 
   "pageDashboardTitle": "홈",
   "pageDietTitle": "식단",

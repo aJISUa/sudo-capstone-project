@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "Oncare",
+  "appTitle": "On-Care",
   "@appTitle": {
     "description": "Application name shown in window/AppBar titles."
   },
@@ -8,7 +8,7 @@
   "navDashboard": "Home",
   "navDiet": "Diet",
   "navExercise": "Exercise",
-  "navMyHealth": "My",
+  "navMyHealth": "MY",
 
   "pageDashboardTitle": "Home",
   "pageDietTitle": "Diet",

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:oncare_trainer/core/storage/app_database.dart';
 import 'package:oncare_trainer/core/storage/seed_data.dart';
-import 'package:oncare_trainer/features/clients/data/repositories/client_repository.dart';
+import 'package:oncare_trainer/shared/services/client_repository.dart';
 
 import '../../helpers/pump_app.dart';
 

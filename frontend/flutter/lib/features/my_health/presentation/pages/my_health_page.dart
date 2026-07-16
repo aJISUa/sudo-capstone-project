@@ -1,560 +1,417 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import 'package:oncare/core/errors/app_error.dart';
-import 'package:oncare/design_system/atoms/app_avatar.dart';
-import 'package:oncare/design_system/atoms/app_card.dart';
-import 'package:oncare/design_system/tokens/colors.dart';
-import 'package:oncare/design_system/tokens/radius.dart';
-import 'package:oncare/design_system/tokens/spacing.dart';
-import 'package:oncare/features/account/presentation/controllers/account_controller.dart';
+import 'package:oncare/app/router/routes.dart';
+import 'package:oncare/design_system/figma/figma_kit.dart';
 import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
 import 'package:oncare/features/my_health/domain/entities/health_history.dart';
 import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
-import 'package:oncare/features/my_health/presentation/widgets/indicator_trend_modal.dart';
-import 'package:oncare/features/my_health/presentation/widgets/settings_modals.dart';
+import 'package:oncare/features/my_health/presentation/widgets/my_flows.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
-import 'package:oncare/gen/l10n/app_localizations.dart';
-import 'package:oncare/shared/widgets/error_view.dart';
 import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
 import 'package:oncare/shared/widgets/modals/schedule_calendar_sheet.dart';
-import 'package:oncare/shared/widgets/oncare_header.dart';
 
+/// MY tab, rebuilt to the On-Care Figma redesign: profile, role toggle
+/// (the trainer app is intentionally not built), an activity-points banner,
+/// the settings list, and logout.
 class MyHealthPage extends ConsumerWidget {
   const MyHealthPage({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    final async = ref.watch(myHealthStateProvider);
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: <Widget>[
-          OncareHeader(
-            title: l.pageMyHealthTitle,
-            onNotificationTap: () => showRightSlidePanel<void>(
-              context,
-              content: const NotificationPanelBody(),
-            ),
-            onCalendarTap: () => showScheduleCalendarSheet(context),
-          ),
-          Expanded(
-            child: async.when(
-              data: (s) => _Body(state: s),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (Object e, _) => ErrorView(
-                error: e is AppError ? e : UnknownError(message: e.toString()),
-                onRetry: () => ref.invalidate(myHealthStateProvider),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Body extends StatelessWidget {
-  const _Body({required this.state});
-  final MyHealthState state;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 672),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            AppSpacing.xl,
-            AppSpacing.lg,
-            AppSpacing.xxxl,
-          ),
-          children: <Widget>[
-            _ProfileCard(profile: state.profile),
-            const SizedBox(height: AppSpacing.lg),
-            _RiskCard(risk: state.risk),
-            const SizedBox(height: AppSpacing.lg),
-            const _SectionTitle('건강 지표 추이'),
-            const SizedBox(height: AppSpacing.sm),
-            for (final IndicatorTrend t in state.indicators) ...<Widget>[
-              _IndicatorTile(trend: t),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-            const SizedBox(height: AppSpacing.md),
-            _PointsCard(points: state.activityPoints, rank: state.activityRank),
-            const SizedBox(height: AppSpacing.lg),
-            const _SectionTitle('설정'),
-            const SizedBox(height: AppSpacing.sm),
-            AppCard(
-              outlined: true,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              child: Column(
-                children: <Widget>[
-                  for (int i = 0; i < state.settings.length; i++) ...<Widget>[
-                    _SettingsRow(item: state.settings[i]),
-                    if (i < state.settings.length - 1)
-                      const Divider(
-                        height: 1,
-                        color: AppColors.border,
-                        indent: AppSpacing.lg,
-                        endIndent: AppSpacing.lg,
-                      ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const _SignOutButton(),
-            const SizedBox(height: AppSpacing.sm),
-            const _WithdrawButton(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SignOutButton extends ConsumerWidget {
-  const _SignOutButton();
-
-  Future<void> _confirmAndSignOut(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('로그아웃 하시겠어요?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-            child: const Text('로그아웃'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    // Flipping the session to signed-out lets the router's redirect guard
-    // bounce us back to the sign-in screen automatically.
-    await ref.read(sessionControllerProvider.notifier).signOut();
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return AppCard(
-      outlined: true,
-      onTap: () => _confirmAndSignOut(context, ref),
-      child: const Row(
-        children: <Widget>[
-          Icon(Icons.logout, size: 20, color: AppColors.destructive),
-          SizedBox(width: AppSpacing.md),
-          Text(
-            '로그아웃',
-            style: TextStyle(
-              color: AppColors.destructive,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WithdrawButton extends ConsumerWidget {
-  const _WithdrawButton();
-
-  Future<void> _confirmAndWithdraw(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('회원 탈퇴'),
-        content: const Text(
-          '정말 탈퇴하시겠어요?\n'
-          '프로필·식단·운동·건강 기록이 모두 삭제되며 되돌릴 수 없어요.',
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-            child: const Text('탈퇴하기'),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      await ref.read(accountRepositoryProvider).deleteAccount();
-      // 세션을 로그아웃 상태로 전환 → 가드가 로그인 화면으로 되돌린다.
-      await ref.read(sessionControllerProvider.notifier).signOut();
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('탈퇴에 실패했어요. 잠시 후 다시 시도해 주세요')),
-      );
+  void _openSetting(BuildContext context, String label) {
+    switch (label) {
+      case '내 프로필':
+        showProfileSheet(context);
+      case '건강 목표':
+        showGoalsSheet(context);
+      case '알림 설정':
+        showNotifSheet(context);
+      case '고객 지원':
+        showSupportSheet(context);
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: TextButton(
-        onPressed: () => _confirmAndWithdraw(context, ref),
-        style: TextButton.styleFrom(foregroundColor: AppColors.mutedForeground),
-        child: const Text(
-          '회원 탈퇴',
-          style: TextStyle(decoration: TextDecoration.underline),
+    final AsyncValue<MyHealthState> health = ref.watch(myHealthStateProvider);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 108),
+              children: <Widget>[
+                FigmaTabHeader(
+                  title: 'MY',
+                  onBell: () => showRightSlidePanel<void>(
+                    context,
+                    content: const NotificationPanelBody(),
+                  ),
+                  onCalendar: () => showScheduleCalendarSheet(context),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _ProfileCard(
+                    profile: health.valueOrNull?.profile,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _PointsBanner(
+                    points: health.valueOrNull?.activityPoints,
+                    rank: health.valueOrNull?.activityRank,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _Settings(
+                    onTap: (String s) => _openSetting(context, s),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _LogoutButton(
+                    onTap: () async {
+                      final bool ok =
+                          await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext ctx) => AlertDialog(
+                              title: const Text('로그아웃'),
+                              content: const Text('로그아웃 하시겠어요?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(false),
+                                  child: const Text('취소'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(true),
+                                  child: const Text('로그아웃'),
+                                ),
+                              ],
+                            ),
+                          ) ??
+                          false;
+                      if (!ok) return;
+                      await ref
+                          .read(sessionControllerProvider.notifier)
+                          .signOut();
+                      if (context.mounted) context.go(AppRoutes.signIn);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.title);
-  final String title;
-  @override
-  Widget build(BuildContext context) => Text(
-    title,
-    style: Theme.of(
-      context,
-    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-  );
 }
 
 class _ProfileCard extends StatelessWidget {
   const _ProfileCard({required this.profile});
-  final UserProfile profile;
+
+  final UserProfile? profile;
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      outlined: true,
+    final String name = profile?.name ?? '';
+    final String email = profile?.email ?? '';
+    final String initial = name.isNotEmpty ? name.substring(0, 1) : '·';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: FigmaColors.hairline),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: <Widget>[
           Container(
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: <Color>[AppColors.primary, AppColors.secondary],
+                colors: <Color>[FigmaColors.primary, FigmaColors.primaryDeep],
+              ),
+              border: Border.all(color: FigmaColors.primary, width: 2.5),
+            ),
+            child: Text(
+              initial,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
             ),
-            child: CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.background,
-              child: AppAvatar(label: profile.name, size: 52),
-            ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  profile.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  name.isEmpty ? '사용자' : name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: FigmaColors.ink,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  profile.email,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.mutedForeground,
+                  email,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: FigmaColors.textMuted,
                   ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.mutedForeground),
         ],
       ),
     );
   }
 }
 
-class _RiskCard extends StatelessWidget {
-  const _RiskCard({required this.risk});
-  final RiskAlert risk;
+class _PointsBanner extends StatelessWidget {
+  const _PointsBanner({required this.points, required this.rank});
+
+  final int? points;
+  final int? rank;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFFFB923C), Color(0xFFEF4444)],
-        ),
-        borderRadius: BorderRadius.all(AppRadius.card),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          const Icon(Icons.warning_amber_rounded, color: Colors.white),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  risk.title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  risk.body,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: FigmaColors.primary,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: FigmaColors.primaryA(0.38),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _IndicatorTile extends StatelessWidget {
-  const _IndicatorTile({required this.trend});
-  final IndicatorTrend trend;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = trend.improving ? AppColors.success : AppColors.warning;
-    return AppCard(
-      outlined: true,
-      onTap: () => showIndicatorTrendModal(context, trend),
       child: Row(
         children: <Widget>[
-          SizedBox(
-            width: 80,
-            height: 40,
-            child: CustomPaint(
-              painter: _SparklinePainter(values: trend.last7Days, color: color),
+          const Icon(Icons.star_border_rounded, color: Colors.white, size: 24),
+          const SizedBox(width: 12),
+          Text(
+            points != null ? '${points}P' : '—P',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  trend.label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.mutedForeground,
-                  ),
+          const Spacer(),
+          if (rank != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$rank위 랭킹',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
-                Text.rich(
-                  TextSpan(
-                    children: <InlineSpan>[
-                      TextSpan(
-                        text: trend.latestValue,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' ${trend.unit}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: <Widget>[
-                    Icon(
-                      trend.improving ? Icons.trending_down : Icons.trending_up,
-                      size: 14,
-                      color: color,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      trend.deltaText,
-                      style: theme.textTheme.bodySmall?.copyWith(color: color),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: AppColors.mutedForeground,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SparklinePainter extends CustomPainter {
-  _SparklinePainter({required this.values, required this.color});
-  final List<double> values;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.length < 2) return;
-    final fill = Paint()
-      ..color = color.withValues(alpha: 0.18)
-      ..style = PaintingStyle.fill;
-    final stroke = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    final stepX = size.width / (values.length - 1);
-    Offset point(int i) {
-      final v = values[i].clamp(0, 1).toDouble();
-      return Offset(stepX * i, size.height - v * size.height);
-    }
-
-    final path = Path()..moveTo(0, size.height);
-    for (var i = 0; i < values.length; i++) {
-      path.lineTo(point(i).dx, point(i).dy);
-    }
-    path.lineTo(size.width, size.height);
-    path.close();
-    canvas.drawPath(path, fill);
-
-    final line = Path()..moveTo(point(0).dx, point(0).dy);
-    for (var i = 1; i < values.length; i++) {
-      line.lineTo(point(i).dx, point(i).dy);
-    }
-    canvas.drawPath(line, stroke);
-  }
-
-  @override
-  bool shouldRepaint(covariant _SparklinePainter old) =>
-      old.values != values || old.color != color;
-}
-
-class _PointsCard extends StatelessWidget {
-  const _PointsCard({required this.points, required this.rank});
-  final int points;
-  final int rank;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[AppColors.primary, AppColors.secondary],
-        ),
-        borderRadius: BorderRadius.all(AppRadius.card),
-      ),
-      child: Row(
-        children: <Widget>[
-          const Icon(Icons.workspace_premium, color: Colors.white, size: 28),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  '활동 포인트',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                ),
-                Text(
-                  '${points}P',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.20),
-              foregroundColor: Colors.white,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(AppRadius.lg),
               ),
             ),
-            child: Text('$rank위 랭킹'),
-          ),
         ],
       ),
     );
   }
 }
 
-class _SettingsRow extends StatelessWidget {
-  const _SettingsRow({required this.item});
-  final SettingsItem item;
+class _SettingItem {
+  const _SettingItem(this.icon, this.label);
+  final IconData icon;
+  final String label;
+}
 
-  void _open(BuildContext context) {
-    switch (item.kind) {
-      case SettingsKind.myProfile:
-        showMyProfileModal(context);
-      case SettingsKind.healthGoal:
-        showHealthGoalModal(context);
-      case SettingsKind.notification:
-        showNotificationSettingsModal(context);
-      case SettingsKind.support:
-        showCustomerSupportModal(context);
-    }
+class _Settings extends StatelessWidget {
+  const _Settings({required this.onTap});
+  final ValueChanged<String> onTap;
+
+  static const List<_SettingItem> _items = <_SettingItem>[
+    _SettingItem(Icons.person_outline, '내 프로필'),
+    _SettingItem(Icons.bar_chart_rounded, '건강 목표'),
+    _SettingItem(Icons.notifications_none_rounded, '알림 설정'),
+    _SettingItem(Icons.chat_bubble_outline_rounded, '고객 지원'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const Text(
+          '설정',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: FigmaColors.ink,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: FigmaColors.hairline),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: <Widget>[
+              for (int i = 0; i < _items.length; i++) ...<Widget>[
+                _SettingRow(
+                  item: _items[i],
+                  onTap: () => onTap(_items[i].label),
+                ),
+                if (i < _items.length - 1)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 56),
+                    child: Divider(height: 1, color: FigmaColors.hairline),
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
   }
+}
+
+class _SettingRow extends StatelessWidget {
+  const _SettingRow({required this.item, required this.onTap});
+  final _SettingItem item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => _open(context),
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: <Widget>[
-            Text(item.icon, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: AppSpacing.md),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: FigmaColors.softBlue,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(item.icon, size: 16, color: FigmaColors.primary),
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 item.label,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: FigmaColors.ink,
+                ),
               ),
             ),
             const Icon(
               Icons.chevron_right,
               size: 18,
-              color: AppColors.mutedForeground,
+              color: FigmaColors.textFaint,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: FigmaColors.hairline),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0x14FF3B30),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.logout,
+                  size: 16,
+                  color: Color(0xFFFF3B30),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                '로그아웃',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFFF3B30),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

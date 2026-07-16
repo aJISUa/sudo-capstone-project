@@ -9,7 +9,7 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => 'Oncare';
+  String get appTitle => 'On-Care';
 
   @override
   String get navDashboard => '홈';
@@ -21,7 +21,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get navExercise => '운동';
 
   @override
-  String get navMyHealth => 'My';
+  String get navMyHealth => 'MY';
 
   @override
   String get pageDashboardTitle => '홈';

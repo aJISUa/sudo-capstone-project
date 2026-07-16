@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// Application name shown in window/AppBar titles.
   ///
   /// In en, this message translates to:
-  /// **'Oncare'**
+  /// **'On-Care'**
   String get appTitle;
 
   /// No description provided for @navDashboard.
@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @navMyHealth.
   ///
   /// In en, this message translates to:
-  /// **'My'**
+  /// **'MY'**
   String get navMyHealth;
 
   /// No description provided for @pageDashboardTitle.

@@ -10,6 +10,7 @@ import 'package:oncare_trainer/app/router/routes.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/chat_view.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:oncare_trainer/features/clients/presentation/widgets/diet_view.dart';
 
 /// Client detail screen — header + 채팅/식단/운동기록 sub-tabs. This issue
 /// completes the 채팅 tab; 식단 and 운동기록 ship in their own issues.
@@ -59,7 +60,9 @@ class _ClientDetailPageState extends ConsumerState<ClientDetailPage> {
           clientName: client?.name ?? '고객',
         );
       case 1:
-        return const _ComingSoon(label: '식단');
+        return client == null
+            ? const Center(child: CircularProgressIndicator())
+            : DietView(client: client);
       default:
         return const _ComingSoon(label: '운동기록');
     }

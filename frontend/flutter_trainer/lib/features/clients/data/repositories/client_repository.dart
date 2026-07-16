@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare_trainer/core/storage/app_database.dart';
+import 'package:oncare_trainer/features/clients/domain/entities/client_diet_entry.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
 
 /// Reads client + schedule data from the local drift DB for the
@@ -37,6 +38,27 @@ class ClientRepository {
       ..addColumns(<Expression<Object>>[count])
       ..where(table.date.equals(today) & table.status.equals('공백').not());
     return query.map((row) => row.read(count) ?? 0).watchSingle();
+  }
+
+  /// A client's meals for the 식단 sub-tab, in seeded order (아침 → 저녁).
+  Stream<List<ClientDietEntry>> watchDiet(String clientId) {
+    final query = _db.select(_db.clientDietEntries)
+      ..where((t) => t.clientId.equals(clientId))
+      ..orderBy(<OrderingTerm Function($ClientDietEntriesTable)>[
+        (t) => OrderingTerm(expression: t.sortOrder),
+      ]);
+    return query.watch().map(
+      (rows) => rows
+          .map(
+            (row) => ClientDietEntry(
+              meal: row.meal,
+              items: row.items,
+              calories: row.calories,
+              sodiumMg: row.sodiumMg,
+            ),
+          )
+          .toList(),
+    );
   }
 
   static String _todayString() {
@@ -81,3 +103,9 @@ final clientsProvider = StreamProvider<List<TrainerClient>>((ref) {
 final todayReservationCountProvider = StreamProvider<int>((ref) {
   return ref.watch(clientRepositoryProvider).watchTodayReservationCount();
 });
+
+/// Streams a client's meals for the 식단 sub-tab.
+final clientDietProvider =
+    StreamProvider.family<List<ClientDietEntry>, String>((ref, clientId) {
+      return ref.watch(clientRepositoryProvider).watchDiet(clientId);
+    });

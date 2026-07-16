@@ -88,14 +88,14 @@ void main() {
       expect(find.text('다음 세션 때 봐요!'), findsOneWidget);
     });
 
-    testWidgets('switching sub-tabs shows the 식단/운동기록 placeholders', (
+    testWidgets('switching sub-tabs shows 식단 view and 운동기록 placeholder', (
       tester,
     ) async {
       await openDetail(tester);
 
       await tester.tap(find.text('식단'));
       await settle(tester);
-      expect(find.text('식단 화면은 곧 준비됩니다'), findsOneWidget);
+      expect(find.text('오늘 영양 요약'), findsOneWidget);
 
       await tester.tap(find.text('운동기록'));
       await settle(tester);

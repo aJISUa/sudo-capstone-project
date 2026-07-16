@@ -28,6 +28,10 @@ class AppColors {
   /// Deeper blue — second stop of the client-avatar gradient.
   static const Color accentDark = Color(0xFF2A8FBD);
 
+  /// Purple used for the 당류(sugar) metric on the diet summary
+  /// (mock: App.tsx 식단 서브탭, `#9B8FD4`).
+  static const Color accentPurple = Color(0xFF9B8FD4);
+
   // --- Surface / text ---
   /// App canvas behind cards (mock uses `#F8FAFC`).
   static const Color background = Color(0xFFF8FAFC);

@@ -1,3 +1,10 @@
+/// Daily sodium target (mg). Over this, the list card metric, the diet
+/// summary tile, and the AI comment all flip to the warning case.
+const int sodiumTargetMg = 2000;
+
+/// Daily sugar target (g). Over this, the diet summary 당류 tile warns.
+const int sugarTargetG = 50;
+
 /// A trainer's client, as shown on the 고객 관리 list and detail screens.
 /// Decoded from the drift `TrainerClients` row (the `weekCompletionJson`
 /// column becomes a `List<int>` here).
@@ -54,7 +61,7 @@ class TrainerClient {
   /// This week's daily completion rates (7 entries, 월→일).
   final List<int> weekCompletion;
 
-  /// Sodium exceeds the 2000 mg daily target — surfaced as a warning on
-  /// the list card and counted by the AI summary.
-  bool get sodiumOverBudget => sodiumMg > 2000;
+  /// Sodium exceeds the [sodiumTargetMg] daily target — surfaced as a
+  /// warning on the list card and counted by the AI summary.
+  bool get sodiumOverBudget => sodiumMg > sodiumTargetMg;
 }

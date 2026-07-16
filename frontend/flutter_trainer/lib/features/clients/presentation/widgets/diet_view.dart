@@ -87,7 +87,9 @@ class _NutritionSummary extends StatelessWidget {
                 label: '나트륨',
                 value: client.sodiumMg,
                 unit: 'mg',
-                color: AppColors.warning,
+                // Neutral base like the other tiles — orange comes only
+                // from `warn` when the target is exceeded.
+                color: AppColors.accentDark,
                 warn: client.sodiumMg > sodiumTargetMg,
               ),
               const SizedBox(width: AppSpacing.sm),

@@ -4,6 +4,7 @@ import 'package:oncare_trainer/design_system/tokens/colors.dart';
 import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
+import 'package:oncare_trainer/features/clients/presentation/widgets/client_avatar.dart';
 
 /// A client row on the 고객 관리 list: avatar + active dot, name, goal,
 /// last message, and a quick-metric footer (칼로리 / 나트륨 / 마지막 루틴).
@@ -35,7 +36,11 @@ class ClientCard extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
-                  _Avatar(label: client.avatar, active: client.active),
+                  ClientAvatar(
+                    label: client.avatar,
+                    showStatus: true,
+                    active: client.active,
+                  ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
@@ -110,60 +115,6 @@ class ClientCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.label, required this.active});
-
-  final String label;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 44,
-      height: 44,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: <Widget>[
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: <Color>[AppColors.accent, AppColors.accentDark],
-              ),
-            ),
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.accentForeground,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: active ? AppColors.success : AppColors.disabledForeground,
-                border: Border.all(color: AppColors.card, width: 2),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

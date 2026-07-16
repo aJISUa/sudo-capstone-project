@@ -84,7 +84,9 @@ void main() {
       await tester.tap(find.text('김민수'));
       await settle(tester);
 
-      expect(find.text('김민수님 상세(채팅·식단·운동기록) 화면은 곧 준비됩니다'), findsOneWidget);
+      // Detail screen opened — its 채팅/식단/운동기록 sub-tabs are unique to it.
+      expect(find.text('채팅'), findsOneWidget);
+      expect(find.text('운동기록'), findsOneWidget);
     });
   });
 }

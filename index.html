@@ -4,1077 +4,663 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>On-Care | HealthMate AI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <title>On-Care · HealthMate AI — 2030 고혈압·당뇨 위험군을 위한 트레이너 연계 식단·운동 코칭 플랫폼</title>
+  <meta name="description"
+    content="On-Care는 헬스 트레이너와 회원 사이의 식단·운동 관리 소통을 자동화하는 트레이너 연계 코칭 플랫폼입니다. 회원이 사진 한 장·간단한 입력만 하면 앱이 식단·운동을 회원별·날짜별로 정리해 트레이너에게 전달하고, 트레이너는 정리된 리포트 위에서 코칭합니다. 2030 고혈압·당뇨 위험군 대상." />
+  <meta property="og:title" content="On-Care · HealthMate AI" />
+  <meta property="og:description" content="흩어진 트레이너–회원 대화를 데이터 기반 코칭으로 — 트레이너 연계 식단·운동 코칭 플랫폼" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/png" href="docs/assets/oncare-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+    rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #277DA1;
-      --primary-light: #3EAFDF;
-      --primary-pale: #e4f4fb;
-      --primary-mid: #c0e5f5;
-      --accent: #f4a946;
-      --accent-pale: #fff4e0;
-      --blue: #185fa5;
-      --blue-pale: #e6f1fb;
-      --purple: #534ab7;
-      --purple-pale: #eeedfe;
-      --dark: #0d2233;
-      --text: #1e3040;
-      --muted: #5a7285;
-      --bg: #f2f8fc;
-      --white: #ffffff;
-      --radius: 14px;
-      --radius-sm: 8px;
+      --brand: #1580bd;
+      --brand-2: #3eafdf;
+      --brand-3: #0c5f97;
+      --brand-soft: #e8f5fc;
+      --brand-tint: #f1f9fe;
+      --ink: #0b1f30;
+      --ink-soft: #12314a;
+      --text: #1c3346;
+      --muted: #5f778a;
+      --faint: #8395a4;
+      --line: #e3ecf3;
+      --line-soft: #eef4f8;
+      --bg: #f5f9fc;
+      --card: #ffffff;
+      --amber: #e79433;
+      --amber-soft: #fdf1e0;
+      --violet: #635cd0;
+      --violet-soft: #ecebfa;
+      --green: #12a150;
+      --green-soft: #e5f6ed;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow: 0 1px 2px rgba(11,31,48,.04), 0 10px 30px rgba(11,31,48,.06);
+      --shadow-lg: 0 24px 60px rgba(11,31,48,.14);
+      --maxw: 1140px;
+      --font: 'Plus Jakarta Sans', 'Noto Sans KR', system-ui, -apple-system, sans-serif;
     }
 
     html { scroll-behavior: smooth; }
-
     body {
-      font-family: 'Noto Sans KR', sans-serif;
+      font-family: var(--font);
       background: var(--bg);
       color: var(--text);
       line-height: 1.7;
-    }
-
-    /* ── HEADER ── */
-    header {
-      background: var(--dark);
-      color: var(--white);
-      padding: 72px 24px 64px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    header::before {
-      content: '';
-      position: absolute; top: -80px; left: -80px;
-      width: 340px; height: 340px;
-      background: radial-gradient(circle, rgba(62,175,223,0.22) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    header::after {
-      content: '';
-      position: absolute; bottom: -60px; right: -40px;
-      width: 260px; height: 260px;
-      background: radial-gradient(circle, rgba(244,169,70,0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .header-badge {
-      display: inline-block;
-      background: rgba(62,175,223,0.25);
-      border: 1px solid rgba(62,175,223,0.5);
-      color: #a8dff0;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 4px 14px;
-      border-radius: 999px;
-      margin-bottom: 20px;
-    }
-
-    header h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      line-height: 1.2;
-      margin-bottom: 10px;
-    }
-
-    header .brand {
-      font-size: 1.1rem;
-      color: var(--accent);
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    header .subtitle {
-      font-size: 0.95rem;
-      color: rgba(255,255,255,0.6);
-      max-width: 600px;
-      margin: 0 auto 28px;
-    }
-
-    .header-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 4px;
-    }
-
-    .header-chip {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.18);
-      color: rgba(255,255,255,0.75);
-      font-size: 0.75rem;
-      padding: 4px 12px;
-      border-radius: 999px;
-    }
-
-    /* ── MAIN ── */
-    main {
-      max-width: 940px;
-      margin: 0 auto;
-      padding: 52px 24px 88px;
-    }
-
-    section { margin-bottom: 60px; }
-
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 22px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* ── INFO TABLE ── */
-    .info-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--white);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: 0 2px 16px rgba(13,34,51,0.07);
-    }
-
-    .info-table tr { border-bottom: 1px solid #d8ecf5; }
-    .info-table tr:last-child { border-bottom: none; }
-
-    .info-table th {
-      width: 28%;
-      background: var(--primary-pale);
-      color: var(--primary);
-      font-weight: 700;
-      font-size: 0.87rem;
-      padding: 14px 18px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    .info-table td {
-      padding: 14px 18px;
-      font-size: 0.9rem;
-      color: var(--text);
-      vertical-align: top;
-    }
-
-    /* ── CARD GRID ── */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-    }
-
-    .card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 22px 20px;
-      box-shadow: 0 2px 12px rgba(13,34,51,0.06);
-      border-left: 4px solid var(--primary-light);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 24px rgba(13,34,51,0.11);
-    }
-
-    .card.accent-card { border-left-color: var(--accent); }
-    .card.blue-card   { border-left-color: var(--blue); }
-    .card.purple-card { border-left-color: var(--purple); }
-
-    .card h3 {
-      font-size: 0.94rem;
-      font-weight: 700;
-      color: var(--dark);
-      margin-bottom: 8px;
-    }
-
-    .card p {
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    .card .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 2px 9px;
-      border-radius: 999px;
-      margin-bottom: 9px;
-    }
-
-    .tag-green  { background: var(--primary-pale);  color: var(--primary); }
-    .tag-accent { background: var(--accent-pale);   color: #b87a00; }
-    .tag-blue   { background: var(--blue-pale);     color: var(--blue); }
-    .tag-purple { background: var(--purple-pale);   color: var(--purple); }
-
-    /* ── PIPELINE ── */
-    .pipeline {
-      background: var(--dark);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      color: rgba(255,255,255,0.85);
-      font-size: 0.85rem;
-      overflow-x: auto;
-    }
-
-    .pipeline-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--primary-light);
-      margin-bottom: 16px;
-    }
-
-    .pipeline-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .step {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
-
-    .step-connector {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
-    .step-num {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #fff;
-      font-size: 0.75rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .step-line {
-      width: 2px;
-      flex: 1;
-      min-height: 20px;
-      background: rgba(62,175,223,0.35);
-      margin: 4px 0;
-    }
-
-    .step-body {
-      padding-bottom: 20px;
-      flex: 1;
-    }
-
-    .step-body strong {
-      display: block;
-      color: #fff;
-      font-size: 0.88rem;
-      margin-bottom: 3px;
-    }
-
-    .step-body span {
-      color: rgba(255,255,255,0.55);
-      font-size: 0.8rem;
-      line-height: 1.5;
-    }
-
-    .step-result {
-      margin-top: 16px;
-      background: rgba(62,175,223,0.12);
-      border: 1px solid rgba(62,175,223,0.3);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 0.82rem;
-      color: #a8dff0;
-      font-weight: 500;
-    }
-
-    /* ── ARCH BOXES ── */
-    .arch-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-    }
-
-    .arch-layer {
-      background: var(--white);
-      border-radius: var(--radius-sm);
-      border: 1px solid #cde2ef;
-      padding: 14px 18px;
-    }
-
-    .arch-layer-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .arch-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
-
-    .arch-item {
-      background: var(--primary-pale);
-      color: var(--primary);
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: var(--radius-sm);
-    }
-
-    .arch-item.ext {
-      background: var(--accent-pale);
-      color: #b87a00;
-    }
-
-    .arch-item.ai {
-      background: var(--blue-pale);
-      color: var(--blue);
-    }
-
-    .arch-arrow {
-      text-align: center;
-      color: var(--muted);
-      font-size: 1.1rem;
-      line-height: 1;
-      padding: 2px 0;
-    }
-
-    /* ── COMPARE TABLE ── */
-    .compare-wrap { overflow-x: auto; }
-
-    .compare-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--white);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: 0 2px 16px rgba(13,34,51,0.07);
-      min-width: 720px;
-    }
-
-    .compare-table th {
-      background: var(--dark);
-      color: rgba(255,255,255,0.85);
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 13px 16px;
-      text-align: left;
-    }
-
-    .compare-table th.ours {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .compare-table td {
-      padding: 14px 16px;
-      font-size: 0.84rem;
-      color: var(--text);
-      border-bottom: 1px solid #d8ecf5;
-      vertical-align: top;
-      line-height: 1.6;
-    }
-
-    .compare-table tr:last-child td { border-bottom: none; }
-
-    .compare-table td.ours {
-      background: var(--primary-pale);
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    .compare-table td.center { text-align: center; color: var(--muted); }
-
-    /* ── TECH CHIPS ── */
-    .tech-section { display: flex; flex-direction: column; gap: 14px; }
-
-    .tech-group {
-      background: var(--white);
-      border-radius: var(--radius-sm);
-      border: 1px solid #cde2ef;
-      padding: 14px 18px;
-    }
-
-    .tech-group-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
-
-    .chip {
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 999px;
-    }
-
-    .chip-green  { background: var(--primary-pale);  color: var(--primary); }
-    .chip-accent { background: var(--accent-pale);   color: #b87a00; }
-    .chip-blue   { background: var(--blue-pale);     color: var(--blue); }
-    .chip-purple { background: var(--purple-pale);   color: var(--purple); }
-    .chip-dark   { background: #e8eae9;              color: #3a4a40; }
-
-    .tech-note {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 8px;
-      line-height: 1.55;
-    }
-
-    /* ── TEAM ── */
-    .team-grid {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .member {
-      text-align: center;
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 28px 24px 20px;
-      box-shadow: 0 2px 12px rgba(13,34,51,0.07);
-      min-width: 150px;
-      flex: 1;
-      max-width: 190px;
-      transition: transform 0.2s;
-    }
-
-    .member:hover { transform: translateY(-4px); }
-
-    .member img {
-      width: 76px; height: 76px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--primary-pale);
-      margin-bottom: 12px;
-    }
-
-    .member .name {
-      font-weight: 700;
-      font-size: 0.97rem;
-      color: var(--dark);
-      margin-bottom: 4px;
-    }
-
-    .member a {
-      font-size: 0.78rem;
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .member a:hover { text-decoration: underline; }
-
-    /* ── FOOTER ── */
-    footer {
-      background: var(--dark);
-      color: rgba(255,255,255,0.45);
-      text-align: center;
-      padding: 28px 24px;
-      font-size: 0.8rem;
-    }
-
-    /* ── DIVIDER ── */
-    .divider {
-      height: 1px;
-      background: var(--primary-mid);
-      margin: 8px 0 22px;
-    }
-
-    /* ── VIDEO / INTERACTIVE DROP DOWN ── */
-    .video-box {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: 0 2px 12px rgba(13,34,51,0.06);
-      margin-bottom: 22px;
-      border: 1px solid #cde2ef;
-    }
-
-    .video-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: #cd201f;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 700;
-      padding: 10px 20px;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      transition: background 0.2s;
-    }
-
-    .video-btn:hover { background: #b01b1a; }
-
-    .timeline-list {
-      margin-top: 18px;
-      list-style: none;
-    }
-
-    .timeline-item {
-      display: flex;
-      gap: 12px;
-      font-size: 0.88rem;
-      padding: 6px 0;
-      border-bottom: 1px dashed #d8ecf5;
-    }
-
-    .timeline-item:last-child { border-bottom: none; }
-
-    .timeline-time {
-      color: var(--blue);
-      font-weight: 700;
-      flex-shrink: 0;
-      min-width: 50px;
-    }
-
-    details {
-      background: var(--bg);
-      border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      margin-top: 14px;
-      border: 1px solid #d5e8f3;
-    }
-
-    details summary {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--primary);
-      cursor: pointer;
-      outline: none;
-    }
-
-    details p {
-      font-size: 0.83rem;
-      color: var(--text);
-      margin-top: 10px;
-      line-height: 1.6;
-    }
-
-    @media (max-width: 600px) {
-      .info-table th, .info-table td { padding: 10px 12px; font-size: 0.82rem; }
-      .info-table th { width: 35%; }
-      .pipeline { padding: 20px 16px; }
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    section { position: relative; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+    /* ── shared ── */
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: .74rem; font-weight: 800; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--brand);
+    }
+    .eyebrow::before { content: ''; width: 18px; height: 2px; border-radius: 2px; background: var(--brand-2); }
+    .section-head { max-width: 720px; margin-bottom: 44px; }
+    .section-head h2 {
+      font-size: clamp(1.7rem, 3.4vw, 2.4rem); font-weight: 800; letter-spacing: -.02em;
+      color: var(--ink); line-height: 1.22; margin: 16px 0 12px;
+    }
+    .section-head p { color: var(--muted); font-size: 1.02rem; }
+    .pad { padding: 92px 0; }
+    .pad-sm { padding: 72px 0; }
+    .center { text-align: center; margin-left: auto; margin-right: auto; }
+    .lead { max-width: 800px; margin: 0 auto; text-align: center; color: var(--muted); font-size: 1.05rem; }
+    .lead p + p { margin-top: 18px; }
+    .lead b { color: var(--ink-soft); font-weight: 700; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font); font-weight: 700; font-size: .95rem;
+      padding: 13px 22px; border-radius: 999px; border: 1px solid transparent;
+      cursor: pointer; transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+      white-space: nowrap;
+    }
+    .btn svg { width: 17px; height: 17px; }
+    .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 8px 20px rgba(21,128,189,.28); }
+    .btn-primary:hover { background: var(--brand-3); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(21,128,189,.34); }
+    .btn-ghost { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.25); }
+    .btn-ghost:hover { background: rgba(255,255,255,.16); transform: translateY(-2px); }
+
+    .pill { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 800; padding: 4px 11px; border-radius: 999px; white-space: nowrap; }
+    .pill-green { background: var(--green-soft); color: var(--green); }
+    .pill-amber { background: var(--amber-soft); color: var(--amber); }
+
+    /* ── NAV ── */
+    nav { position: sticky; top: 0; z-index: 50; background: rgba(245,249,252,.82); backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--line-soft); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .nav-logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 1.12rem; color: var(--ink); letter-spacing: -.01em; }
+    .nav-logo img { width: 30px; height: 30px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: .92rem; font-weight: 600; color: var(--muted); transition: color .15s; }
+    .nav-links a:hover { color: var(--brand-3); }
+    .nav-cta { display: flex; align-items: center; gap: 10px; }
+    .nav-cta .btn { padding: 9px 16px; font-size: .86rem; }
+    .icon-link { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 10px; color: var(--ink); border: 1px solid var(--line); background: #fff; transition: .15s; }
+    .icon-link:hover { border-color: var(--brand-2); color: var(--brand-3); }
+    .icon-link svg { width: 19px; height: 19px; }
+    .nav-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--ink); }
+
+    /* ── HERO ── */
+    .hero { background: radial-gradient(1200px 600px at 15% -10%, #143a56 0%, transparent 55%), radial-gradient(1000px 500px at 100% 0%, #0f5f8f 0%, transparent 50%), linear-gradient(160deg, #0b2236 0%, #0a1c2c 100%); color: #fff; overflow: hidden; }
+    .hero::after { content:''; position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 46px 46px; -webkit-mask-image: radial-gradient(900px 500px at 30% 20%, #000 0%, transparent 75%); mask-image: radial-gradient(900px 500px at 30% 20%, #000 0%, transparent 75%); pointer-events:none; }
+    .hero-grid { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; text-align: center; padding: 96px 0 104px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(62,175,223,.14); border: 1px solid rgba(62,175,223,.32); color: #a9e0f4; font-size: .76rem; font-weight: 700; letter-spacing: .04em; padding: 6px 14px; border-radius: 999px; margin-bottom: 24px; }
+    .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: #4fd08a; box-shadow: 0 0 0 3px rgba(79,208,138,.22); }
+    .hero h1 { font-size: clamp(2.3rem, 5.2vw, 3.6rem); font-weight: 800; line-height: 1.12; letter-spacing: -.03em; margin-bottom: 22px; }
+    .hero h1 .accent { background: linear-gradient(100deg, #4fc3ea, #7ee0c0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-tag { font-size: 1.12rem; font-weight: 700; color: #dbecf6; margin-bottom: 14px; line-height: 1.5; }
+    .hero-sub { font-size: 1rem; color: #a7c0d1; max-width: 640px; margin: 0 auto 32px; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; justify-content: center; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; }
+    .hero-meta div { display: flex; flex-direction: column; }
+    .hero-meta b { font-size: 1.3rem; font-weight: 800; color: #fff; letter-spacing: -.01em; }
+    .hero-meta small { font-size: .78rem; color: #8fabbd; font-weight: 600; }
+
+    /* ── STAT STRIP ── */
+    .stats { background: #fff; border-bottom: 1px solid var(--line); }
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
+    .stat { padding: 26px 22px; border-left: 1px solid var(--line-soft); }
+    .stat:first-child { border-left: none; }
+    .stat small { font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
+    .stat b { display: block; margin-top: 6px; font-size: 1.0rem; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+
+    /* ── cards ── */
+    .grid { display: grid; gap: 22px; }
+    .g-2 { grid-template-columns: repeat(2, 1fr); }
+    .g-3 { grid-template-columns: repeat(3, 1fr); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); transition: transform .18s ease, box-shadow .2s ease, border-color .2s; }
+    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: #d4e6f1; }
+    .ico { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; margin-bottom: 18px; font-size: 22px; }
+    .ico svg { width: 23px; height: 23px; }
+    .ico.b { background: var(--brand-soft); color: var(--brand); }
+    .ico.a { background: var(--amber-soft); color: var(--amber); }
+    .ico.v { background: var(--violet-soft); color: var(--violet); }
+    .ico.g { background: var(--green-soft); color: var(--green); }
+    .card h3 { font-size: 1.12rem; font-weight: 800; color: var(--ink); letter-spacing: -.01em; margin-bottom: 9px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .card p { color: var(--muted); font-size: .94rem; }
+
+    .alt { background: linear-gradient(180deg, #fff 0%, var(--brand-tint) 100%); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+    .callout { margin-top: 24px; background: var(--ink); color: #cfe0ec; border-radius: 16px; padding: 24px 28px; box-shadow: var(--shadow-lg); font-size: .98rem; }
+    .callout b { color: #7ee0c0; }
+
+    /* evidence stats */
+    .evi { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .estat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 24px 18px; text-align: center; box-shadow: var(--shadow); }
+    .estat b { display: block; font-size: 1.9rem; font-weight: 800; color: var(--brand-3); letter-spacing: -.02em; line-height: 1.1; }
+    .estat .lbl { display: block; margin-top: 10px; font-size: .88rem; font-weight: 700; color: var(--ink); }
+    .estat .sub { display: block; margin-top: 4px; font-size: .78rem; color: var(--muted); }
+    .fineprint { margin-top: 20px; font-size: .82rem; color: var(--faint); text-align: center; max-width: 900px; margin-left: auto; margin-right: auto; }
+    .fineprint a { color: var(--brand-3); font-weight: 600; }
+
+    /* diagram */
+    .diagram { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 30px; box-shadow: var(--shadow); overflow-x: auto; }
+    .diagram img { margin: 0 auto; }
+    .note { margin-top: 22px; background: var(--brand-tint); border: 1px solid var(--line); border-left: 3px solid var(--brand-2); border-radius: 12px; padding: 18px 22px; color: var(--ink-soft); font-size: .94rem; }
+    .note b { color: var(--brand-3); }
+
+    /* tech chips */
+    .tech-group { margin-bottom: 24px; }
+    .tech-group h4 { font-size: .8rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 12px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 15px; font-size: .88rem; font-weight: 700; color: var(--ink-soft); box-shadow: var(--shadow); }
+    .chip i { width: 8px; height: 8px; border-radius: 3px; flex: none; }
+
+    /* table */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); background: #fff; }
+    table { border-collapse: collapse; width: 100%; min-width: 720px; }
+    th, td { padding: 16px 18px; text-align: left; font-size: .9rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+    thead th { background: #fbfdfe; font-weight: 800; color: var(--ink); font-size: .86rem; }
+    tbody td:first-child { font-weight: 700; color: var(--ink-soft); }
+    td.oc, th.oc { background: var(--brand-tint); }
+    thead th.oc { background: var(--brand); color: #fff; }
+    td.oc { font-weight: 700; color: var(--ink); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* team */
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .member { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 34px 26px; text-align: center; box-shadow: var(--shadow); transition: transform .18s, box-shadow .2s; }
+    .member:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .member b { display: block; font-size: 1.22rem; font-weight: 800; color: var(--ink); margin-bottom: 12px; }
+    .member a.gh { display: inline-flex; align-items: center; gap: 6px; font-size: .95rem; font-weight: 700; color: var(--brand-3); }
+    .member a.gh:hover { color: var(--brand); }
+    .member a.gh svg { width: 15px; height: 15px; }
+    .advisor { text-align: center; margin-top: 26px; font-size: .9rem; color: var(--muted); }
+
+    /* CTA band */
+    .cta-band { background: radial-gradient(900px 400px at 80% 0%, #0f5f8f 0%, transparent 55%), linear-gradient(150deg, #0b2236, #0a1c2c); color: #fff; border-radius: 26px; padding: 56px; text-align: center; box-shadow: var(--shadow-lg); }
+    .cta-band h2 { font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
+    .cta-band p { color: #a7c0d1; max-width: 540px; margin: 0 auto 28px; }
+    .cta-band .hero-cta { justify-content: center; margin: 0; }
+
+    /* footer */
+    footer { background: var(--ink); color: #9db4c4; padding: 56px 0 30px; }
+    .foot-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .foot-brand { max-width: 360px; }
+    .foot-brand .nav-logo { color: #fff; margin-bottom: 12px; }
+    .foot-brand p { font-size: .88rem; color: #7f98a9; }
+    .foot-col h5 { color: #fff; font-size: .82rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+    .foot-col a { display: block; font-size: .9rem; color: #9db4c4; margin-bottom: 9px; transition: color .15s; }
+    .foot-col a:hover { color: var(--brand-2); }
+    .foot-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 24px; font-size: .84rem; color: #7f98a9; }
+
+    /* reveal */
+    [data-reveal] { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+    [data-reveal].in { opacity: 1; transform: none; }
+
+    /* responsive */
+    @media (max-width: 960px) {
+      .hero-grid { padding: 64px 0 72px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(odd) { border-left: none; }
+      .g-3 { grid-template-columns: repeat(2, 1fr); }
+      .team { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .nav-links, .nav-cta .btn span { display: none; }
+      .nav-toggle { display: inline-flex; }
+      .g-2, .g-3, .stats-grid { grid-template-columns: 1fr; }
+      .cta-band { padding: 40px 24px; }
+      .foot-grid { flex-direction: column; }
+      .pad { padding: 68px 0; }
     }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <div class="header-badge">2026 Capstone Design</div>
-    <h1>HealthMate AI</h1>
-    <div class="brand">온케어 (On-Care)</div>
-    <p class="subtitle">불규칙한 생활 속 2030을 위한 고혈압·당뇨 위험군 대상 식단 인식·코칭 통합 헬스케어 플랫폼</p>
-    <div class="header-chips">
-      <span class="header-chip">Flutter 3.x</span>
-      <span class="header-chip">FastAPI</span>
-      <span class="header-chip">Gemini · Claude Vision (VLM)</span>
-      <span class="header-chip">Claude · RAG Pipeline</span>
-      <span class="header-chip">PostgreSQL · pgvector</span>
+  <!-- NAV -->
+  <nav>
+    <div class="wrap nav-inner">
+      <a href="#top" class="nav-logo"><img src="docs/assets/oncare-logo.png" alt="On-Care" />On-Care</a>
+      <div class="nav-links" id="navLinks">
+        <a href="#overview">개요</a>
+        <a href="#problem">문제</a>
+        <a href="#features">기능</a>
+        <a href="#architecture">구조</a>
+        <a href="#business">비즈니스</a>
+        <a href="#team">팀</a>
+      </div>
+      <div class="nav-cta">
+        <a href="https://github.com/CSE-Sudo-26/sudo-capstone-project" target="_blank" rel="noopener" class="icon-link" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.4-5.25 5.69.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+        </a>
+        <a href="https://ewhasudo.zapto.org/frontend/#/dashboard" target="_blank" rel="noopener" class="btn btn-primary">
+          <span>웹 데모</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <button class="nav-toggle" id="navToggle" aria-label="menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-badge"><span></span>2026 이화여자대학교 캡스톤디자인 · Team 02 Sudo</div>
+      <h1>회원의 기록을<br /><span class="accent">트레이너의 코칭</span>으로 잇다</h1>
+      <p class="hero-tag">불규칙한 생활 속 2030 고혈압·당뇨 위험군을 위한<br />트레이너 연계 식단·운동 코칭 플랫폼, On-Care</p>
+      <p class="hero-sub">회원이 음식 사진 한 장·간단한 입력만 하면, 앱이 식단과 운동을 회원별·날짜별로 정리해 트레이너에게 전달합니다. 트레이너는 흩어진 메시지 대신 정리된 리포트 위에서 코칭하고, 그 코칭은 다시 회원에게 돌아옵니다.</p>
+      <div class="hero-cta">
+        <a href="https://ewhasudo.zapto.org/frontend/#/dashboard" target="_blank" rel="noopener" class="btn btn-primary">
+          서비스 바로가기
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="https://youtu.be/C4ivM_dlAww?si=8iOWmOpSxcpQmlU3" target="_blank" rel="noopener" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          데모 영상
+        </a>
+        <a href="https://github.com/CSE-Sudo-26/sudo-capstone-project" target="_blank" rel="noopener" class="btn btn-ghost">GitHub</a>
+      </div>
+      <div class="hero-meta">
+        <div><b>사진 1장</b><small>간편 식단 기록</small></div>
+        <div><b>자동 리포트</b><small>회원별·날짜별 정리</small></div>
+        <div><b>양방향</b><small>회원 ↔ 트레이너 연계</small></div>
+      </div>
     </div>
   </header>
 
-  <main>
+  <!-- STAT STRIP -->
+  <section class="stats">
+    <div class="wrap stats-grid">
+      <div class="stat"><small>Target</small><b>2030 위험군 + 트레이너</b></div>
+      <div class="stat"><small>Frontend</small><b>Flutter · 회원/트레이너 이중 모드</b></div>
+      <div class="stat"><small>Backend</small><b>FastAPI · PostgreSQL(pgvector)</b></div>
+      <div class="stat"><small>AI</small><b>VLM 식단 인식 · 공공 영양 DB</b></div>
+      <div class="stat"><small>Infra</small><b>AWS · GitHub Actions</b></div>
+    </div>
+  </section>
 
-    <!-- 프로젝트 소개 -->
-    <section>
-      <h2>📌 프로젝트 소개</h2>
-      <table class="info-table">
-        <tr><th>프로젝트명</th><td>HealthMate AI: 불규칙한 생활 속 2030을 위한 고혈압·당뇨 위험군 대상 식단 인식·코칭 통합 헬스케어 플랫폼</td></tr>
-        <tr><th>서비스명 (브랜드)</th><td>온케어 (On-Care)</td></tr>
-        <tr><th>트랙</th><td>산학</td></tr>
-        <tr><th>팀명</th><td>Sudo (Team 02)</td></tr>
-        <tr><th>팀 구성</th><td>최지수, 박서연, 신수빈</td></tr>
-        <tr><th>지도 교수</th><td>황의원 교수님 · 이화여자대학교 컴퓨터공학전공</td></tr>
-      </table>
-    </section>
-
-    <!-- Video Demo 및 가이드 연동 (self_demo 사양 연계) -->
-    <section>
-      <h2>🎥 라이브 데모 가이드 및 시연 영상</h2>
-      <div class="video-box">
-        <p style="font-size: 0.9rem; margin-bottom: 14px; color: var(--text);">
-          셀프 데모 프로세스를 진행하거나 앱 구동 아키텍처의 UX 흐름이 필요한 순간, 아래 가이드 영상과 타임라인 나레이션 대본을 참고할 수 있습니다.
-        </p>
-        <a href="https://youtu.be/C4ivM_dlAww?si=oaAuue_Fw9jY9Mhy" target="_blank" class="video-btn">
-          ▶ YouTube 데모 영상 보러가기
-        </a>
-
-        <ul class="timeline-list">
-          <li class="timeline-item"><span class="timeline-time">[00:03]</span><span>시연 시나리오 및 기저질환 위험군 김민수 페르소나 도입부 설명</span></li>
-          <li class="timeline-item"><span class="timeline-time">[00:11]</span><span><strong>Scenario 1. 홈 탭</strong>: 체중·혈압·혈당 입력 및 건강 데이터 저장 흐름 확인</span></li>
-          <li class="timeline-item"><span class="timeline-time">[00:44]</span><span><strong>Scenario 2. My 탭</strong>: 누적 건강 기록과 고혈압·당뇨 위험 주의 알림 카드 확인</span></li>
-          <li class="timeline-item"><span class="timeline-time">[01:10]</span><span><strong>Scenario 3. 식단 관리</strong>: 주간 식단 기록 조회 및 Gemini·Claude Vision(VLM) 기반 음식 사진 자동 분석</span></li>
-          <li class="timeline-item"><span class="timeline-time">[02:15]</span><span><strong>Scenario 4. 운동 관리</strong>: 운동 기록 입력 및 주간 운동 현황 그래프 시각화</span></li>
-          <li class="timeline-item"><span class="timeline-time">[03:00]</span><span><strong>Scenario 5. 헬스장 연동</strong>: 트레이너 1:1 상담과 위치 기반 헬스장 찾기 기능 확인</span></li>
-          <li class="timeline-item"><span class="timeline-time">[03:58]</span><span><strong>Scenario 6. 통합 일정 관리</strong>: 병원 정기검진·건강검진·헬스장 운동 일정 통합 캘린더 확인</span></li>
-          <li class="timeline-item"><span class="timeline-time">[04:35]</span><span><strong>Scenario 7. 통합 AI 코치</strong>: 식단·운동 상태 기반 단백질 보충, 산책, 수분 보충 등 실천 피드백 제공</span></li>
-          <li class="timeline-item"><span class="timeline-time">[05:17]</span><span>On-care 서비스 데모 시연 마무리</span></li>
-        </ul>
-
-        <details>
-          <summary>🎬 [클릭] 타임라인별 상세 나레이션 대본 전체 보기</summary>
-          <p><strong>[00:03] 도입 및 홈 탭:</strong> "최근 건강검진에서 고혈압과 당뇨 위험군 판정을 받은 27세 직장인 김민수 씨의 하루를 통해 On-care 서비스 데모를 시연하겠습니다. 홈 화면 상단에서는 만성질환 위험군이 매일 확인해야 하는 핵심 건강 지표인 체중, 혈압, 혈당을 바로 입력하고 저장할 수 있습니다."</p>
-          <p><strong>[00:44] My 탭 — 누적 건강 기록 및 위험 알림:</strong> "My 탭에서는 앞에서 입력한 건강 데이터가 개인 건강 기록으로 누적되어 표시됩니다. 프로필 아래의 ‘고혈압·당뇨 위험 주의’ 알림 카드를 통해 최근 혈압과 혈당 추세가 다소 높다는 정보를 확인할 수 있으며, 사용자는 자신의 위험 신호를 지속적으로 점검할 수 있습니다."</p>
-          <p><strong>[01:10] 식단 관리 — 식단 기록 조회:</strong> "식단 관리 화면에서는 상단의 주간 스트립 캘린더를 통해 오늘뿐만 아니라 이전 날짜의 식단 기록도 쉽게 확인할 수 있습니다. 오늘 날짜를 선택하면 기록된 아침과 점심 메뉴가 표시되고, 각 메뉴별 칼로리, 나트륨, 당류 정보를 함께 확인할 수 있습니다."</p>
-          <p><strong>[01:40] Vision AI 식단 기록 — 음식 사진 자동 분석:</strong> "식단을 새로 기록할 때는 음식 사진을 업로드하면 됩니다. Gemini·Claude Vision(VLM)이 음식 이미지를 분석해 메뉴와 추정 섭취량을 인식하고, 공공데이터 식품영양성분 DB로 나트륨·당류·칼로리 수치를 교정합니다. 분석 결과는 음식명, 칼로리, 나트륨, 당류 정보로 자동 추가되어 직접 검색하고 입력해야 하는 번거로움을 줄여줍니다."</p>
-          <p><strong>[02:15] 운동 관리 — 주간 운동 현황 시각화:</strong> "운동 관리 화면에서는 사용자가 자신의 운동 기록을 입력하고, 이번 주 운동 현황을 한눈에 확인할 수 있습니다. 주간 누적 운동 시간은 유산소, 근력 운동 등 운동 유형별 막대그래프로 표시되어 목표 대비 운동량이 충분한지 파악할 수 있습니다."</p>
-          <p><strong>[02:42] 운동 기록 추가 — 데이터 반영:</strong> "운동 유형과 운동 시간을 입력한 뒤 저장하면 해당 운동 기록이 오늘의 운동 데이터에 추가됩니다. 저장된 기록은 주간 운동 현황 그래프에도 반영되어 사용자가 자신의 운동 패턴을 지속적으로 관리할 수 있도록 돕습니다."</p>
-          <p><strong>[03:00] 트레이너 상담 연동 — 건강 데이터 기반 1:1 상담:</strong> "On-care는 내부 기록에만 머무르지 않고 오프라인 건강 관리 서비스와도 연결됩니다. 트레이너 상담 화면에서는 사용자의 최근 운동 기록, 선호 운동 유형, 고혈압 위험군 정보가 건강 데이터 요약본 형태로 제공되어, 트레이너가 기존 데이터를 바탕으로 맞춤 운동 상담을 이어갈 수 있습니다."</p>
-          <p><strong>[03:29] 헬스장 찾기 — 위치 기반 오프라인 연결:</strong> "새로운 운동 시설을 찾고 싶을 경우 헬스장 찾기 기능을 사용할 수 있습니다. 현재 위치 기반으로 주변 헬스장 목록이 표시되며, 사용자는 각 시설의 평점, 운영 시간, 전문 분야 태그를 확인하고 자신에게 맞는 센터를 선택할 수 있습니다."</p>
-          <p><strong>[04:18] 홈 탭 일정 연동 — 오늘의 일정 카드:</strong> "다시 홈 화면으로 돌아오면, 캘린더에 등록된 병원 정기검진과 헬스장 운동 일정이 ‘오늘의 일정’ 카드에 표시됩니다. 이를 통해 사용자는 서비스에 접속하자마자 오늘 해야 할 건강 관리 행동을 바로 확인할 수 있습니다."</p>
-          <p><strong>[04:35] 통합 AI 코치 — 실천 행동 피드백:</strong> "홈 화면 하단의 통합 AI 코치 패널에서는 민수 씨의 오늘 식단과 운동 상태를 바탕으로 실천 가능한 건강 관리 피드백을 제공합니다. 오전 운동량을 반영해 점심에 단백질 보충을 제안하고, 저녁에는 가벼운 산책 15분을 추천하는 식으로 다음 행동을 안내합니다."</p>
-          <p><strong>[05:00] 서비스 가치 요약 — 기록에서 실천으로:</strong> "On-care 서비스는 단순히 건강 기록을 보여주는 데 그치지 않고, 사용자의 일일 기록을 바탕으로 다음에 실천할 수 있는 행동을 제안합니다. 이를 통해 사용자가 자신의 건강 상태를 더 쉽게 이해하고, 식단·운동·수분 관리를 생활 속에서 이어갈 수 있도록 돕습니다."</p>
-          <p><strong>[05:17] 마무리:</strong> "이상으로 On-care 서비스 데모 시연을 마치겠습니다. 감사합니다."</p>
-        </details>
+  <!-- OVERVIEW -->
+  <section class="pad" id="overview">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Overview</span>
+        <h2>흩어진 대화를, 데이터 기반 코칭으로</h2>
       </div>
-    </section>
+      <div class="lead" data-reveal>
+        <p><b>On-Care</b>는 헬스 트레이너와 회원 사이의 식단·운동 관리 소통을 자동화하는 플랫폼입니다. 회원이 음식 사진 한 장·간단한 입력만 하면 앱이 식단과 운동을 회원별·날짜별로 정리해 트레이너에게 전달하고, 트레이너는 흩어진 메시지를 뒤지는 대신 정리된 리포트 위에서 코칭합니다.</p>
+        <p>타깃은 불규칙한 생활로 만성질환 위험이 커진 <b>2030 고혈압·당뇨 위험군</b>입니다. 위험은 빠르게 느는데도 질환 인지·관리율은 전 연령에서 가장 낮아 <b>관리 공백이 가장 큰 층</b>이며, 단순 칼로리 계산이 아니라 “무엇을 피하고 어떻게 움직여야 하는지”를 이어주는 관리가 필요합니다.</p>
+      </div>
+    </div>
+  </section>
 
-    <!-- Overview -->
-    <section>
-      <h2>🔍 Overview</h2>
-      <div class="card" style="border-left-color: var(--primary); padding: 24px 22px;">
-        <p style="font-size:0.93rem; color:var(--text); line-height:1.8;">
-          2030세대의 만성질환 유병률이 구조적으로 급증하는 가운데, 기존의 디지털 헬스케어 서비스들은 여전히 <strong>기록의 번거로움</strong>, <strong>맥락 없는 획일적 조언</strong>, 그리고 <strong>온·오프라인의 단절</strong>이라는 임계점을 보이고 있습니다.
-        </p>
-        <p style="font-size:0.93rem; color:var(--text); line-height:1.8; margin-top:12px;">
-          <strong>On-Care</strong>는 이러한 파편화와 마찰을 정면으로 해결하기 위해 구축한 통합 AI 헬스케어 플랫폼입니다. (Flutter MVP + FastAPI 백엔드 · AI 인식·RAG 코치 구현 — 앱은 mock 기본, 빌드 플래그로 백엔드 연동)
-        </p>
-        <div class="card-grid" style="margin-top:16px; gap:12px;">
-          <div style="background:var(--primary-pale); border-radius:var(--radius-sm); padding:14px 16px;">
-            <div style="font-size:0.8rem; font-weight:700; color:var(--primary); margin-bottom:5px;">① Vision AI(VLM) 파이프라인</div>
-            <div style="font-size:0.82rem; color:#1a4060; line-height:1.6;">Gemini·Claude Vision(VLM) 단독 인식 후 공공데이터 영양성분 DB로 나트륨·당·칼로리를 교정해 한국 표준 정확도 확보</div>
-          </div>
-          <div style="background:var(--blue-pale); border-radius:var(--radius-sm); padding:14px 16px;">
-            <div style="font-size:0.8rem; font-weight:700; color:var(--blue); margin-bottom:5px;">② RAG 기반 맥락 참조 AI 코치</div>
-            <div style="font-size:0.82rem; color:#1a4a7a; line-height:1.6;">사용자의 인바디·식단 로그·운동 이력을 PostgreSQL pgvector에 임베딩하여 Claude/Gemini에 실시간 컨텍스트로 주입</div>
-          </div>
-          <div style="background:var(--accent-pale); border-radius:var(--radius-sm); padding:14px 16px;">
-            <div style="font-size:0.8rem; font-weight:700; color:#b87a00; margin-bottom:5px;">③ 온·오프라인(O2O) 솔루션 통합</div>
-            <div style="font-size:0.82rem; color:#7a5400; line-height:1.6;">식단·운동 기록뿐만 아니라 카카오맵 기반 헬스장 연동, 트레이너 인앱 채팅, 통합 일정 관리를 단일 플랫폼화</div>
-          </div>
+  <!-- PROBLEM -->
+  <section class="pad alt" id="problem">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Problem</span>
+        <h2>기록은 하는데, 관리로 이어지지 않는다</h2>
+        <p>트레이너와 회원 모두 “기록은 하는데 그 기록이 관리로 이어지지 않는” 같은 벽에 부딪힙니다.</p>
+      </div>
+      <div class="grid g-2">
+        <div class="card" data-reveal>
+          <div class="ico a">🏋️</div>
+          <h3>트레이너</h3>
+          <p>회원 30~40명의 식사·운동을 개별 메신저로 일일이 확인하느라 하루 한 시간 넘게 쓰지만, 대화가 흩어져 회원별 흐름이 한눈에 보이지 않습니다. 회원이 늘수록 관리 품질이 떨어져 <b>확장이 어렵습니다.</b></p>
+        </div>
+        <div class="card" data-reveal>
+          <div class="ico a">🧍</div>
+          <h3>회원</h3>
+          <p>매 끼 검색·입력하는 번거로움에 기록을 며칠 만에 포기하고, 어렵게 남긴 기록도 <b>“그래서 무엇을 바꿔야 하는지”</b>로 이어지지 않습니다.</p>
         </div>
       </div>
-    </section>
+      <div class="callout" data-reveal>회원용 기록 앱과 트레이너용 도구가 <b>서로 분리되어</b>, 회원의 데이터가 트레이너에게 정리된 형태로 닿지 않습니다. 결국 관리는 다시 메신저로 돌아옵니다. On-Care는 바로 이 <b>끊어진 연결</b>을 잇습니다.</div>
+    </div>
+  </section>
 
-    <!-- Key Features -->
-    <section>
-      <h2>✨ 핵심 기능</h2>
-      <p style="font-size:0.8rem; color:var(--text); opacity:0.72; margin:-4px 0 14px;">상태 — ✅ 구현 · 🟡 부분 구현 (앱은 mock 기본, 빌드 플래그로 백엔드 연동)</p>
-      <div class="card-grid">
-        <div class="card">
-          <span class="tag tag-green">Vision AI</span> <span class="tag tag-green">✅ 구현</span>
-          <h3>🍱 Vision AI 식단 자동 인식</h3>
-          <p>음식 사진 1장으로 식품 종류·섭취량·칼로리·영양소를 자동 인식. Gemini·Claude Vision(VLM)이 인식하고 공공데이터 영양성분 DB로 나트륨·당·칼로리를 교정.</p>
+  <!-- EVIDENCE -->
+  <section class="pad" id="evidence">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Evidence · 근거</span>
+        <h2>위험은 느는데, 관리율은 가장 낮다</h2>
+        <p>2030 세대의 만성질환은 빠르게 늘지만, 정작 이 연령대의 인지·관리율은 가장 낮습니다. 이 관리 공백이 On-Care가 겨냥하는 지점입니다.</p>
+      </div>
+      <div class="evi" data-reveal>
+        <div class="estat"><b>2배</b><span class="lbl">당뇨병 유병률</span><span class="sub">19–39세 · 1.02%→2.02% (약 37만 명)</span></div>
+        <div class="estat"><b>26.5%</b><span class="lbl">당뇨병 전단계</span><span class="sub">19–39세 · 약 303만 명</span></div>
+        <div class="estat"><b>36% / 35%</b><span class="lbl">고혈압 인지율 / 치료율</span><span class="sub">20–39세 · 전체 성인 77%/74%</span></div>
+        <div class="estat"><b>84.9%</b><span class="lbl">고혈압 치료 미순응</span><span class="sub">20–39세 · 20대는 24%만 꾸준히</span></div>
+        <div class="estat"><b>45.6%</b><span class="lbl">유산소 실천율 (하락)</span><span class="sub">성인 · 58.3%→45.6%, 좌식 8.6h</span></div>
+      </div>
+      <p class="fineprint" data-reveal>※ 지표마다 연령대·조사연도가 다릅니다(신체활동은 성인 전체 추세). 동일 표본의 직접 비교가 아니라, 2030 중심의 만성질환 증가와 관리 공백을 함께 보여주는 근거로 제시합니다.<br />
+        Sources — <a href="https://www.e-dmj.org/journal/view.php?number=2909" target="_blank" rel="noopener">Diabetes Fact Sheets 2024</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11903208/" target="_blank" rel="noopener">Korea Hypertension Fact Sheet 2024</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9100085/" target="_blank" rel="noopener">Physical Activity Trends (KNHANES)</a></p>
+    </div>
+  </section>
+
+  <!-- SOLUTION -->
+  <section class="pad alt" id="solution">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Solution</span>
+        <h2>회원 ↔ 트레이너, 데이터로 연결된 관리 루프</h2>
+        <p>회원의 기록은 앱 안에서 자동으로 정리되어 트레이너에게 넘어가고, 트레이너의 코칭은 다시 회원에게 돌아옵니다. 회원은 최소한의 노력으로 관리받고, 트레이너는 더 많은 회원을 더 높은 품질로 관리하며, 그 사이의 모든 판단은 감이 아닌 <b>데이터</b>를 근거로 이루어집니다.</p>
+      </div>
+      <div class="diagram" data-reveal>
+        <img src="docs/assets/diagram-service-loop.svg" alt="회원 ↔ On-Care ↔ 트레이너 데이터 흐름" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="pad" id="features">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Features</span>
+        <h2>핵심 기능</h2>
+      </div>
+      <div class="grid g-3">
+        <div class="card" data-reveal>
+          <div class="ico b">📷</div>
+          <h3>간편 식단 기록</h3>
+          <p>음식 사진을 찍으면 AI(VLM)가 음식과 양을 추정하고, 식약처 공공 DB의 영양성분 참고값으로 나트륨·칼로리·당 추정치를 제공합니다. 완벽한 자동 계산이 아니라 기록 부담을 없애는 것이 목적이며, 최종 값은 회원·트레이너가 확인·보정합니다.</p>
         </div>
-        <div class="card blue-card">
-          <span class="tag tag-blue">RAG · Claude</span> <span class="tag tag-green">✅ 구현</span>
-          <h3>🤖 RAG 기반 AI 헬스 챗봇</h3>
-          <p>사용자의 누적 건강 데이터 이력과 pgvector 컨텍스트를 Claude/Gemini에 실시간 주입하여 일반론이 아닌 '내 이번 주 기록 기준'의 밀착 코칭 제공.</p>
+        <div class="card" data-reveal>
+          <div class="ico b">🏋️</div>
+          <h3>운동 기록 자동 연동</h3>
+          <p>트레이너가 세션에서 입력한 프로그램·수행이 회원 기록에 자동 반영되어, 회원이 일일이 적지 않아도 데이터가 쌓입니다.</p>
         </div>
-        <div class="card">
-          <span class="tag tag-green">운동 코치</span> <span class="tag tag-green">✅ 구현</span>
-          <h3>🏃 AI 맞춤 운동 코칭</h3>
-          <p>개인별 체력 상태, 운동 목적, 기저 질환 상태에 맞춰 운동 루틴을 생성하고 피드백 루프에 따라 강도 및 스트레칭 세션을 동적 재조정.</p>
+        <div class="card" data-reveal>
+          <div class="ico b">📊</div>
+          <h3>자동 요약 리포트</h3>
+          <p>식단·운동·활동을 회원별·날짜별로 묶어 트레이너에게 전달합니다. “이 회원, 이번 주 나트륨 과다 · 유산소 부족”을 한눈에 파악합니다.</p>
         </div>
-        <div class="card accent-card">
-          <span class="tag tag-accent">O2O 커넥션</span> <span class="tag tag-accent">🟡 부분</span>
-          <h3>🏋️ 헬스장 검색 &amp; 트레이너 연동</h3>
-          <p>카카오맵 API 기반 시설 예약 및 트레이너 인앱 채팅 연동. 플랫폼에 축적된 식단 및 운동 건강 데이터 요약본을 트레이너에게 안전하고 간편하게 자동 전송.</p>
+        <div class="card" data-reveal>
+          <div class="ico b">🔗</div>
+          <h3>데이터 기반 매칭</h3>
+          <p>회원의 목표와 조건(위치·시간·성향)에 맞춰 트레이너·헬스장을 추천하고 앱 안에서 연결합니다.</p>
         </div>
-        <div class="card">
-          <span class="tag tag-green">일정 통합</span> <span class="tag tag-green">✅ 구현</span>
-          <h3>📅 통합 건강 일정 관리</h3>
-          <p>식단, 운동, 헬스장 예약 스케줄, 병원 정기검진과 종합 건강검진 일정을 단일 캘린더 아키텍처로 통합 관리.</p>
-        </div>
-        <div class="card purple-card">
-          <span class="tag tag-purple">게이미피케이션</span> <span class="tag tag-accent">🟡 부분</span>
-          <h3>🏆 포인트 &amp; Streak 보상 시스템</h3>
-          <p>일일 건강 지표 및 식단/운동 연속 달성 기록에 따른 리워드(Streak) 부여로 유저의 지속적인 자가 관리 유도.</p>
+        <div class="card" data-reveal>
+          <div class="ico b">🎯</div>
+          <h3>목표·미션 관리</h3>
+          <p>만성질환 위험군에 맞춘 나트륨·활동량 목표와 일일 미션. 많이 먹은 날은 활동량을, 적게 먹은 날은 식단을 조정하는 <b>식단↔운동 연동 코칭</b>을 제공합니다.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- System Architecture -->
-    <section>
-      <h2>🏗️ 시스템 아키텍처</h2>
-      <div class="arch-grid">
-        <div class="arch-layer" style="background:var(--dark); border-color:var(--dark);">
-          <div class="arch-layer-title" style="color:#a8dff0;">Flutter Cross-Platform App (iOS / Android)</div>
-          <div class="arch-items">
-            <span class="arch-item ai">대시보드 메트릭</span>
-            <span class="arch-item ai">멀티모달 식단 입력</span>
-            <span class="arch-item ai">AI 코칭 챗봇 (온이)</span>
-            <span class="arch-item ai">O2O 트레이너 채팅</span>
-            <span class="arch-item ai">통합 캘린더</span>
-            <span class="arch-item ai">장기 지표 트렌드</span>
-          </div>
-        </div>
-        <div class="arch-arrow">↕ HTTPS REST API (Riverpod State Management)</div>
-        <div class="arch-layer">
-          <div class="arch-layer-title">FastAPI Backend (Docker / AWS EC2)</div>
-          <div class="arch-items">
-            <span class="arch-item">JWT 보호 인증</span>
-            <span class="arch-item">식단/운동 비동기 API</span>
-            <span class="arch-item">RAG Pipeline (pgvector)</span>
-            <span class="arch-item">O2O 매핑 로직</span>
-            <span class="arch-item">GitHub Actions CI/CD</span>
-          </div>
-        </div>
-        <div class="arch-arrow">↕</div>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:8px;">
-          <div class="arch-layer">
-            <div class="arch-layer-title">Persistence &amp; Memory</div>
-            <div class="arch-items">
-              <span class="arch-item">PostgreSQL (AWS RDS)</span>
-              <span class="arch-item">pgvector (벡터 검색)</span>
+  <!-- DIET PIPELINE -->
+  <section class="pad alt" id="pipeline">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Pipeline</span>
+        <h2>식단 인식 파이프라인</h2>
+        <p>사진에서 시작해 VLM이 음식과 양을 추정하고, <b>공공 영양성분 DB 참고값</b>으로 추정치를 보정한 뒤, 구조화된 기록과 트레이너 리포트로 이어집니다. 최종 값은 회원·트레이너가 확인·수정할 수 있습니다.</p>
+      </div>
+      <div class="diagram" data-reveal>
+        <img src="docs/assets/diagram-diet-pipeline.svg" alt="식단 인식 파이프라인" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="pad" id="architecture">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Architecture</span>
+        <h2>시스템 구조</h2>
+        <p>Flutter 앱(회원·트레이너 이중 모드) ↔ FastAPI 백엔드(REST·JWT) ↔ PostgreSQL(pgvector) · AI 엔진(VLM 인식·공공 영양 DB 매칭) · 외부 API.</p>
+      </div>
+      <div class="diagram" data-reveal>
+        <img src="docs/assets/diagram-architecture.svg" alt="On-Care 시스템 아키텍처" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH -->
+  <section class="pad alt" id="tech">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Tech Stack</span>
+        <h2>기술 스택</h2>
+      </div>
+      <div class="grid g-2">
+        <div data-reveal>
+          <div class="tech-group">
+            <h4>Frontend</h4>
+            <div class="chips">
+              <span class="chip"><i style="background:#02569B"></i>Flutter</span>
+              <span class="chip"><i style="background:#0175C2"></i>Dart</span>
+              <span class="chip"><i style="background:#00AAFF"></i>Riverpod</span>
+              <span class="chip"><i style="background:#027DFD"></i>GoRouter · 이중 모드</span>
             </div>
           </div>
-          <div class="arch-layer">
-            <div class="arch-layer-title">Vision AI Pipeline</div>
-            <div class="arch-items">
-              <span class="arch-item ai">Gemini·Claude Vision (VLM)</span>
-              <span class="arch-item ai">공공데이터 영양성분 DB 매핑</span>
+          <div class="tech-group">
+            <h4>Backend</h4>
+            <div class="chips">
+              <span class="chip"><i style="background:#009688"></i>FastAPI</span>
+              <span class="chip"><i style="background:#D71F00"></i>SQLAlchemy</span>
+              <span class="chip"><i style="background:#6BA539"></i>Alembic</span>
+              <span class="chip"><i style="background:#000"></i>JWT</span>
+              <span class="chip"><i style="background:#2496ED"></i>Docker</span>
             </div>
           </div>
-          <div class="arch-layer">
-            <div class="arch-layer-title">Coaching Engine</div>
-            <div class="arch-items">
-              <span class="arch-item ai">Closed-domain RAG</span>
-              <span class="arch-item ai">Anthropic Claude</span>
+          <div class="tech-group">
+            <h4>Database</h4>
+            <div class="chips">
+              <span class="chip"><i style="background:#4169E1"></i>PostgreSQL</span>
+              <span class="chip"><i style="background:#4169E1"></i>pgvector</span>
             </div>
           </div>
         </div>
-        <div class="arch-arrow">↕</div>
-        <div class="arch-layer" style="background:#fffdf7; border-color:#f0d9a0;">
-          <div class="arch-layer-title" style="color:#b87a00;">External Ecosystem &amp; APIs</div>
-          <div class="arch-items">
-            <span class="arch-item ext">카카오맵 API</span>
-            <span class="arch-item ext">공공데이터포털 식품영양성분 DB</span>
-            <span class="arch-item ext">Google Gemini API</span>
-            <span class="arch-item ext">Anthropic Claude API</span>
-            <span class="arch-item ext">Firebase Cloud Messaging (FCM)</span>
+        <div data-reveal>
+          <div class="tech-group">
+            <h4>AI</h4>
+            <div class="chips">
+              <span class="chip"><i style="background:#635cd0"></i>Vision(VLM) 식단 인식</span>
+              <span class="chip"><i style="background:#0066CC"></i>식약처 공공 영양성분 DB 매칭</span>
+              <span class="chip"><i style="background:#12a150"></i>RAG 코치</span>
+            </div>
+          </div>
+          <div class="tech-group">
+            <h4>Infra</h4>
+            <div class="chips">
+              <span class="chip"><i style="background:#FF9900"></i>AWS</span>
+              <span class="chip"><i style="background:#2088FF"></i>GitHub Actions (CI/CD)</span>
+            </div>
+          </div>
+          <div class="tech-group">
+            <h4>External API</h4>
+            <div class="chips">
+              <span class="chip"><i style="background:#FFCD00"></i>카카오맵</span>
+              <span class="chip"><i style="background:#0066CC"></i>공공데이터포털</span>
+              <span class="chip"><i style="background:#FFCA28"></i>Firebase Cloud Messaging</span>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Vision AI Pipeline -->
-    <section>
-      <h2>🍽️ Vision AI 식단 인식 파이프라인</h2>
-      <div class="pipeline">
-        <div class="pipeline-title">음식 사진 1장 → 공공데이터 매핑 변환 프로세스</div>
-        <div class="pipeline-steps">
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">1</div>
-              <div class="step-line"></div>
-            </div>
-            <div class="step-body">
-              <strong>Gemini · Claude Vision(VLM) 인식 단계</strong>
-              <span>업로드된 음식 이미지를 VLM이 한 번의 호출로 분석해 음식 종류와 추정 섭취량을 다품목 동시 식별합니다. 인식 엔진은 Gemini / Claude 교체 가능한 팩토리 구조로 구현되어 있습니다.</span>
-            </div>
-          </div>
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">2</div>
-              <div class="step-line"></div>
-            </div>
-            <div class="step-body">
-              <strong>공공데이터포털 식품영양성분 DB 크로스매핑</strong>
-              <span>AI 분석 데이터 결과값을 기반으로 국가 공신력 기준 영양성분 데이터베이스와 즉각 매핑하여 한국 음식 인식 도메인 정확도를 확보합니다.</span>
-            </div>
-          </div>
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">3</div>
-            </div>
-            <div class="step-body">
-              <strong>식단 로그 누적 적립 및 RAG 컨텍스트 동기화</strong>
-              <span>정제된 칼로리·나트륨·당류 등의 수치를 사용자의 로컬/클라우드 데이터베이스에 기록하고 실시간 AI 코칭용 소스로 동기화합니다.</span>
-              <div class="step-result">
-                📊 파이프라인 연동 결과 — 자동으로 감지된 섭취 성분 메트릭(칼로리, 나트륨, 당류 요약) 제공
-              </div>
-            </div>
-          </div>
-
-        </div>
+  <!-- COMPETITIVE -->
+  <section class="pad" id="compare">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Positioning</span>
+        <h2>기존 서비스가 못 채운 연결</h2>
+        <p>기존 서비스는 회원 개인의 기록에서 끝납니다. On-Care는 그 기록을 <b>트레이너의 코칭 자원으로 연결</b>하는 흐름 자체가 차별점입니다.</p>
       </div>
-    </section>
-
-    <!-- RAG Pipeline -->
-    <section>
-      <h2>🤖 RAG 파이프라인</h2>
-      <div class="pipeline">
-        <div class="pipeline-title">사용자 건강 이력 데이터기반 실시간 맞춤 피드백 구조</div>
-        <div class="pipeline-steps">
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">1</div>
-              <div class="step-line"></div>
-            </div>
-            <div class="step-body">
-              <strong>멀티 로그 수집 및 의미론적 벡터 변환</strong>
-              <span>유저가 기록한 체중·혈압·혈당 트렌드 및 주간 운동 현황 등의 시계열 헬스 데이터를 고차원 벡터 임베딩 모델로 전처리합니다.</span>
-            </div>
-          </div>
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">2</div>
-              <div class="step-line"></div>
-            </div>
-            <div class="step-body">
-              <strong>pgvector 컨텍스트 검색</strong>
-              <span>사용자의 도메인 프로필(예: 고혈압·당뇨 위험군)에 매핑되는 핵심 건강 이력 및 영양학 가이드라인의 상관 데이터를 탐색합니다.</span>
-            </div>
-          </div>
-
-          <div class="step">
-            <div class="step-connector">
-              <div class="step-num">3</div>
-            </div>
-            <div class="step-body">
-              <strong>Claude 오케스트레이션 및 프롬프트 가드레일 통과</strong>
-              <span>수집된 컨텍스트 조각들을 Claude 프롬프트 가드레일에 실시간 주입하여 의료 행위 위험성을 원천 차단한 안전한 밀착 맞춤 피드백을 형성합니다.</span>
-              <div class="step-result">
-                🤖 온이의 피드백 코칭 결과 — "오늘 점심 나트륨 섭취량이 높아요. 저녁에는 담백한 구이나 샐러드를 추천해요!"
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- Pain Points -->
-    <section>
-      <h2>💡 Pain Point (해결할 문제)</h2>
-      <div class="card-grid">
-        <div class="card">
-          <span class="tag tag-green">① 수치 급증 &amp; 도구 정체</span>
-          <h3>2030 만성질환 관리 부재</h3>
-          <p>최근 5년간 청년층 당뇨·고혈압 유병률은 폭발적으로 급증했으나 기존 도구는 수동 입력 수준에 정체되어 젊은 층의 이탈을 유발합니다.</p>
-        </div>
-        <div class="card">
-          <span class="tag tag-green">② 기록과 행동의 단절</span>
-          <h3>번거로운 기록 프로세스</h3>
-          <p>매끼 지속하기 힘든 바코드 검색 및 텍스트 매뉴얼 입력 방식은 유저 피로도를 가중시킵니다. Vision AI 원클릭 분석으로 마찰을 최소화합니다.</p>
-        </div>
-        <div class="card blue-card">
-          <span class="tag tag-blue">③ 맥락 없는 비개인화</span>
-          <h3>단순 칼로리 알림의 한계</h3>
-          <p>위험군 환자에게 중요한 것은 단순 총칼로리가 아닌 나트륨·당류의 '성분 제어'와 '누적 이력 추적'입니다. 맥락 기반 AI 피드백으로 우회합니다.</p>
-        </div>
-        <div class="card accent-card">
-          <span class="tag tag-accent">④ 온·오프라인 단절</span>
-          <h3>트레이너 데이터 분리</h3>
-          <p>앱 내부 기록 데이터가 실제 오프라인 체육시설이나 트레이너 지도 과정으로 흐르지 못해 연속성 있는 헬스케어가 어렵던 한계를 개선합니다.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Competitive Analysis -->
-    <section>
-      <h2>📊 경쟁사 비교 분석</h2>
-      <div class="compare-wrap">
-        <table class="compare-table">
+      <div class="table-wrap" data-reveal>
+        <table>
           <thead>
-            <tr>
-              <th>비교 항목</th>
-              <th>삼성헬스 (Samsung Health)</th>
-              <th>필라이즈 (Pillrise)</th>
-              <th>밀리그램 / 인아웃</th>
-              <th class="ours">On-Care (온케어) ✦</th>
-            </tr>
+            <tr><th>항목</th><th>필라이즈</th><th>밀리그램·인아웃</th><th class="oc">On-Care</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td><strong>식단 기록 방식</strong></td>
-              <td>직접 검색 및 수동 입력 위주</td>
-              <td>사진 기반 AI 인식 지원</td>
-              <td>사진 저장 및 빠른 입력 중심</td>
-              <td class="ours">사진 1장 → Gemini·Claude Vision(VLM) 인식 + 공공데이터 영양 DB 매핑</td>
-            </tr>
-            <tr>
-              <td><strong>한국 음식 정확도</strong></td>
-              <td>보통 (수동 데이터 의존)</td>
-              <td>보통</td>
-              <td>낮음 (사용자 임의 등록 데이터)</td>
-              <td class="ours">높음 (공공데이터포털 식품영양성분 DB 검증 검사)</td>
-            </tr>
-            <tr>
-              <td><strong>AI 코칭 방식</strong></td>
-              <td>활동 데이터의 단편적 해석</td>
-              <td>AI 코치 및 전문가 질의응답</td>
-              <td>소셜·챌린지 중심 동기부여</td>
-              <td class="ours">RAG 기반 누적 건강 이력 실시간 참조 및 가드레일 맥락 코칭</td>
-            </tr>
-            <tr>
-              <td><strong>만성질환 특화 여부</strong></td>
-              <td>없음 (일반 범용 웰니스)</td>
-              <td>일부 기능 (연동 혈당 중심)</td>
-              <td>없음 (다이어트 체중 감량 중심)</td>
-              <td class="ours">2030 고혈압·당뇨 위험군 도메인 특화 (나트륨/당류/GI 제어)</td>
-            </tr>
-            <tr>
-              <td><strong>온·오프라인 연결 (O2O)</strong></td>
-              <td class="center">인앱 인프라 없음</td>
-              <td class="center">시설 연동 없음</td>
-              <td class="center">연동 채널 없음</td>
-              <td class="ours">카카오맵 기반 헬스장 예약 및 트레이너 실시간 건강 요약 리포트 자동 전송</td>
-            </tr>
-            <tr>
-              <td><strong>플랫폼 독립성</strong></td>
-              <td>특정 제조사 하드웨어 생태계 종속</td>
-              <td>iOS / Android 제공</td>
-              <td>iOS / Android 제공</td>
-              <td class="ours">Flutter 단일 코드베이스 기반 전 플랫폼 동일한 최고 수준 UX 유지</td>
-            </tr>
+            <tr><td>식단 기록</td><td>사진 AI 인식</td><td>사진·빠른 입력</td><td class="oc">사진 → 공공 영양 DB 매칭</td></tr>
+            <tr><td>트레이너 연계</td><td>앱 내 AI 코치만</td><td>없음</td><td class="oc">회원 데이터 자동 정리 → 트레이너 전달</td></tr>
+            <tr><td>회원 관리 확장성</td><td>없음</td><td>없음</td><td class="oc">1인이 다수 회원을 데이터로 관리</td></tr>
+            <tr><td>만성질환 특화</td><td>일부 (혈당)</td><td>체중 감량 중심</td><td class="oc">고혈압·당뇨 위험군 (나트륨·GI)</td></tr>
+            <tr><td>데이터 흐름</td><td>개인 앱 내 완결</td><td>개인 앱 내 완결</td><td class="oc">회원 ↔ 트레이너 양방향</td></tr>
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Tech Stack -->
-    <section>
-      <h2>⚙️ 기술 스택 (Tech Stack)</h2>
-      <div class="tech-section">
-        <div class="tech-group">
-          <div class="tech-group-label">AI / ML Engine</div>
-          <div class="chips">
-            <span class="chip chip-blue">Gemini Vision API</span>
-            <span class="chip chip-blue">Claude Vision (LiteLLM)</span>
-            <span class="chip chip-blue">Claude · Gemini (Coach)</span>
-            <span class="chip chip-blue">pgvector</span>
-            <span class="chip chip-blue">text-embedding-3-small</span>
-          </div>
-          <div class="tech-note">Gemini·Claude Vision(VLM) 단독 인식 + 공공데이터 영양성분 DB 교정을 결합한 하이브리드 파이프라인. 한국영양학회 등 공인 가이드를 pgvector에 인덱싱한 Closed-domain RAG 파이프라인이 탑재되어 있습니다.</div>
+  <!-- BUSINESS -->
+  <section class="pad alt" id="business">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Business</span>
+        <h2>타깃 &amp; 비즈니스 모델</h2>
+        <p>핵심 타깃은 <b>2030 고혈압·당뇨 위험군과 이들을 관리하는 트레이너</b>입니다. 가성비·선택권에 민감한 세대라 무료 진입 후 선택적 유료화 구조와 잘 맞습니다.</p>
+      </div>
+      <div class="grid g-3">
+        <div class="card" data-reveal>
+          <div class="ico g">💳</div>
+          <h3>메인</h3>
+          <p>트레이너·헬스장 <b>중개 수수료 / 구매 전환 커미션</b>, 트레이너용 고도화 기능 <b>구독</b>.</p>
         </div>
-        <div class="tech-group">
-          <div class="tech-group-label">Mobile Client</div>
-          <div class="chips">
-            <span class="chip chip-green">Flutter 3.x</span>
-            <span class="chip chip-green">Dart</span>
-            <span class="chip chip-green">Riverpod (State)</span>
-            <span class="chip chip-green">GoRouter</span>
-            <span class="chip chip-green">Drift (Local DB)</span>
-          </div>
-          <div class="tech-note">교차 플랫폼 프레임워크인 Flutter를 탑재하여 소스 효율성을 극대화하고 반응형 대시보드 및 통계 차트 그래픽 컴포넌트를 유연하게 렌더링합니다.</div>
+        <div class="card" data-reveal>
+          <div class="ico b">✨</div>
+          <h3>프리미엄</h3>
+          <p>기본 기능은 무료로 진입장벽을 낮추고, 가치를 체감한 사용자가 고도화 기능을 결제합니다.</p>
         </div>
-        <div class="tech-group">
-          <div class="tech-group-label">Backend Web Server</div>
-          <div class="chips">
-            <span class="chip chip-green">FastAPI</span>
-            <span class="chip chip-green">PostgreSQL (pgvector)</span>
-            <span class="chip chip-dark">JWT Authentication</span>
-            <span class="chip chip-dark">SQLAlchemy</span>
-            <span class="chip chip-dark">Uvicorn</span>
-          </div>
-          <div class="tech-note">FastAPI 비동기(Async) 아키텍처 아웃라인 기반으로 외부 대형 LLM 추론에 발생하는 I/O 지연을 능동적으로 제어하고 무중단 전송 효율을 구축합니다.</div>
-        </div>
-        <div class="tech-group">
-          <div class="tech-group-label">Infra &amp; Cloud DevOps</div>
-          <div class="chips">
-            <span class="chip chip-accent">Docker</span>
-            <span class="chip chip-accent">AWS EC2</span>
-            <span class="chip chip-accent">GitHub Actions</span>
-            <span class="chip chip-accent">Firebase FCM</span>
-            <span class="chip chip-purple">Kakao Map API</span>
-          </div>
-          <div class="tech-note">컨테이너 가상화 배포 환경을 표준화하고 CI/CD 파이프라인 자동 구동을 유기적으로 연계하며 실시간 오프라인 맵 인터페이스를 구축하였습니다.</div>
+        <div class="card" data-reveal>
+          <div class="ico a">📣</div>
+          <h3>부수</h3>
+          <p>광고(상위 노출 등)는 보조 수입으로만 활용합니다.</p>
         </div>
       </div>
-    </section>
+      <div class="callout" data-reveal><b>확장 방향</b> — 서비스가 자리 잡은 뒤에는 구매력이 크고 편의성을 중시하는 <b>40대+</b>로 타깃을 넓혀, 같은 제품을 프리미엄 제안으로 확장할 수 있습니다.</div>
+    </div>
+  </section>
 
-    <!-- 기대 효과 -->
-    <section>
-      <h2>✨ 기대 효과</h2>
-      <div class="card-grid">
-        <div class="card">
-          <h3>🍱 자가 만성질환 예방 효과</h3>
-          <p>2030 청년층 유저들이 일상속에서 고혈압·당뇨 위험 인자를 지속 감시하여 성인 만성질환으로 이행되는 속도를 차단합니다.</p>
+  <!-- TEAM -->
+  <section class="pad" id="team">
+    <div class="wrap">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Team</span>
+        <h2>Team 02 · Sudo</h2>
+        <p>2026 이화여자대학교 컴퓨터공학전공 캡스톤디자인</p>
+      </div>
+      <div class="team">
+        <div class="member" data-reveal>
+          <b>최지수</b>
+          <a class="gh" href="https://github.com/aJISUa" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.4-5.25 5.69.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>@aJISUa
+          </a>
         </div>
-        <div class="card blue-card">
-          <h3>🧠 행동 변화를 만드는 앱</h3>
-          <p>순수 수집 도구 역할을 넘어 딥러닝 기반 개인 맞춤형 피드백 루프를 장착하여 유저가 스스로 실천을 바꾸는 동기 부여 기제를 유도합니다.</p>
+        <div class="member" data-reveal>
+          <b>박서연</b>
+          <a class="gh" href="https://github.com/seoyeon0516" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.4-5.25 5.69.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>@seoyeon0516
+          </a>
         </div>
-        <div class="card accent-card">
-          <h3>🤝 상생 헬스케어 생태계 (O2O)</h3>
-          <p>인앱 건강 리포트를 피트니스 트레이너에게 안전하고 간편하게 연동 전송함으로써 온·오프라인 경계가 없는 입체적 PT 밀착 제어를 가능케 만듭니다.</p>
+        <div class="member" data-reveal>
+          <b>신수빈</b>
+          <a class="gh" href="https://github.com/subin21cc" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.5 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.4-5.25 5.69.42.36.8 1.08.8 2.18v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>@subin21cc
+          </a>
         </div>
       </div>
-    </section>
+      <p class="advisor" data-reveal>지도교수 — 황의원 교수님 (이화여자대학교 · 컴퓨터공학전공)</p>
+    </div>
+  </section>
 
-    <!-- 팀원 -->
-    <section>
-      <h2>👥 팀원 소개</h2>
-      <div class="team-grid">
-        <div class="member">
-          <img src="https://github.com/aJISUa.png" alt="최지수" />
-          <div class="name">최지수</div>
-          <p style="font-size:0.75rem; color:var(--muted); margin-bottom:6px;">Data Analyst &amp; Backend</p>
-          <a href="https://github.com/aJISUa" target="_blank">@aJISUa</a>
-        </div>
-        <div class="member">
-          <img src="https://github.com/seoyeon0516.png" alt="박서연" />
-          <div class="name">박서연</div>
-          <p style="font-size:0.75rem; color:var(--muted); margin-bottom:6px;">DevOps &amp; Backend</p>
-          <a href="https://github.com/seoyeon0516" target="_blank">@seoyeon0516</a>
-        </div>
-        <div class="member">
-          <img src="https://github.com/subin21cc.png" alt="신수빈" />
-          <div class="name">신수빈</div>
-          <p style="font-size:0.75rem; color:var(--muted); margin-bottom:6px;">AI &amp; Frontend</p>
-          <a href="https://github.com/subin21cc" target="_blank">@subin21cc</a>
+  <!-- CTA -->
+  <section class="pad-sm">
+    <div class="wrap">
+      <div class="cta-band" data-reveal>
+        <h2>지금, On-Care를 직접 사용해 보세요</h2>
+        <p>별도 설치 없이 웹에서 바로 체험할 수 있습니다. 전체 구동 흐름은 데모 영상에서 확인하세요.</p>
+        <div class="hero-cta">
+          <a href="https://ewhasudo.zapto.org/frontend/#/dashboard" target="_blank" rel="noopener" class="btn btn-primary">서비스 바로가기
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a href="https://youtu.be/C4ivM_dlAww?si=8iOWmOpSxcpQmlU3" target="_blank" rel="noopener" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>데모 영상
+          </a>
         </div>
       </div>
-      <p style="text-align:center; font-size:0.83rem; color:var(--muted); margin-top:20px;">
-        지도 교수: 황의원 교수님 &nbsp;·&nbsp; 이화여자대학교 컴퓨터공학전공
-      </p>
-    </section>
+    </div>
+  </section>
 
-  </main>
-
+  <!-- FOOTER -->
   <footer>
-    <p>2026 이화여자대학교 컴퓨터공학전공 캡스톤디자인 &nbsp;|&nbsp; Team 02 Sudo &nbsp;·&nbsp; Jisu Choi · Seoyeon Park · Subin Shin</p>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <div class="nav-logo"><img src="docs/assets/oncare-logo.png" alt="On-Care" style="width:30px;height:30px" />On-Care</div>
+          <p>헬스 트레이너와 회원 사이의 식단·운동 관리 소통을 자동화하는 트레이너 연계 식단·운동 코칭 플랫폼. 2030 고혈압·당뇨 위험군 대상.</p>
+        </div>
+        <div class="foot-col">
+          <h5>Product</h5>
+          <a href="https://ewhasudo.zapto.org/frontend/#/dashboard" target="_blank" rel="noopener">웹 서비스</a>
+          <a href="https://youtu.be/C4ivM_dlAww?si=8iOWmOpSxcpQmlU3" target="_blank" rel="noopener">데모 영상</a>
+          <a href="#features">기능</a>
+          <a href="#architecture">시스템 구조</a>
+        </div>
+        <div class="foot-col">
+          <h5>Project</h5>
+          <a href="https://github.com/CSE-Sudo-26/sudo-capstone-project" target="_blank" rel="noopener">GitHub 저장소</a>
+          <a href="#compare">경쟁 분석</a>
+          <a href="#business">비즈니스 모델</a>
+          <a href="#team">팀 소개</a>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 On-Care Team · MIT License</span>
+        <span>2026 이화여자대학교 캡스톤디자인 · Team 02 Sudo — 최지수 · 박서연 · 신수빈</span>
+      </div>
+    </div>
   </footer>
 
+  <script>
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('[data-reveal]').forEach((el, i) => {
+      el.style.transitionDelay = (i % 3) * 60 + 'ms';
+      io.observe(el);
+    });
+    const t = document.getElementById('navToggle'), l = document.getElementById('navLinks');
+    t && t.addEventListener('click', () => {
+      const open = l.style.display === 'flex';
+      l.style.display = open ? '' : 'flex';
+      l.style.position = 'absolute'; l.style.top = '66px'; l.style.left = '0'; l.style.right = '0';
+      l.style.flexDirection = 'column'; l.style.background = '#fff'; l.style.padding = open ? '0' : '18px 24px';
+      l.style.borderBottom = open ? 'none' : '1px solid var(--line)'; l.style.gap = '16px';
+    });
+    l && l.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { if (window.innerWidth <= 680) l.style.display = ''; }));
+  </script>
+
 </body>
+
 </html>

@@ -106,12 +106,23 @@ Future<void> _pickAndAnalyze(
   BuildContext pageContext,
   ImageSource source,
 ) async {
-  final XFile? file = await ImagePicker().pickImage(
-    source: source,
-    imageQuality: 85,
-  );
-  if (file == null) return;
-  final Uint8List bytes = await file.readAsBytes();
+  final Uint8List bytes;
+  try {
+    final XFile? file = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 85,
+    );
+    if (file == null) return; // user cancelled
+    bytes = await file.readAsBytes();
+  } catch (_) {
+    // Permission denied / platform error / unreadable file — don't crash.
+    if (sheetContext.mounted) {
+      ScaffoldMessenger.of(sheetContext).showSnackBar(
+        const SnackBar(content: Text('사진을 불러오지 못했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
+    return;
+  }
   if (sheetContext.mounted) Navigator.of(sheetContext).pop();
   if (!pageContext.mounted) return;
   await showDietResultSheet(pageContext, bytes, _currentMealType());
@@ -639,6 +650,8 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> {
             ],
             totalCalories: _total,
           );
+      // Sheet dismissed mid-save → don't pop the page below.
+      if (!mounted) return;
       ref.invalidate(dietTodayProvider);
       navigator.pop();
       messenger.showSnackBar(
@@ -687,6 +700,8 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> {
     setState(() => _busy = true);
     try {
       await ref.read(dietRepositoryProvider).deleteEntry(id);
+      // Sheet dismissed mid-delete → don't pop the page below.
+      if (!mounted) return;
       ref.invalidate(dietTodayProvider);
       navigator.pop();
       messenger.showSnackBar(
@@ -702,7 +717,8 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return _sheetShell(
+    // Block back/drag dismiss while a save/delete request is in flight.
+    final Widget sheet = _sheetShell(
       context,
       Column(
         mainAxisSize: MainAxisSize.min,
@@ -714,7 +730,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> {
               children: <Widget>[
                 _CircleClose(
                   icon: Icons.arrow_back,
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: _busy ? null : () => Navigator.of(context).pop(),
                 ),
                 Expanded(
                   child: Text(
@@ -935,6 +951,7 @@ class _MealEditSheetState extends ConsumerState<_MealEditSheet> {
         ],
       ),
     );
+    return PopScope(canPop: !_busy, child: sheet);
   }
 
   Widget _card(List<Widget> children) => Container(
@@ -1106,7 +1123,7 @@ class _NutrientRow extends StatelessWidget {
 
 class _CircleClose extends StatelessWidget {
   const _CircleClose({required this.onTap, this.icon = Icons.close});
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final IconData icon;
 
   @override

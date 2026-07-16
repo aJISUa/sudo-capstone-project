@@ -7,39 +7,43 @@ import 'package:oncare/features/exercise/presentation/controllers/exercise_contr
 
 const List<String> _weekdayLabels = <String>['월', '화', '수', '목', '금', '토', '일'];
 
-/// The "운동 종류" chip order shared by the add/edit sheet.
+/// The "운동 종류" chips, kept 1:1 with [ExerciseType] so a saved type
+/// round-trips losslessly into the edit sheet (labels mirror `_typeLabel`).
 const List<String> _exerciseTypeLabels = <String>[
-  '걷기',
-  '달리기',
-  '스트레칭',
-  '근력운동',
-  '자전거',
-  '기타',
+  '걷기', // walking
+  '유산소', // cardio
+  '근력', // strength
+  '요가', // yoga
+  '스트레칭', // stretching
+  '기타', // other
 ];
 
-/// Chip index → backend [ExerciseType].
+/// Chip index → backend [ExerciseType] (1:1 with [_exerciseTypeLabels]).
 ExerciseType _typeFromIndex(int i) => switch (i) {
   0 => ExerciseType.walking,
   1 => ExerciseType.cardio,
-  2 => ExerciseType.stretching,
-  3 => ExerciseType.strength,
-  4 => ExerciseType.cardio,
+  2 => ExerciseType.strength,
+  3 => ExerciseType.yoga,
+  4 => ExerciseType.stretching,
   _ => ExerciseType.other,
 };
 
-/// [ExerciseType] → chip index (for pre-filling the edit sheet).
+/// [ExerciseType] → chip index (for pre-filling the edit sheet, lossless).
 int _indexFromType(ExerciseType t) => switch (t) {
   ExerciseType.walking => 0,
   ExerciseType.cardio => 1,
-  ExerciseType.stretching => 2,
-  ExerciseType.strength => 3,
-  ExerciseType.yoga => 2,
+  ExerciseType.strength => 2,
+  ExerciseType.yoga => 3,
+  ExerciseType.stretching => 4,
   ExerciseType.other => 5,
 };
 
-/// Rough kcal/min per type, used to estimate burn when the user only logs a
-/// duration (matches the prototype's estimate ranges).
-int _estimateCalories(ExerciseType type, int minutes) {
+/// Per-intensity multiplier for [_levels] (가벼움 / 보통 / 높음).
+const List<double> _intensityFactor = <double>[0.85, 1.0, 1.2];
+
+/// Rough kcal/min per type scaled by intensity, used to estimate burn when the
+/// user logs a duration (matches the prototype's estimate ranges).
+int _estimateCalories(ExerciseType type, int minutes, int level) {
   final double perMin = switch (type) {
     ExerciseType.cardio => 9,
     ExerciseType.strength => 6,
@@ -48,7 +52,10 @@ int _estimateCalories(ExerciseType type, int minutes) {
     ExerciseType.yoga => 3,
     ExerciseType.other => 5,
   };
-  return (perMin * minutes).round();
+  final double factor = (level >= 0 && level < _intensityFactor.length)
+      ? _intensityFactor[level]
+      : 1.0;
+  return (perMin * minutes * factor).round();
 }
 
 Widget _shell(BuildContext context, Widget child) => SafeArea(
@@ -128,12 +135,19 @@ class _ExerciseAddSheetState extends ConsumerState<_ExerciseAddSheet> {
       return;
     }
     final ExerciseType type = _typeFromIndex(_type);
-    final int calories = _estimateCalories(type, minutes);
+    final int calories = _estimateCalories(type, minutes, _level);
+    final ExerciseSession? editing = widget.session;
+    if (editing != null && editing.id == null) {
+      // No id → PUT impossible; don't silently create a duplicate session.
+      messenger.showSnackBar(
+        const SnackBar(content: Text('이 기록은 수정할 수 없어요')),
+      );
+      return;
+    }
     setState(() => _saving = true);
     try {
       // 서버(mock 모드는 drift)에 저장 → 주간 데이터 무효화로 통계·차트·목록 반영.
-      final ExerciseSession? editing = widget.session;
-      if (editing != null && editing.id != null) {
+      if (editing != null) {
         await ref
             .read(exerciseRepositoryProvider)
             .updateSession(
@@ -153,6 +167,8 @@ class _ExerciseAddSheetState extends ConsumerState<_ExerciseAddSheet> {
               dayLabel: _weekdayLabels[DateTime.now().weekday - 1],
             );
       }
+      // Sheet dismissed mid-save → don't pop the page below.
+      if (!mounted) return;
       ref.invalidate(exerciseWeekProvider);
       navigator.pop();
       messenger.showSnackBar(
@@ -170,7 +186,8 @@ class _ExerciseAddSheetState extends ConsumerState<_ExerciseAddSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return _shell(
+    // Block back/drag dismiss while the save request is in flight.
+    final Widget sheet = _shell(
       context,
       Column(
         mainAxisSize: MainAxisSize.min,
@@ -306,6 +323,7 @@ class _ExerciseAddSheetState extends ConsumerState<_ExerciseAddSheet> {
         ],
       ),
     );
+    return PopScope(canPop: !_saving, child: sheet);
   }
 
   Widget _chip(

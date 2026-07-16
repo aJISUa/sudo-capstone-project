@@ -301,24 +301,30 @@ class _AICoachPageState extends ConsumerState<AICoachPage> {
               color: FigmaColors.softBlue,
               borderRadius: BorderRadius.circular(999),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const Icon(
-                  Icons.menu_book_outlined,
-                  size: 12,
-                  color: FigmaColors.primary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  s,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 220),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Icon(
+                    Icons.menu_book_outlined,
+                    size: 12,
                     color: FigmaColors.primary,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      s,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: FigmaColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
       ],

@@ -38,11 +38,11 @@ class Settings(BaseSettings):
     # 인식 후 공공 식품영양성분 DB 로 영양 수치 보강(정확도↑). 순수 LLM 비교실험 시 false.
     nutrition_db_enrich: bool = True
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-flash-latest"  # 챗·인식 공용. 핀 버전은 은퇴로 404 → latest 별칭 사용
     coach_llm: str = "gemini"         # openai | gemini | litellm
     openai_api_key: str = ""
     openai_chat_model: str = "gpt-4o"
-    embedder: str = "openai"          # openai | gemini | litellm
+    embedder: str = "gemini"          # openai | gemini | litellm
     openai_embed_model: str = "text-embedding-3-small"
 
     # --- LiteLLM 프록시 (OpenAI 호환) ---
@@ -56,9 +56,9 @@ class Settings(BaseSettings):
 
     # --- RAG (STEP 7) ---
     # 임베딩 차원: 모델에 맞춰 바꿉니다. 바꾸면 재임베딩 필요(scripts/reembed).
-    #   OpenAI text-embedding-3-small/large = 1536 / 3072
-    #   Gemini text-embedding-004          = 768
-    embed_dim: int = 1536
+    #   Gemini gemini-embedding-001        = 768 (현재 기본, EMBEDDER=gemini)
+    #   OpenAI text-embedding-3-small/large = 1536 / 3072 (EMBEDDER=openai 시 EMBED_DIM=1536)
+    embed_dim: int = 768
     # 청킹: 윈도우(문장 수)와 겹침(stride 보정). 최적값 찾으면 여기만 수정.
     chunk_window: int = 5      # 한 청크에 묶을 문장 수
     chunk_overlap: int = 1     # 청크 간 겹칠 문장 수

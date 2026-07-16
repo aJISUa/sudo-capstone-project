@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare/design_system/figma/figma_kit.dart';
 import 'package:oncare/features/exercise/domain/entities/exercise_week.dart';
+import 'package:oncare/features/exercise/domain/entities/gym.dart';
 import 'package:oncare/features/exercise/presentation/controllers/exercise_controller.dart';
 
 const List<String> _weekdayLabels = <String>['월', '화', '수', '목', '금', '토', '일'];
@@ -355,15 +356,53 @@ class _Label extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────── 헬스장 찾기 ──
 
-/// "헬스장 찾기" — a search field, a map placeholder, and nearby gym cards.
+/// "헬스장 찾기" — a live search field, a map placeholder, and the nearby
+/// gym list from [nearbyGymsProvider], filtered by the query.
 Future<void> showGymLocatorSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: FigmaColors.sheetScrim,
-    builder: (BuildContext ctx) => _shell(
-      ctx,
+    builder: (BuildContext ctx) => const _GymLocatorSheet(),
+  );
+}
+
+class _GymLocatorSheet extends ConsumerStatefulWidget {
+  const _GymLocatorSheet();
+
+  @override
+  ConsumerState<_GymLocatorSheet> createState() => _GymLocatorSheetState();
+}
+
+class _GymLocatorSheetState extends ConsumerState<_GymLocatorSheet> {
+  final TextEditingController _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  /// Case-insensitive match on gym name or address; empty query returns all.
+  List<Gym> _filter(List<Gym> gyms) {
+    final String q = _query.trim().toLowerCase();
+    if (q.isEmpty) return gyms;
+    return gyms
+        .where(
+          (Gym g) =>
+              g.name.toLowerCase().contains(q) ||
+              g.address.toLowerCase().contains(q),
+        )
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AsyncValue<List<Gym>> async = ref.watch(nearbyGymsProvider);
+    return _shell(
+      context,
       Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -377,7 +416,7 @@ Future<void> showGymLocatorSheet(BuildContext context) {
                   shape: const CircleBorder(),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
-                    onTap: () => Navigator.of(ctx).pop(),
+                    onTap: () => Navigator.of(context).pop(),
                     child: const SizedBox(
                       width: 32,
                       height: 32,
@@ -407,29 +446,56 @@ Future<void> showGymLocatorSheet(BuildContext context) {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
               children: <Widget>[
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: FigmaColors.statBg,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: <Widget>[
-                      Icon(
+                      const Icon(
                         Icons.search,
                         size: 16,
                         color: FigmaColors.textFaint,
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        '신촌 · 헬스장, 트레이너',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: FigmaColors.textFaint,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _search,
+                          onChanged: (String v) => setState(() => _query = v),
+                          textInputAction: TextInputAction.search,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: FigmaColors.ink,
+                          ),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: InputBorder.none,
+                            hintText: '헬스장, 지역으로 검색',
+                            hintStyle: TextStyle(
+                              fontSize: 13,
+                              color: FigmaColors.textFaint,
+                            ),
+                            contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          ),
                         ),
                       ),
+                      if (_query.isNotEmpty)
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            _search.clear();
+                            setState(() => _query = '');
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Icon(
+                              Icons.close,
+                              size: 15,
+                              color: FigmaColors.textFaint,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -451,51 +517,107 @@ Future<void> showGymLocatorSheet(BuildContext context) {
                   ],
                 ),
                 const SizedBox(height: 12),
-                const _GymResult(
-                  name: '온케어짐 신촌점',
-                  rating: '4.9',
-                  distance: '320m',
-                  meta: 'PT · GX · 24시간 · 트레이너 6명',
-                  reason: '민수님의 혈압 관리 목표에 가장 적합해요. 저강도 유산소 전문 트레이너가 상주해요.',
-                  tags: <String>['혈압 관리 전문 PT', '저강도 프로그램 운영'],
-                  top: true,
-                ),
-                const SizedBox(height: 12),
-                const _GymResult(
-                  name: '파워짐 연세점',
-                  rating: '4.7',
-                  distance: '540m',
-                  meta: 'PT · 필라테스 · 트레이너 4명',
-                  reason: '근력 강화에 특화된 프로그램과 필라테스를 병행할 수 있어요.',
-                  tags: <String>['근력 강화 특화', '필라테스 병행 가능'],
+                ...async.when(
+                  data: (List<Gym> gyms) {
+                    final List<Gym> results = _filter(gyms);
+                    if (results.isEmpty) {
+                      return <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Text(
+                              "'$_query'에 맞는 헬스장이 없어요",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: FigmaColors.textMuted,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ];
+                    }
+                    return <Widget>[
+                      for (int i = 0; i < results.length; i++) ...<Widget>[
+                        _GymResult(
+                          gym: results[i],
+                          top: _query.trim().isEmpty && i == 0,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ];
+                  },
+                  loading: () => const <Widget>[
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Center(
+                        child: SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                      ),
+                    ),
+                  ],
+                  error: (Object e, StackTrace _) => <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Column(
+                        children: <Widget>[
+                          const Text(
+                            '헬스장을 불러오지 못했어요.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: FigmaColors.textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: () =>
+                                ref.invalidate(nearbyGymsProvider),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: FigmaColors.primary,
+                              side: BorderSide(color: FigmaColors.primaryA(0.4)),
+                            ),
+                            child: const Text('다시 시도'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }
 
+/// A nearby-gym result card driven by a real [Gym]. The two actions wire to
+/// local flows (there is no O2O endpoint): 트레이너 채팅 opens the 1:1 상담
+/// sheet, 건강 요약 전달 confirms then shows a success SnackBar.
 class _GymResult extends StatelessWidget {
-  const _GymResult({
-    required this.name,
-    required this.rating,
-    required this.distance,
-    required this.meta,
-    required this.reason,
-    required this.tags,
-    this.top = false,
-  });
+  const _GymResult({required this.gym, this.top = false});
 
-  final String name;
-  final String rating;
-  final String distance;
-  final String meta;
-  final String reason;
-  final List<String> tags;
+  final Gym gym;
   final bool top;
+
+  /// A short, real-data reason line for the AI-styled highlight box.
+  String get _reason {
+    if (gym.trainerName != null) {
+      final String role = gym.trainerRole != null ? ' · ${gym.trainerRole}' : '';
+      return '전담 트레이너 ${gym.trainerName}$role 상주';
+    }
+    if (gym.weekdayHours != null) {
+      final String weekend = gym.weekendHours != null
+          ? ' · 주말 ${gym.weekendHours}'
+          : '';
+      return '평일 ${gym.weekdayHours}$weekend 운영';
+    }
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -520,7 +642,7 @@ class _GymResult extends StatelessWidget {
         children: <Widget>[
           if (top) ...<Widget>[
             const AiPill(
-              '✦ AI 1순위 추천  민수님 건강 목표 기반',
+              '✦ AI 추천 1순위',
               background: FigmaColors.primary,
               color: Colors.white,
             ),
@@ -534,7 +656,7 @@ class _GymResult extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      name,
+                      gym.name,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -543,7 +665,7 @@ class _GymResult extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      meta,
+                      gym.address,
                       style: const TextStyle(
                         fontSize: 11,
                         color: FigmaColors.textMuted,
@@ -564,7 +686,7 @@ class _GymResult extends StatelessWidget {
                       ),
                       const SizedBox(width: 2),
                       Text(
-                        rating,
+                        gym.rating.toStringAsFixed(1),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
@@ -574,7 +696,7 @@ class _GymResult extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    distance,
+                    '${gym.distanceKm.toStringAsFixed(1)}km',
                     style: const TextStyle(
                       fontSize: 11,
                       color: FigmaColors.textMuted,
@@ -584,59 +706,63 @@ class _GymResult extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: FigmaColors.softBlue,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: <Widget>[
-                    for (final String t in tags)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: FigmaColors.primaryA(0.12),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          '✦ AI 추천 이유  $t',
-                          style: const TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w700,
-                            color: FigmaColors.primary,
+          if (gym.tags.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: FigmaColors.softBlue,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: <Widget>[
+                      for (final String t in gym.tags)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: FigmaColors.primaryA(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            t,
+                            style: const TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: FigmaColors.primary,
+                            ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  reason,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    height: 1.5,
-                    color: FigmaColors.ink,
+                    ],
                   ),
-                ),
-              ],
+                  if (_reason.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Text(
+                      _reason,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        height: 1.5,
+                        color: FigmaColors.ink,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: <Widget>[
               Expanded(
                 child: FilledButton(
-                  onPressed: () {},
+                  onPressed: () => showGymChatSheet(context, gym: gym),
                   style: FilledButton.styleFrom(
                     backgroundColor: FigmaColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -653,7 +779,7 @@ class _GymResult extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () => _sendHealthSummary(context, gym.name),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: FigmaColors.primary,
                     side: BorderSide(color: FigmaColors.primaryA(0.3)),
@@ -674,6 +800,55 @@ class _GymResult extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Confirms and "sends" the user's health summary to the gym/trainer. There is
+/// no O2O backend yet, so this is a local confirm dialog + success SnackBar.
+Future<void> _sendHealthSummary(BuildContext context, String gymName) async {
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  final bool? confirmed = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: const Text(
+        '건강 요약 전달',
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          color: FigmaColors.ink,
+        ),
+      ),
+      content: Text(
+        '최근 운동 기록과 건강 프로필 요약을\n$gymName 트레이너에게 전달할까요?',
+        style: const TextStyle(
+          fontSize: 13,
+          height: 1.5,
+          color: FigmaColors.textSub,
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text(
+            '취소',
+            style: TextStyle(color: FigmaColors.textMuted),
+          ),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          style: FilledButton.styleFrom(backgroundColor: FigmaColors.primary),
+          child: const Text('전달하기'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) return;
+  messenger.showSnackBar(
+    SnackBar(content: Text('$gymName에 건강 요약을 전달했어요')),
+  );
 }
 
 Widget _closeBtn(BuildContext ctx) => Material(
@@ -864,8 +1039,15 @@ class _MapPainter extends CustomPainter {
 
 // ─────────────────────────────────────────────────────── 헬스장 정보 ──
 
-/// Gym detail sheet opened from the "헬스장 정보" button.
-Future<void> showGymInfoSheet(BuildContext context) {
+/// Gym detail sheet opened from the "헬스장 정보" button, driven by [gym].
+Future<void> showGymInfoSheet(BuildContext context, Gym gym) {
+  final String hours = gym.weekdayHours != null
+      ? '평일 ${gym.weekdayHours}'
+            '${gym.weekendHours != null ? '\n주말 ${gym.weekendHours}' : ''}'
+      : '';
+  final String trainer = gym.trainerName != null
+      ? '${gym.trainerName}${gym.trainerRole != null ? ' · ${gym.trainerRole}' : ''}'
+      : '';
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -902,33 +1084,25 @@ Future<void> showGymInfoSheet(BuildContext context) {
               children: <Widget>[
                 const _MapPlaceholder(),
                 const SizedBox(height: 14),
-                const Text(
-                  '강남 피트니스 센터',
-                  style: TextStyle(
+                Text(
+                  gym.name,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: FigmaColors.ink,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Row(
+                Row(
                   children: <Widget>[
-                    Icon(Icons.star, size: 15, color: Color(0xFFF5B400)),
-                    SizedBox(width: 3),
+                    const Icon(Icons.star, size: 15, color: Color(0xFFF5B400)),
+                    const SizedBox(width: 3),
                     Text(
-                      '4.8',
-                      style: TextStyle(
+                      gym.rating.toStringAsFixed(1),
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: FigmaColors.ink,
-                      ),
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      '· 리뷰 213',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: FigmaColors.textMuted,
                       ),
                     ),
                   ],
@@ -937,13 +1111,20 @@ Future<void> showGymInfoSheet(BuildContext context) {
                 _infoRow(
                   Icons.place_outlined,
                   '주소',
-                  '서울시 강남구 역삼동 123-45 · 0.8km',
+                  '${gym.address} · ${gym.distanceKm.toStringAsFixed(1)}km',
                 ),
-                _infoRow(Icons.schedule, '운영시간', '연중무휴 24시간'),
-                _infoRow(Icons.call_outlined, '전화', '02-1234-5678'),
-                _infoRow(Icons.fitness_center, '시설', 'PT · GX · 샤워실 · 주차'),
-                _infoRow(Icons.payments_outlined, '회원권', '3개월 27만원 · 6개월 48만원'),
-                _infoRow(Icons.person_outline, '전담 트레이너', '김트레이너 · 혈압 관리 전문'),
+                if (hours.isNotEmpty)
+                  _infoRow(Icons.schedule, '운영시간', hours),
+                if (gym.phone != null)
+                  _infoRow(Icons.call_outlined, '전화', gym.phone!),
+                if (gym.tags.isNotEmpty)
+                  _infoRow(
+                    Icons.fitness_center,
+                    '전문 분야',
+                    gym.tags.join(' · '),
+                  ),
+                if (trainer.isNotEmpty)
+                  _infoRow(Icons.person_outline, '전담 트레이너', trainer),
               ],
             ),
           ),
@@ -955,14 +1136,15 @@ Future<void> showGymInfoSheet(BuildContext context) {
 
 // ─────────────────────────────────────────────────────── 1:1 상담 ──
 
-/// 1:1 consultation chat with the gym's trainer.
-Future<void> showGymChatSheet(BuildContext context) {
+/// 1:1 consultation chat with the gym's trainer, personalised from [gym].
+Future<void> showGymChatSheet(BuildContext context, {Gym? gym}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: FigmaColors.sheetScrim,
-    builder: (BuildContext ctx) => const _GymChatSheet(),
+    builder: (BuildContext ctx) =>
+        _GymChatSheet(trainerName: gym?.trainerName, gymName: gym?.name),
   );
 }
 
@@ -973,7 +1155,10 @@ class _GymMsg {
 }
 
 class _GymChatSheet extends StatefulWidget {
-  const _GymChatSheet();
+  const _GymChatSheet({this.trainerName, this.gymName});
+
+  final String? trainerName;
+  final String? gymName;
 
   @override
   State<_GymChatSheet> createState() => _GymChatSheetState();
@@ -981,8 +1166,10 @@ class _GymChatSheet extends StatefulWidget {
 
 class _GymChatSheetState extends State<_GymChatSheet> {
   final TextEditingController _c = TextEditingController();
-  final List<_GymMsg> _msgs = <_GymMsg>[
-    const _GymMsg('안녕하세요, 김트레이너입니다. 😊\n무엇을 도와드릴까요?', mine: false),
+  late final String _trainer = widget.trainerName ?? '김트레이너';
+  late final String _gym = widget.gymName ?? '강남 피트니스 센터';
+  late final List<_GymMsg> _msgs = <_GymMsg>[
+    _GymMsg('안녕하세요, $_trainer입니다. 😊\n무엇을 도와드릴까요?', mine: false),
   ];
   static const List<String> _chips = <String>['PT 상담', '이용권 문의', '방문 예약'];
 
@@ -1035,21 +1222,21 @@ class _GymChatSheetState extends State<_GymChatSheet> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        '김트레이너',
-                        style: TextStyle(
+                        _trainer,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           color: FigmaColors.ink,
                         ),
                       ),
                       Text(
-                        '강남 피트니스 센터 · 1:1 상담',
-                        style: TextStyle(
+                        '$_gym · 1:1 상담',
+                        style: const TextStyle(
                           fontSize: 11.5,
                           color: FigmaColors.primary,
                           fontWeight: FontWeight.w600,

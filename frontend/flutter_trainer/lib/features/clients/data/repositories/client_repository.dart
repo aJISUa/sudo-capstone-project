@@ -26,12 +26,24 @@ class ClientRepository {
     );
   }
 
-  /// Count of today's booked sessions — every schedule slot that isn't a
-  /// gap (`공백`). Drives the "오늘 N명 예약" header badge.
+  /// Count of today's booked sessions — every schedule slot dated today
+  /// that isn't a gap (`공백`). Drives the "오늘 N명 예약" header badge.
+  /// Uses a SQL `COUNT(*)` aggregate rather than loading every row.
   Stream<int> watchTodayReservationCount() {
-    final query = _db.select(_db.trainerScheduleEntries)
-      ..where((t) => t.status.equals('공백').not());
-    return query.watch().map((rows) => rows.length);
+    final today = _todayString();
+    final table = _db.trainerScheduleEntries;
+    final count = countAll();
+    final query = _db.selectOnly(table)
+      ..addColumns(<Expression<Object>>[count])
+      ..where(table.date.equals(today) & table.status.equals('공백').not());
+    return query.map((row) => row.read(count) ?? 0).watchSingle();
+  }
+
+  static String _todayString() {
+    final now = DateTime.now();
+    return '${now.year.toString().padLeft(4, '0')}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
   }
 
   TrainerClient _toEntity(TrainerClientRow row) {

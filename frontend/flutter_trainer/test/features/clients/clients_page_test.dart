@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,6 +35,23 @@ void main() {
       final count =
           await ClientRepository(db).watchTodayReservationCount().first;
       expect(count, 4); // 6 slots − 2 공백
+    });
+
+    test('reservation count excludes non-today schedule rows', () async {
+      // A booked session on a different date must NOT inflate today's badge.
+      await db.into(db.trainerScheduleEntries).insert(
+            TrainerScheduleEntriesCompanion.insert(
+              id: 'schedule-other-day',
+              date: '2020-01-01',
+              time: '10:00',
+              status: '예정',
+              clientName: const Value('과거 고객'),
+            ),
+          );
+
+      final count =
+          await ClientRepository(db).watchTodayReservationCount().first;
+      expect(count, 4); // still 4 — the 2020 row is excluded
     });
   });
 

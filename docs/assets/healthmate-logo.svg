@@ -1,0 +1,27 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="HealthMate AI logo">
+  <defs>
+    <linearGradient id="hm-logo-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10B981"/>
+      <stop offset="0.55" stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+    <linearGradient id="hm-logo-sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="58" fill="url(#hm-logo-bg)"/>
+  <rect width="256" height="256" rx="58" fill="url(#hm-logo-sheen)"/>
+  <!-- ECG / heartbeat pulse: health signal linking two people (trainer ↔ member) -->
+  <path d="M40 136 H92 L106 136 L118 100 L140 186 L156 120 L168 136 H216"
+        fill="none" stroke="#ffffff" stroke-width="13"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- connection nodes at each end -->
+  <circle cx="40" cy="136" r="14" fill="#ffffff"/>
+  <circle cx="216" cy="136" r="14" fill="#ffffff"/>
+  <!-- subtle "+" health mark -->
+  <g fill="#ffffff" opacity="0.92">
+    <rect x="120" y="52" width="16" height="44" rx="8"/>
+    <rect x="106" y="66" width="44" height="16" rx="8"/>
+  </g>
+</svg>

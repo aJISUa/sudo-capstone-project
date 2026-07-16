@@ -52,6 +52,25 @@ def _reset_rate_limiter():
     yield
 
 
+@pytest.fixture(autouse=True)
+def _force_stub_recognizer(monkeypatch):
+    """테스트는 결정론적 오프라인 인식기(stub)를 사용한다.
+
+    로컬 .env 에 실제 GEMINI_API_KEY 가 있으면 팩토리가 gemini 인식기를 골라,
+    가짜 테스트 이미지가 실제 Vision API 로 나가 400(Unable to process image)을
+    유발한다. CI(키 없음→stub)와 동일 경로로 고정해 테스트를 .env 독립적으로 만든다."""
+    try:
+        from app.core.config import get_settings
+        monkeypatch.setattr(get_settings(), "recognizer", "stub")
+    except Exception:  # noqa: BLE001, S110
+        import warnings
+        warnings.warn(
+            "recognizer 를 stub 으로 강제하지 못했습니다 — 테스트가 실제 Gemini Vision API 를 호출할 수 있습니다.",
+            stacklevel=2,
+        )
+    yield
+
+
 @pytest.fixture
 def db_session(client):
     """시드까지 끝난 DB 세션. client 픽스처가 먼저 init_db(시드)를 돌린다."""

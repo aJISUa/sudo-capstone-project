@@ -82,6 +82,10 @@ class _AiRoutinePageState extends ConsumerState<AiRoutinePage> {
         _custom.clear();
         _minuteEdits.clear();
         _nameEdits.clear();
+        // Close any editing UI too — otherwise an open name editor or
+        // add-form would survive the "next round" reset (PR review).
+        _editingNameId = null;
+        _showAddForm = false;
       });
     });
   }

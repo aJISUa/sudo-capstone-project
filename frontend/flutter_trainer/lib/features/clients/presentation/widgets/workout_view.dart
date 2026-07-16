@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oncare_trainer/design_system/tokens/colors.dart';
 import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
-import 'package:oncare_trainer/features/clients/data/repositories/client_repository.dart';
+import 'package:oncare_trainer/shared/services/client_repository.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/routine_history_entry.dart';
-import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
+import 'package:oncare_trainer/shared/models/trainer_client.dart';
 
 /// The 운동기록 sub-tab: this week's completion bars + the workout
 /// history list (completion donut, exercises, feedback, trainer note).

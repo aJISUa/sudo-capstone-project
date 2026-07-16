@@ -6,9 +6,10 @@ import 'package:oncare_trainer/app/router/routes.dart';
 import 'package:oncare_trainer/design_system/tokens/colors.dart';
 import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
-import 'package:oncare_trainer/features/clients/data/repositories/client_repository.dart';
-import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
+import 'package:oncare_trainer/shared/services/client_repository.dart';
+import 'package:oncare_trainer/shared/models/trainer_client.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/client_card.dart';
+import 'package:oncare_trainer/shared/widgets/oni_avatar.dart';
 
 /// 고객 관리 tab — reservation badge, AI summary, and the client list.
 class ClientsPage extends ConsumerWidget {
@@ -129,20 +130,8 @@ class _AiSummaryCard extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.card,
-            ),
-            child: const Icon(
-              Icons.auto_awesome,
-              size: 20,
-              color: AppColors.accent,
-            ),
-          ),
+          // The On-Care mascot — same AI identity as the user app redesign.
+          const OniAvatar(size: 40),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:oncare_trainer/design_system/tokens/colors.dart';
 import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
-import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
+import 'package:oncare_trainer/shared/models/trainer_client.dart';
 import 'package:oncare_trainer/shared/widgets/client_avatar.dart';
 
 /// A client row on the 고객 관리 list: avatar + active dot, name, goal,

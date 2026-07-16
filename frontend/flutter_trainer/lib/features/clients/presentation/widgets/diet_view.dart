@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oncare_trainer/design_system/tokens/colors.dart';
 import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
-import 'package:oncare_trainer/features/clients/data/repositories/client_repository.dart';
+import 'package:oncare_trainer/shared/services/client_repository.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/client_diet_entry.dart';
-import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
+import 'package:oncare_trainer/shared/models/trainer_client.dart';
+import 'package:oncare_trainer/shared/widgets/metric_tile.dart';
 
 /// The 식단 sub-tab: today's nutrition summary (칼로리/나트륨/당류),
 /// per-meal records, and a conditional AI comment.
@@ -76,14 +77,14 @@ class _NutritionSummary extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: <Widget>[
-              _MetricTile(
+              MetricTile(
                 label: '칼로리',
                 value: client.calories,
                 unit: 'kcal',
                 color: AppColors.accent,
               ),
               const SizedBox(width: AppSpacing.sm),
-              _MetricTile(
+              MetricTile(
                 label: '나트륨',
                 value: client.sodiumMg,
                 unit: 'mg',
@@ -93,7 +94,7 @@ class _NutritionSummary extends StatelessWidget {
                 warn: client.sodiumMg > sodiumTargetMg,
               ),
               const SizedBox(width: AppSpacing.sm),
-              _MetricTile(
+              MetricTile(
                 label: '당류',
                 value: client.sugarG,
                 unit: 'g',
@@ -104,66 +105,6 @@ class _NutritionSummary extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({
-    required this.label,
-    required this.value,
-    required this.unit,
-    required this.color,
-    this.warn = false,
-  });
-
-  final String label;
-  final int value;
-  final String unit;
-  final Color color;
-  final bool warn;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: warn
-              ? AppColors.warning.withValues(alpha: 0.08)
-              : AppColors.accentSurface,
-          borderRadius: const BorderRadius.all(AppRadius.md),
-        ),
-        child: Column(
-          children: <Widget>[
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.subtleForeground,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '$value',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: warn ? AppColors.warning : color,
-              ),
-            ),
-            Text(
-              warn ? '$unit ⚠ 초과' : unit,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: warn ? FontWeight.w700 : FontWeight.w400,
-                color: warn ? AppColors.warning : AppColors.subtleForeground,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

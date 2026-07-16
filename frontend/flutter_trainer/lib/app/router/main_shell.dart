@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:oncare_trainer/design_system/tokens/colors.dart';
+import 'package:oncare_trainer/shared/widgets/brand_header.dart';
 
 /// Persistent [Scaffold] hosting the trainer bottom navigation bar.
 /// Tabs mirror the On-Care Figma trainer app (고객 / 스케줄 / AI루틴 / MY)
@@ -16,6 +17,7 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const BrandHeader(),
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

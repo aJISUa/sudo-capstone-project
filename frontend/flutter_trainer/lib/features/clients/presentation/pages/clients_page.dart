@@ -116,33 +116,53 @@ class _AiSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.accentSurface,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: <Color>[
+            AppColors.aiCardGradientStart,
+            AppColors.aiCardGradientEnd,
+          ],
+        ),
         borderRadius: const BorderRadius.all(AppRadius.card),
         border: Border.all(color: AppColors.borderStrong),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
             decoration: const BoxDecoration(
-              color: AppColors.accent,
-              borderRadius: BorderRadius.all(AppRadius.pill),
+              shape: BoxShape.circle,
+              color: AppColors.card,
             ),
-            child: const Text(
-              '✦ AI 요약',
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.accentForeground,
-              ),
-            ),
+            child: const Text('🙂', style: TextStyle(fontSize: 20)),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.18),
+                    borderRadius: const BorderRadius.all(AppRadius.pill),
+                  ),
+                  child: const Text(
+                    '✦ AI 요약',
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
                 Text.rich(
                   TextSpan(
                     children: <InlineSpan>[
@@ -159,7 +179,6 @@ class _AiSummaryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   sodiumOver > 0
                       ? '루틴 조정이 필요할 수 있어요.'

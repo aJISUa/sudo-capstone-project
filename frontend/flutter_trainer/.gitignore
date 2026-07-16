@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# drift web runtime (fetched by tool/fetch_drift_wasm.sh; CI downloads too)
+/web/sqlite3.wasm
+/web/drift_worker.js

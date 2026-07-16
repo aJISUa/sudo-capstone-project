@@ -59,7 +59,12 @@ void main() {
       expect(find.text('저녁'), findsOneWidget);
       expect(find.text('오트밀, 바나나'), findsOneWidget);
       expect(find.text('315 kcal'), findsOneWidget);
-      // Over-target AI comment (2100 − 2000 = 100mg).
+      // Over-target AI comment (2100 − 2000 = 100mg) — last list item,
+      // built lazily, so scroll it into view first.
+      await tester.scrollUntilVisible(
+        find.textContaining('나트륨이 목표치를 100mg 초과했어요'),
+        150,
+      );
       expect(
         find.textContaining('나트륨이 목표치를 100mg 초과했어요'),
         findsOneWidget,
@@ -73,6 +78,10 @@ void main() {
 
       expect(find.text('그릭요거트, 과일'), findsOneWidget);
       expect(find.text('mg ⚠ 초과'), findsNothing);
+      await tester.scrollUntilVisible(
+        find.textContaining('오늘 식단은 균형이 잘 맞아요'),
+        150,
+      );
       expect(
         find.textContaining('오늘 식단은 균형이 잘 맞아요'),
         findsOneWidget,

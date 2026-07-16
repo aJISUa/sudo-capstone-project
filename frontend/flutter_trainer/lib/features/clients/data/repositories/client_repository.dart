@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare_trainer/core/storage/app_database.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/client_diet_entry.dart';
+import 'package:oncare_trainer/features/clients/domain/entities/routine_history_entry.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
 
 /// Reads client + schedule data from the local drift DB for the
@@ -61,6 +62,32 @@ class ClientRepository {
     );
   }
 
+  /// A client's workout history for the 운동기록 sub-tab, newest first
+  /// (seeded order).
+  Stream<List<RoutineHistoryEntry>> watchHistory(String clientId) {
+    final query = _db.select(_db.clientRoutineHistory)
+      ..where((t) => t.clientId.equals(clientId))
+      ..orderBy(<OrderingTerm Function($ClientRoutineHistoryTable)>[
+        (t) => OrderingTerm(expression: t.sortOrder),
+      ]);
+    return query.watch().map(
+      (rows) => rows
+          .map(
+            (row) => RoutineHistoryEntry(
+              dateLabel: row.dateLabel,
+              label: row.label,
+              completionRate: row.completionRate,
+              exercises: (jsonDecode(row.exercisesJson) as List<Object?>)
+                  .map((e) => e! as String)
+                  .toList(),
+              clientFeedback: row.clientFeedback,
+              trainerNote: row.trainerNote,
+            ),
+          )
+          .toList(),
+    );
+  }
+
   static String _todayString() {
     final now = DateTime.now();
     return '${now.year.toString().padLeft(4, '0')}-'
@@ -108,4 +135,10 @@ final todayReservationCountProvider = StreamProvider<int>((ref) {
 final clientDietProvider =
     StreamProvider.family<List<ClientDietEntry>, String>((ref, clientId) {
       return ref.watch(clientRepositoryProvider).watchDiet(clientId);
+    });
+
+/// Streams a client's workout history for the 운동기록 sub-tab.
+final clientHistoryProvider =
+    StreamProvider.family<List<RoutineHistoryEntry>, String>((ref, clientId) {
+      return ref.watch(clientRepositoryProvider).watchHistory(clientId);
     });

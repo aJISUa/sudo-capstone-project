@@ -70,6 +70,11 @@ void main() {
       expect(find.text('채팅'), findsOneWidget);
       expect(find.text('식단'), findsOneWidget);
       expect(find.text('운동기록'), findsOneWidget);
+
+      // The thread auto-scrolls to the newest message; drag back up so
+      // the lazily-built top of the thread (banner + early replies) exists.
+      await tester.drag(find.byType(ListView), const Offset(0, 600));
+      await tester.pump();
       expect(
         find.textContaining('AI가 김민수님의'),
         findsOneWidget,
@@ -88,7 +93,7 @@ void main() {
       expect(find.text('다음 세션 때 봐요!'), findsOneWidget);
     });
 
-    testWidgets('switching sub-tabs shows 식단 view and 운동기록 placeholder', (
+    testWidgets('switching sub-tabs shows the 식단 and 운동기록 views', (
       tester,
     ) async {
       await openDetail(tester);
@@ -99,7 +104,7 @@ void main() {
 
       await tester.tap(find.text('운동기록'));
       await settle(tester);
-      expect(find.text('운동기록 화면은 곧 준비됩니다'), findsOneWidget);
+      expect(find.text('이번 주 완료율'), findsOneWidget);
     });
   });
 }

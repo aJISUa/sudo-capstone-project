@@ -39,6 +39,11 @@ class AppColors {
   static const Color aiCardGradientStart = Color(0xFFC8E8F6);
   static const Color aiCardGradientEnd = Color(0xFFA8D8F0);
 
+  /// MY 탭 "이번 달 통계" warm gradient (mock: `linear-gradient(135deg,
+  /// #FFF4EE,#FFE8D8)`) — kept orange as a trainer-identity block.
+  static const Color statsGradientStart = Color(0xFFFFF4EE);
+  static const Color statsGradientEnd = Color(0xFFFFE8D8);
+
   // --- Surface / text ---
   /// App canvas behind cards (mock uses `#F8FAFC`).
   static const Color background = Color(0xFFF8FAFC);

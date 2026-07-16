@@ -7,8 +7,13 @@ import 'package:oncare/features/account/domain/entities/user_profile.dart';
 import 'package:oncare/features/account/presentation/controllers/account_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Widget _shell(BuildContext context, String title, List<Widget> children) {
-  return SafeArea(
+Widget _shell(
+  BuildContext context,
+  String title,
+  List<Widget> children, {
+  bool saving = false,
+}) {
+  final Widget sheet = SafeArea(
     top: false,
     child: ConstrainedBox(
       constraints: BoxConstraints(
@@ -51,7 +56,8 @@ Widget _shell(BuildContext context, String title, List<Widget> children) {
                     shape: const CircleBorder(),
                     clipBehavior: Clip.antiAlias,
                     child: InkWell(
-                      onTap: () => Navigator.of(context).pop(),
+                      // Disabled while a save is in flight (blocks dismiss).
+                      onTap: saving ? null : () => Navigator.of(context).pop(),
                       child: const SizedBox(
                         width: 32,
                         height: 32,
@@ -78,6 +84,7 @@ Widget _shell(BuildContext context, String title, List<Widget> children) {
       ),
     ),
   );
+  return PopScope(canPop: !saving, child: sheet);
 }
 
 Future<void> _open(BuildContext context, String title, List<Widget> body) {
@@ -353,6 +360,8 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
         phone: _phone.text.trim(),
         birthDate: _birth.text.trim(),
       );
+      // Sheet dismissed mid-save → don't touch ref/pop the page below.
+      if (!mounted) return;
       ref.invalidate(profileProvider);
       navigator.pop();
       messenger.showSnackBar(
@@ -396,7 +405,7 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
       ]),
       const SizedBox(height: 16),
       _saveRow(context: context, saving: _saving, onSave: _save),
-    ]);
+    ], saving: _saving);
   }
 }
 
@@ -479,6 +488,8 @@ class _GoalsFormState extends ConsumerState<_GoalsForm> {
         dailyCalories: int.tryParse(_kcal.text.trim()),
         dailySodiumMg: int.tryParse(_sodium.text.trim()),
       );
+      // Sheet dismissed mid-save → don't touch ref/pop the page below.
+      if (!mounted) return;
       ref.invalidate(profileProvider);
       navigator.pop();
       messenger.showSnackBar(
@@ -548,7 +559,7 @@ class _GoalsFormState extends ConsumerState<_GoalsForm> {
       ]),
       const SizedBox(height: 16),
       _saveRow(context: context, saving: _saving, onSave: _save),
-    ]);
+    ], saving: _saving);
   }
 }
 

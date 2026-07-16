@@ -1,25 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare/design_system/figma/figma_kit.dart';
+import 'package:oncare/features/diet/domain/entities/diet_day.dart';
+import 'package:oncare/features/diet/presentation/controllers/diet_controller.dart';
 import 'package:oncare/features/diet/presentation/widgets/diet_flows.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
 import 'package:oncare/shared/widgets/modals/schedule_calendar_sheet.dart';
 
 /// 식단 tab, rebuilt to match the On-Care Figma redesign. The weekly date
-/// strip is centred on today (per the product request), the nutrition summary /
-/// AI feedback / meal log follow the mockup, and the "식단 추가" and meal-edit
-/// flows open as bottom sheets.
-class DietRecordPage extends StatefulWidget {
+/// strip is centred on today (per the product request); the nutrition summary /
+/// AI feedback / meal log are driven by [dietTodayProvider], and the "식단 추가"
+/// and meal-edit flows open as bottom sheets wired to the diet repository.
+///
+/// The backend currently exposes only "today", so a non-today selection shows
+/// an empty state until the per-date query lands (tracked as a follow-up).
+class DietRecordPage extends ConsumerStatefulWidget {
   const DietRecordPage({super.key});
 
   @override
-  State<DietRecordPage> createState() => _DietRecordPageState();
+  ConsumerState<DietRecordPage> createState() => _DietRecordPageState();
 }
 
 const List<String> _weekdayLabels = <String>['월', '화', '수', '목', '금', '토', '일'];
 
-class _DietRecordPageState extends State<DietRecordPage> {
+/// Meal-type presentation metadata (badge label, thumbnail emoji + tint).
+const Map<MealType, ({String badge, String emoji, Color bg})> _mealMeta =
+    <MealType, ({String badge, String emoji, Color bg})>{
+      MealType.breakfast: (badge: '아침', emoji: '🥣', bg: Color(0xFFFFF3E0)),
+      MealType.lunch: (badge: '점심', emoji: '🥗', bg: Color(0xFFE8F5E9)),
+      MealType.dinner: (badge: '저녁', emoji: '🐟', bg: Color(0xFFE3F2FD)),
+      MealType.snack: (badge: '간식', emoji: '🍎', bg: Color(0xFFFCE4EC)),
+    };
+
+/// Maps a backend [DietEntry] onto the Figma meal-card view model.
+DietMeal _mealFromEntry(DietEntry e) {
+  final ({String badge, String emoji, Color bg}) meta =
+      _mealMeta[e.mealType] ?? _mealMeta[MealType.snack]!;
+  return DietMeal(
+    id: e.id,
+    badge: meta.badge,
+    time: e.timeLabel,
+    total: e.totalCalories,
+    emoji: meta.emoji,
+    thumbBg: meta.bg,
+    items: <DietFood>[
+      for (final FoodItem f in e.foods) DietFood(f.name, f.calories),
+    ],
+    tags: <DietTag>[
+      DietTag('나트륨 ${e.sodiumMg}mg', over: e.sodiumMg > 700),
+      DietTag('당류 ${e.sugarG}g'),
+    ],
+    sodium: e.sodiumMg,
+    sugar: e.sugarG,
+  );
+}
+
+class _DietRecordPageState extends ConsumerState<DietRecordPage> {
   int _weekShift = 0; // whole-week steps away from today
   late DateTime _selected;
 
@@ -51,6 +89,7 @@ class _DietRecordPageState extends State<DietRecordPage> {
       (int i) => center.add(Duration(days: i - 3)),
     );
     final bool atToday = _weekShift == 0 && _selected == today;
+    final AsyncValue<DietDay> diet = ref.watch(dietTodayProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -87,14 +126,29 @@ class _DietRecordPageState extends State<DietRecordPage> {
                   }),
                 ),
                 const SizedBox(height: 8),
-                const _NutritionSummary(),
-                const SizedBox(height: 20),
-                const _AiFeedback(),
-                const SizedBox(height: 20),
-                _MealLog(
-                  onAdd: () => showDietAddSheet(context),
-                  onEditMeal: (DietMeal m) => showMealEditSheet(context, m),
-                ),
+                if (!atToday)
+                  const _EmptyDay()
+                else
+                  diet.when(
+                    loading: () => const _DietLoading(),
+                    error: (Object e, StackTrace _) => _DietError(
+                      onRetry: () => ref.invalidate(dietTodayProvider),
+                    ),
+                    data: (DietDay day) => Column(
+                      children: <Widget>[
+                        _NutritionSummary(day: day),
+                        const SizedBox(height: 20),
+                        _AiFeedback(message: day.aiCoachMessage),
+                        const SizedBox(height: 20),
+                        _MealLog(
+                          entries: day.entries,
+                          onAdd: () => showDietAddSheet(context),
+                          onEditMeal: (DietMeal m) =>
+                              showMealEditSheet(context, m),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -300,16 +354,18 @@ class _DayCell extends StatelessWidget {
 // ──────────────────────────────────────────────────── nutrition summary ──
 
 class _NutritionSummary extends StatelessWidget {
-  const _NutritionSummary();
+  const _NutritionSummary({required this.day});
+
+  final DietDay day;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(
+          const Text(
             '오늘의 영양 요약',
             style: TextStyle(
               fontSize: 14,
@@ -317,31 +373,31 @@ class _NutritionSummary extends StatelessWidget {
               color: FigmaColors.ink,
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Row(
             children: <Widget>[
               Expanded(
                 child: _SummaryTile(
                   label: '칼로리',
-                  value: '1420',
+                  value: '${day.totalCalories}',
                   unit: 'kcal',
                   color: FigmaColors.primary,
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
                 child: _SummaryTile(
                   label: '나트륨',
-                  value: '2100',
+                  value: '${day.totalSodiumMg}',
                   unit: 'mg',
                   color: FigmaColors.orange,
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
                 child: _SummaryTile(
                   label: '당류',
-                  value: '45',
+                  value: '${day.totalSugarG}',
                   unit: 'g',
                   color: FigmaColors.primary,
                 ),
@@ -416,92 +472,54 @@ class _SummaryTile extends StatelessWidget {
 // ─────────────────────────────────────────────────────── AI feedback ──
 
 class _AiFeedback extends StatelessWidget {
-  const _AiFeedback();
+  const _AiFeedback({required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
+    if (message.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: <Widget>[
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: FigmaColors.softBlue,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: FigmaColors.primaryA(0.15)),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                OniAvatar(size: 40),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'AI 피드백',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: FigmaColors.primary,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        '오늘 나트륨이 2100mg으로 목표(2000mg)를 초과했어요.\n내일은 국물류를 줄이면 균형을 맞출 수 있어요.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.5,
-                          fontWeight: FontWeight.w500,
-                          color: FigmaColors.ink,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F5F7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: <Widget>[
-                Text('📤', style: TextStyle(fontSize: 10)),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: FigmaColors.textMuted,
-                      ),
-                      children: <InlineSpan>[
-                        TextSpan(text: '오늘의 식단 분석이 '),
-                        TextSpan(
-                          text: '김트레이너님',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF8A929E),
-                          ),
-                        ),
-                        TextSpan(text: '에게 자동 전송됐어요'),
-                      ],
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: FigmaColors.softBlue,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: FigmaColors.primaryA(0.15)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const OniAvatar(size: 40),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    'AI 피드백',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: FigmaColors.primary,
                     ),
                   ),
-                ),
-                Icon(Icons.check, size: 13, color: FigmaColors.statusGreen),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.5,
+                      fontWeight: FontWeight.w500,
+                      color: FigmaColors.ink,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -510,8 +528,13 @@ class _AiFeedback extends StatelessWidget {
 // ─────────────────────────────────────────────────────────── meal log ──
 
 class _MealLog extends StatelessWidget {
-  const _MealLog({required this.onAdd, required this.onEditMeal});
+  const _MealLog({
+    required this.entries,
+    required this.onAdd,
+    required this.onEditMeal,
+  });
 
+  final List<DietEntry> entries;
   final VoidCallback onAdd;
   final ValueChanged<DietMeal> onEditMeal;
 
@@ -537,10 +560,32 @@ class _MealLog extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          for (final DietMeal m in kDietMeals) ...<Widget>[
-            _MealCard(meal: m, onTap: () => onEditMeal(m)),
-            const SizedBox(height: 12),
-          ],
+          if (entries.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 28),
+              child: Center(
+                child: Text(
+                  '아직 기록된 식단이 없어요.\n사진으로 첫 끼니를 추가해 보세요!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.5,
+                    fontWeight: FontWeight.w500,
+                    color: FigmaColors.textMuted,
+                  ),
+                ),
+              ),
+            )
+          else
+            for (final DietEntry e in entries) ...<Widget>[
+              Builder(
+                builder: (BuildContext context) {
+                  final DietMeal m = _mealFromEntry(e);
+                  return _MealCard(meal: m, onTap: () => onEditMeal(m));
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
         ],
       ),
     );
@@ -758,6 +803,79 @@ class _MealCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────── loading / error / empty ──
+
+class _DietLoading extends StatelessWidget {
+  const _DietLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 48),
+      child: Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(strokeWidth: 3),
+        ),
+      ),
+    );
+  }
+}
+
+class _DietError extends StatelessWidget {
+  const _DietError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: Column(
+        children: <Widget>[
+          const Text(
+            '식단 정보를 불러오지 못했어요.',
+            style: TextStyle(fontSize: 13, color: FigmaColors.textMuted),
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton(
+            onPressed: onRetry,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: FigmaColors.primary,
+              side: BorderSide(color: FigmaColors.primaryA(0.4)),
+            ),
+            child: const Text('다시 시도'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyDay extends StatelessWidget {
+  const _EmptyDay();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+      child: Center(
+        child: Text(
+          '선택한 날짜의 기록은 아직 볼 수 없어요.\n오늘 날짜에서 식단을 확인해 주세요.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12.5,
+            height: 1.5,
+            fontWeight: FontWeight.w500,
+            color: FigmaColors.textMuted,
           ),
         ),
       ),

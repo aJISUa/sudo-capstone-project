@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:oncare/app/router/routes.dart';
 import 'package:oncare/design_system/figma/figma_kit.dart';
 import 'package:oncare/features/auth/presentation/controllers/session_controller.dart';
+import 'package:oncare/features/my_health/domain/entities/health_history.dart';
+import 'package:oncare/features/my_health/presentation/controllers/my_health_controller.dart';
 import 'package:oncare/features/my_health/presentation/widgets/my_flows.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
 import 'package:oncare/shared/widgets/modals/right_slide_panel.dart';
@@ -31,6 +33,7 @@ class MyHealthPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<MyHealthState> health = ref.watch(myHealthStateProvider);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -42,7 +45,7 @@ class MyHealthPage extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 108),
               children: <Widget>[
                 FigmaTabHeader(
-                  title: 'My',
+                  title: 'MY',
                   onBell: () => showRightSlidePanel<void>(
                     context,
                     content: const NotificationPanelBody(),
@@ -50,14 +53,19 @@ class MyHealthPage extends ConsumerWidget {
                   onCalendar: () => showScheduleCalendarSheet(context),
                 ),
                 const SizedBox(height: 4),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: _ProfileCard(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _ProfileCard(
+                    profile: health.valueOrNull?.profile,
+                  ),
                 ),
                 const SizedBox(height: 20),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: _PointsBanner(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _PointsBanner(
+                    points: health.valueOrNull?.activityPoints,
+                    rank: health.valueOrNull?.activityRank,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Padding(
@@ -71,6 +79,26 @@ class MyHealthPage extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: _LogoutButton(
                     onTap: () async {
+                      final bool ok =
+                          await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext ctx) => AlertDialog(
+                              title: const Text('로그아웃'),
+                              content: const Text('로그아웃 하시겠어요?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(false),
+                                  child: const Text('취소'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(true),
+                                  child: const Text('로그아웃'),
+                                ),
+                              ],
+                            ),
+                          ) ??
+                          false;
+                      if (!ok) return;
                       await ref
                           .read(sessionControllerProvider.notifier)
                           .signOut();
@@ -88,10 +116,15 @@ class MyHealthPage extends ConsumerWidget {
 }
 
 class _ProfileCard extends StatelessWidget {
-  const _ProfileCard();
+  const _ProfileCard({required this.profile});
+
+  final UserProfile? profile;
 
   @override
   Widget build(BuildContext context) {
+    final String name = profile?.name ?? '';
+    final String email = profile?.email ?? '';
+    final String initial = name.isNotEmpty ? name.substring(0, 1) : '·';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -121,9 +154,9 @@ class _ProfileCard extends StatelessWidget {
               ),
               border: Border.all(color: FigmaColors.primary, width: 2.5),
             ),
-            child: const Text(
-              '김',
-              style: TextStyle(
+            child: Text(
+              initial,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
@@ -131,22 +164,22 @@ class _ProfileCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  '김민수',
-                  style: TextStyle(
+                  name.isEmpty ? '사용자' : name,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: FigmaColors.ink,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'minsu@oncare.com',
-                  style: TextStyle(
+                  email,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: FigmaColors.textMuted,
@@ -162,7 +195,10 @@ class _ProfileCard extends StatelessWidget {
 }
 
 class _PointsBanner extends StatelessWidget {
-  const _PointsBanner();
+  const _PointsBanner({required this.points, required this.rank});
+
+  final int? points;
+  final int? rank;
 
   @override
   Widget build(BuildContext context) {
@@ -183,9 +219,9 @@ class _PointsBanner extends StatelessWidget {
         children: <Widget>[
           const Icon(Icons.star_border_rounded, color: Colors.white, size: 24),
           const SizedBox(width: 12),
-          const Text(
-            '1240P',
-            style: TextStyle(
+          Text(
+            points != null ? '${points}P' : '—P',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -193,21 +229,22 @@ class _PointsBanner extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.22),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: const Text(
-              '14위 랭킹',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+          if (rank != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$rank위 랭킹',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

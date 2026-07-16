@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:oncare/app/router/routes.dart';
 import 'package:oncare/design_system/figma/figma_kit.dart';
+import 'package:oncare/features/ai_coach/domain/entities/chat_message.dart';
+import 'package:oncare/features/ai_coach/presentation/controllers/chat_controller.dart';
 
 /// The AI 코치 chat screen, rebuilt to the On-Care Figma design. Opened from the
-/// coaching sheet's "AI와 대화하기" CTA.
-class AICoachPage extends StatefulWidget {
+/// coaching sheet's "AI와 대화하기" CTA. Replies are served by
+/// [chatControllerProvider] (the real coach repository, mock-RAG in demo mode),
+/// so questions get grounded answers with source chips instead of a canned line.
+class AICoachPage extends ConsumerStatefulWidget {
   const AICoachPage({super.key});
 
   @override
-  State<AICoachPage> createState() => _AICoachPageState();
-}
-
-class _ChatMsg {
-  const _ChatMsg(this.text, {required this.fromUser, this.time});
-  final String text;
-  final bool fromUser;
-  final String? time;
+  ConsumerState<AICoachPage> createState() => _AICoachPageState();
 }
 
 const List<String> _quickReplies = <String>[
@@ -26,18 +25,9 @@ const List<String> _quickReplies = <String>[
   '내 혈당 기록은 괜찮아?',
 ];
 
-class _AICoachPageState extends State<AICoachPage> {
+class _AICoachPageState extends ConsumerState<AICoachPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scroll = ScrollController();
-  final List<_ChatMsg> _messages = <_ChatMsg>[
-    const _ChatMsg(
-      '안녕하세요, 민수님!\n오늘 기록을 바탕으로 건강 관리를 함께 도와드릴게요.',
-      fromUser: false,
-      time: '오후 2:10',
-    ),
-  ];
-
-  bool get _hasConversation => _messages.any((_ChatMsg m) => m.fromUser);
 
   @override
   void dispose() {
@@ -46,22 +36,9 @@ class _AICoachPageState extends State<AICoachPage> {
     super.dispose();
   }
 
-  void _send([String? preset]) {
-    final String text = (preset ?? _controller.text).trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _messages.add(_ChatMsg(text, fromUser: true));
-      _messages.add(
-        const _ChatMsg(
-          '좋은 질문이에요! 오늘 기록을 살펴보면 나트륨이 조금 높은 편이라, '
-          '저녁은 담백한 구이나 샐러드를 추천해요. 식후 20분 가벼운 산책도 함께 해보세요. 🙂',
-          fromUser: false,
-        ),
-      );
-      _controller.clear();
-    });
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scroll.hasClients) {
+      if (mounted && _scroll.hasClients) {
         _scroll.animateTo(
           _scroll.position.maxScrollExtent,
           duration: const Duration(milliseconds: 250),
@@ -71,8 +48,24 @@ class _AICoachPageState extends State<AICoachPage> {
     });
   }
 
+  void _send([String? preset]) {
+    final String text = (preset ?? _controller.text).trim();
+    if (text.isEmpty) return;
+    _controller.clear();
+    ref.read(chatControllerProvider.notifier).send(text);
+    _scrollToBottom();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ChatState chat = ref.watch(chatControllerProvider);
+    // Auto-scroll whenever the conversation grows / the typing bubble toggles.
+    ref.listen<ChatState>(chatControllerProvider, (_, _) => _scrollToBottom());
+
+    // The starter prompts only make sense before the user has said anything.
+    final bool showQuickReplies =
+        !chat.messages.any((ChatMessage m) => m.isUser) && !chat.sending;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
@@ -108,15 +101,15 @@ class _AICoachPageState extends State<AICoachPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      for (final _ChatMsg m in _messages) ...<Widget>[
+                      for (final ChatMessage m in chat.messages) ...<Widget>[
                         _bubble(m),
                         const SizedBox(height: 16),
                       ],
-                      if (!_hasConversation) _quickReplySection(),
+                      if (showQuickReplies) _quickReplySection(),
                     ],
                   ),
                 ),
-                _inputBar(),
+                _inputBar(sending: chat.sending),
               ],
             ),
           ),
@@ -208,8 +201,8 @@ class _AICoachPageState extends State<AICoachPage> {
     );
   }
 
-  Widget _bubble(_ChatMsg m) {
-    if (m.fromUser) {
+  Widget _bubble(ChatMessage m) {
+    if (m.isUser) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
@@ -227,7 +220,7 @@ class _AICoachPageState extends State<AICoachPage> {
                 ),
               ),
               child: Text(
-                m.text,
+                m.content,
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.4,
@@ -272,30 +265,62 @@ class _AICoachPageState extends State<AICoachPage> {
                     ),
                   ],
                 ),
-                child: Text(
-                  m.text,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    fontWeight: FontWeight.w500,
-                    color: FigmaColors.ink,
-                  ),
-                ),
+                child: m.pending
+                    ? const _TypingDots()
+                    : Text(
+                        m.content,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                          color: FigmaColors.ink,
+                        ),
+                      ),
               ),
-              if (m.time != null)
+              if (!m.pending && m.sources.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 6, left: 4),
-                  child: Text(
-                    m.time!,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: FigmaColors.textFaint,
-                    ),
-                  ),
+                  padding: const EdgeInsets.only(top: 8, left: 4),
+                  child: _sourceChips(m.sources),
                 ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _sourceChips(List<String> sources) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: <Widget>[
+        for (final String s in sources)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: FigmaColors.softBlue,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(
+                  Icons.menu_book_outlined,
+                  size: 12,
+                  color: FigmaColors.primary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  s,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: FigmaColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -330,7 +355,10 @@ class _AICoachPageState extends State<AICoachPage> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: FigmaColors.primaryA(0.3), width: 1.5),
+                  border: Border.all(
+                    color: FigmaColors.primaryA(0.3),
+                    width: 1.5,
+                  ),
                 ),
                 child: Text(
                   q,
@@ -349,7 +377,7 @@ class _AICoachPageState extends State<AICoachPage> {
     );
   }
 
-  Widget _inputBar() {
+  Widget _inputBar({required bool sending}) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -368,7 +396,10 @@ class _AICoachPageState extends State<AICoachPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: FigmaColors.primaryA(0.25), width: 1.5),
+                border: Border.all(
+                  color: FigmaColors.primaryA(0.25),
+                  width: 1.5,
+                ),
               ),
               child: const Icon(Icons.add, size: 16, color: FigmaColors.primary),
             ),
@@ -376,7 +407,7 @@ class _AICoachPageState extends State<AICoachPage> {
             Expanded(
               child: TextField(
                 controller: _controller,
-                onSubmitted: (_) => _send(),
+                onSubmitted: sending ? null : (_) => _send(),
                 style: const TextStyle(fontSize: 14, color: FigmaColors.ink),
                 decoration: const InputDecoration(
                   isDense: true,
@@ -391,7 +422,7 @@ class _AICoachPageState extends State<AICoachPage> {
             ),
             const SizedBox(width: 8),
             GestureDetector(
-              onTap: () => _send(),
+              onTap: sending ? null : () => _send(),
               child: Container(
                 width: 32,
                 height: 32,
@@ -406,16 +437,69 @@ class _AICoachPageState extends State<AICoachPage> {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.arrow_upward,
-                  size: 16,
-                  color: Colors.white,
-                ),
+                child: sending
+                    ? const Padding(
+                        padding: EdgeInsets.all(8),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.arrow_upward,
+                        size: 16,
+                        color: Colors.white,
+                      ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Three-dot "typing…" indicator shown inside the coach bubble while a reply
+/// is in flight (mirrors the pending [ChatMessage] placeholder).
+class _TypingDots extends StatelessWidget {
+  const _TypingDots();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        for (int i = 0; i < 3; i++)
+          Padding(
+            padding: EdgeInsets.only(right: i < 2 ? 5 : 0),
+            child:
+                Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: FigmaColors.textFaint,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                    .animate(
+                      onPlay: (AnimationController c) => c.repeat(reverse: true),
+                    )
+                    .fade(
+                      begin: 0.35,
+                      end: 1,
+                      duration: 500.ms,
+                      delay: (i * 150).ms,
+                      curve: Curves.easeInOut,
+                    )
+                    .scaleXY(begin: 0.8, end: 1),
+          ),
+      ],
     );
   }
 }

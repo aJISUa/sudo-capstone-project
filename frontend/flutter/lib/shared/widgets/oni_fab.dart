@@ -19,6 +19,7 @@ class OniFab extends StatelessWidget {
         width: 56,
         height: 56,
         child: Stack(
+          alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: <Widget>[
             Container(
@@ -50,7 +51,7 @@ class OniFab extends StatelessWidget {
                     border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: Text(
-                    '$badgeCount',
+                    badgeCount > 9 ? '9+' : '$badgeCount',
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,

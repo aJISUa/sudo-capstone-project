@@ -1,6 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:oncare/design_system/figma/figma_kit.dart';
+import 'package:oncare/features/diet/domain/entities/diet_analysis.dart';
+import 'package:oncare/features/diet/domain/entities/diet_day.dart';
+import 'package:oncare/features/diet/presentation/controllers/diet_controller.dart';
 
 /// A single logged food item.
 class DietFood {
@@ -16,7 +23,8 @@ class DietTag {
   final bool over;
 }
 
-/// One meal in the daily log.
+/// One meal in the daily log. [id] is the backend entry id (null for a
+/// not-yet-persisted draft) and is required to edit or delete the entry.
 class DietMeal {
   const DietMeal({
     required this.badge,
@@ -28,6 +36,7 @@ class DietMeal {
     required this.tags,
     required this.sodium,
     required this.sugar,
+    this.id,
   });
 
   final String badge;
@@ -39,53 +48,25 @@ class DietMeal {
   final List<DietTag> tags;
   final int sodium;
   final int sugar;
+  final String? id;
 }
 
-const List<DietMeal> kDietMeals = <DietMeal>[
-  DietMeal(
-    badge: '아침',
-    time: '08:20',
-    total: 315,
-    emoji: '🥣',
-    thumbBg: Color(0xFFFFF3E0),
-    items: <DietFood>[
-      DietFood('오트밀', 220),
-      DietFood('바나나 1개', 90),
-      DietFood('아메리카노', 5),
-    ],
-    tags: <DietTag>[DietTag('나트륨 380mg'), DietTag('당류 18g')],
-    sodium: 380,
-    sugar: 18,
-  ),
-  DietMeal(
-    badge: '점심',
-    time: '12:40',
-    total: 530,
-    emoji: '🥗',
-    thumbBg: Color(0xFFE8F5E9),
-    items: <DietFood>[
-      DietFood('닭가슴살 샐러드', 380),
-      DietFood('현미밥 반공기', 150),
-    ],
-    tags: <DietTag>[DietTag('나트륨 1120mg', over: true), DietTag('당류 14g')],
-    sodium: 1120,
-    sugar: 14,
-  ),
-  DietMeal(
-    badge: '저녁',
-    time: '19:00',
-    total: 575,
-    emoji: '🐟',
-    thumbBg: Color(0xFFE3F2FD),
-    items: <DietFood>[
-      DietFood('연어 스테이크', 420),
-      DietFood('구운 야채', 155),
-    ],
-    tags: <DietTag>[DietTag('나트륨 600mg'), DietTag('당류 13g')],
-    sodium: 600,
-    sugar: 13,
-  ),
-];
+/// Korean meal badge → backend `meal_type` string used by the diet API.
+const Map<String, String> _mealTypeByBadge = <String, String>{
+  '아침': 'breakfast',
+  '점심': 'lunch',
+  '저녁': 'dinner',
+  '간식': 'snack',
+};
+
+/// Best-guess meal type for a new entry, based on the current time of day.
+String _currentMealType() {
+  final int h = DateTime.now().hour;
+  if (h < 11) return 'breakfast';
+  if (h < 15) return 'lunch';
+  if (h < 21) return 'dinner';
+  return 'snack';
+}
 
 Widget _sheetShell(BuildContext context, Widget child) {
   return SafeArea(
@@ -117,6 +98,24 @@ Widget _sheetHandle() => Container(
 );
 
 // ─────────────────────────────────────────────────── 식단 추가하기 ──
+
+/// Pick a food photo from [source], then hand it to the AI analysis sheet.
+/// Silently returns if the user cancels the picker.
+Future<void> _pickAndAnalyze(
+  BuildContext sheetContext,
+  BuildContext pageContext,
+  ImageSource source,
+) async {
+  final XFile? file = await ImagePicker().pickImage(
+    source: source,
+    imageQuality: 85,
+  );
+  if (file == null) return;
+  final Uint8List bytes = await file.readAsBytes();
+  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+  if (!pageContext.mounted) return;
+  await showDietResultSheet(pageContext, bytes, _currentMealType());
+}
 
 /// "식단 추가하기" — pick a photo source, then show the AI analysis result.
 Future<void> showDietAddSheet(BuildContext context) {
@@ -169,10 +168,8 @@ Future<void> showDietAddSheet(BuildContext context) {
                   iconColor: FigmaColors.primary,
                   title: '사진 선택하기',
                   subtitle: '갤러리에서 음식 사진 선택',
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    showDietResultSheet(context);
-                  },
+                  onTap: () =>
+                      _pickAndAnalyze(ctx, context, ImageSource.gallery),
                 ),
                 const SizedBox(height: 12),
                 _SourceOption(
@@ -181,10 +178,7 @@ Future<void> showDietAddSheet(BuildContext context) {
                   iconColor: FigmaColors.greenText,
                   title: '사진 찍기',
                   subtitle: '카메라로 음식 촬영',
-                  onTap: () {
-                    Navigator.of(ctx).pop();
-                    showDietResultSheet(context);
-                  },
+                  onTap: () => _pickAndAnalyze(ctx, context, ImageSource.camera),
                 ),
               ],
             ),
@@ -277,14 +271,77 @@ class _SourceOption extends StatelessWidget {
 // ─────────────────────────────────────────────────── 분석 완료 ──
 
 /// AI analysis result sheet shown after picking a photo.
-Future<void> showDietResultSheet(BuildContext context) {
+/// Runs the real `POST /diet/analyze` on the picked [imageBytes] and shows the
+/// recognised foods + nutrition. The backend persists the entry as part of
+/// analysis, so a successful result refreshes [dietTodayProvider].
+Future<void> showDietResultSheet(
+  BuildContext context,
+  Uint8List imageBytes,
+  String mealType,
+) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: FigmaColors.sheetScrim,
-    builder: (BuildContext ctx) => _sheetShell(
-      ctx,
+    builder: (BuildContext ctx) =>
+        _ResultSheet(imageBytes: imageBytes, mealType: mealType),
+  );
+}
+
+class _ResultSheet extends ConsumerStatefulWidget {
+  const _ResultSheet({required this.imageBytes, required this.mealType});
+  final Uint8List imageBytes;
+  final String mealType;
+
+  @override
+  ConsumerState<_ResultSheet> createState() => _ResultSheetState();
+}
+
+class _ResultSheetState extends ConsumerState<_ResultSheet> {
+  DietAnalysisResult? _result;
+  bool _loading = true;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _run();
+  }
+
+  Future<void> _run() async {
+    setState(() {
+      _loading = true;
+      _failed = false;
+    });
+    try {
+      final DietAnalysisResult result = await ref
+          .read(dietRepositoryProvider)
+          .analyze(
+            imageBytes: widget.imageBytes,
+            filename: 'meal.jpg',
+            mealType: widget.mealType,
+          );
+      if (!mounted) return;
+      // analyze() already persisted the entry → refresh the day's summary/list.
+      ref.invalidate(dietTodayProvider);
+      setState(() {
+        _result = result;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _failed = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _sheetShell(
+      context,
       Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -295,19 +352,23 @@ Future<void> showDietResultSheet(BuildContext context) {
               children: <Widget>[
                 const OniAvatar(),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        '분석 완료!',
-                        style: TextStyle(
+                        _loading
+                            ? '분석 중…'
+                            : _failed
+                            ? '분석 실패'
+                            : '분석 완료!',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           color: FigmaColors.ink,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'AI 영양 분석 결과',
                         style: TextStyle(
                           fontSize: 12,
@@ -318,121 +379,170 @@ Future<void> showDietResultSheet(BuildContext context) {
                     ],
                   ),
                 ),
-                _CircleClose(onTap: () => Navigator.of(ctx).pop()),
+                _CircleClose(onTap: () => Navigator.of(context).pop()),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-            child: Column(
-              children: <Widget>[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: FigmaColors.softBlue,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        '인식된 음식',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: FigmaColors.primary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        '닭가슴살 샐러드 · 현미밥 반공기',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: FigmaColors.ink,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '영양 분석 결과 (수정 가능)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: FigmaColors.textMuted,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const _ResultRow(label: '칼로리', value: '486', unit: 'kcal'),
-                const SizedBox(height: 8),
-                const _ResultRow(label: '나트륨', value: '820', unit: 'mg'),
-                const SizedBox(height: 8),
-                const _ResultRow(label: '당류', value: '12', unit: 'g'),
-                const SizedBox(height: 16),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: FigmaColors.primary,
-                          side: BorderSide(color: FigmaColors.primaryA(0.4)),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text(
-                          '수정하기',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('식단이 저장되었어요')),
-                          );
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: FigmaColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: const Icon(Icons.save_outlined, size: 16),
-                        label: const Text(
-                          '저장하기',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            child: _body(),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
+
+  Widget _body() {
+    if (_loading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Column(
+          children: <Widget>[
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            SizedBox(height: 14),
+            Text(
+              '사진 속 음식을 분석하고 있어요',
+              style: TextStyle(fontSize: 13, color: FigmaColors.textMuted),
+            ),
+          ],
+        ),
+      );
+    }
+    if (_failed || _result == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          children: <Widget>[
+            const Text(
+              '분석에 실패했어요. 잠시 후 다시 시도해 주세요.',
+              style: TextStyle(fontSize: 13, color: FigmaColors.textMuted),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _run,
+                style: FilledButton.styleFrom(
+                  backgroundColor: FigmaColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  '다시 시도',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final DietAnalysisResult r = _result!;
+    final String recognized = r.foods.map((RecognizedFood f) => f.name).join(' · ');
+    return Column(
+      children: <Widget>[
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: FigmaColors.softBlue,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                '인식된 음식',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: FigmaColors.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                recognized.isEmpty ? '인식된 음식이 없어요' : recognized,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: FigmaColors.ink,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '영양 분석 결과',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: FigmaColors.textMuted,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _ResultRow(label: '칼로리', value: '${r.totalCalories}', unit: 'kcal'),
+        const SizedBox(height: 8),
+        _ResultRow(label: '나트륨', value: '${r.totalSodiumMg}', unit: 'mg'),
+        const SizedBox(height: 8),
+        _ResultRow(label: '당류', value: '${r.totalSugarG}', unit: 'g'),
+        if (r.coachComment.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: FigmaColors.statBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              r.coachComment,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
+                color: FigmaColors.textBody,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('식단이 저장되었어요')),
+              );
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: FigmaColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.check, size: 16),
+            label: const Text(
+              '완료',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _ResultRow extends StatelessWidget {
@@ -492,20 +602,103 @@ Future<void> showMealEditSheet(BuildContext context, DietMeal meal) {
   );
 }
 
-class _MealEditSheet extends StatefulWidget {
+class _MealEditSheet extends ConsumerStatefulWidget {
   const _MealEditSheet({required this.meal});
   final DietMeal meal;
 
   @override
-  State<_MealEditSheet> createState() => _MealEditSheetState();
+  ConsumerState<_MealEditSheet> createState() => _MealEditSheetState();
 }
 
-class _MealEditSheetState extends State<_MealEditSheet> {
+class _MealEditSheetState extends ConsumerState<_MealEditSheet> {
   static const List<String> _types = <String>['아침', '점심', '저녁', '간식'];
   late String _type = widget.meal.badge;
   late List<DietFood> _foods = List<DietFood>.of(widget.meal.items);
+  bool _busy = false;
 
   int get _total => _foods.fold(0, (int a, DietFood f) => a + f.kcal);
+
+  Future<void> _save() async {
+    final String? id = widget.meal.id;
+    final NavigatorState navigator = Navigator.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    if (id == null) {
+      navigator.pop();
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(dietRepositoryProvider)
+          .updateEntry(
+            id: id,
+            mealType: _mealTypeByBadge[_type],
+            foods: <FoodItem>[
+              for (final DietFood f in _foods)
+                FoodItem(name: f.name, calories: f.kcal),
+            ],
+            totalCalories: _total,
+          );
+      ref.invalidate(dietTodayProvider);
+      navigator.pop();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('식단이 저장되었어요')),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _busy = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('저장에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    final String? id = widget.meal.id;
+    if (id == null) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final bool ok =
+        await showDialog<bool>(
+          context: context,
+          builder: (BuildContext ctx) => AlertDialog(
+            title: const Text('식단 기록 삭제'),
+            content: const Text('이 식단 기록을 삭제할까요?'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('취소'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFFF3B30),
+                ),
+                child: const Text('삭제'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!ok || !mounted) return;
+
+    final NavigatorState navigator = Navigator.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      await ref.read(dietRepositoryProvider).deleteEntry(id);
+      ref.invalidate(dietTodayProvider);
+      navigator.pop();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('식단이 삭제되었어요')),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _busy = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('삭제에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -535,12 +728,7 @@ class _MealEditSheetState extends State<_MealEditSheet> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('식단이 저장되었어요')),
-                    );
-                  },
+                  onPressed: _busy ? null : _save,
                   child: const Text(
                     '저장',
                     style: TextStyle(
@@ -727,12 +915,7 @@ class _MealEditSheetState extends State<_MealEditSheet> {
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('식단이 삭제되었어요')),
-                  );
-                },
+                onPressed: _busy ? null : _confirmDelete,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFFF3B30),
                   side: const BorderSide(color: Color(0x33FF3B30)),

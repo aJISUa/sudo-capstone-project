@@ -1,6 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare/design_system/figma/figma_kit.dart';
+import 'package:oncare/features/exercise/domain/entities/exercise_week.dart';
+import 'package:oncare/features/exercise/presentation/controllers/exercise_controller.dart';
+
+const List<String> _weekdayLabels = <String>['월', '화', '수', '목', '금', '토', '일'];
+
+/// The "운동 종류" chip order shared by the add/edit sheet.
+const List<String> _exerciseTypeLabels = <String>[
+  '걷기',
+  '달리기',
+  '스트레칭',
+  '근력운동',
+  '자전거',
+  '기타',
+];
+
+/// Chip index → backend [ExerciseType].
+ExerciseType _typeFromIndex(int i) => switch (i) {
+  0 => ExerciseType.walking,
+  1 => ExerciseType.cardio,
+  2 => ExerciseType.stretching,
+  3 => ExerciseType.strength,
+  4 => ExerciseType.cardio,
+  _ => ExerciseType.other,
+};
+
+/// [ExerciseType] → chip index (for pre-filling the edit sheet).
+int _indexFromType(ExerciseType t) => switch (t) {
+  ExerciseType.walking => 0,
+  ExerciseType.cardio => 1,
+  ExerciseType.stretching => 2,
+  ExerciseType.strength => 3,
+  ExerciseType.yoga => 2,
+  ExerciseType.other => 5,
+};
+
+/// Rough kcal/min per type, used to estimate burn when the user only logs a
+/// duration (matches the prototype's estimate ranges).
+int _estimateCalories(ExerciseType type, int minutes) {
+  final double perMin = switch (type) {
+    ExerciseType.cardio => 9,
+    ExerciseType.strength => 6,
+    ExerciseType.walking => 4,
+    ExerciseType.stretching => 3,
+    ExerciseType.yoga => 3,
+    ExerciseType.other => 5,
+  };
+  return (perMin * minutes).round();
+}
 
 Widget _shell(BuildContext context, Widget child) => SafeArea(
   top: false,
@@ -32,38 +81,92 @@ Widget _handle() => Container(
 // ─────────────────────────────────────────────────────── 운동 추가 ──
 
 /// A compact "운동 추가" sheet: pick a type + duration/intensity, then save.
-Future<void> showExerciseAddSheet(BuildContext context, {bool edit = false}) {
+/// Pass [session] to open in edit mode (pre-filled → PUT); omit it to add.
+Future<void> showExerciseAddSheet(
+  BuildContext context, {
+  ExerciseSession? session,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: FigmaColors.sheetScrim,
-    builder: (BuildContext ctx) => _ExerciseAddSheet(edit: edit),
+    builder: (BuildContext ctx) => _ExerciseAddSheet(session: session),
   );
 }
 
-class _ExerciseAddSheet extends StatefulWidget {
-  const _ExerciseAddSheet({required this.edit});
+class _ExerciseAddSheet extends ConsumerStatefulWidget {
+  const _ExerciseAddSheet({this.session});
 
-  final bool edit;
+  final ExerciseSession? session;
+
+  bool get isEdit => session != null;
 
   @override
-  State<_ExerciseAddSheet> createState() => _ExerciseAddSheetState();
+  ConsumerState<_ExerciseAddSheet> createState() => _ExerciseAddSheetState();
 }
 
-class _ExerciseAddSheetState extends State<_ExerciseAddSheet> {
-  static const List<String> _types = <String>[
-    '걷기',
-    '달리기',
-    '스트레칭',
-    '근력운동',
-    '자전거',
-    '기타',
-  ];
+class _ExerciseAddSheetState extends ConsumerState<_ExerciseAddSheet> {
+  static const List<String> _types = _exerciseTypeLabels;
   static const List<String> _levels = <String>['가벼움', '보통', '높음'];
-  int _type = 1;
+  late int _type = widget.session != null
+      ? _indexFromType(widget.session!.type)
+      : 1;
   int _level = 0;
-  double _minutes = 30;
+  late double _minutes = widget.session?.minutes.toDouble() ?? 30;
+  bool _saving = false;
+
+  Future<void> _save() async {
+    if (_saving) return;
+    final NavigatorState navigator = Navigator.of(context);
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final int minutes = _minutes.round();
+    if (minutes <= 0) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('운동 시간을 입력해주세요')),
+      );
+      return;
+    }
+    final ExerciseType type = _typeFromIndex(_type);
+    final int calories = _estimateCalories(type, minutes);
+    setState(() => _saving = true);
+    try {
+      // 서버(mock 모드는 drift)에 저장 → 주간 데이터 무효화로 통계·차트·목록 반영.
+      final ExerciseSession? editing = widget.session;
+      if (editing != null && editing.id != null) {
+        await ref
+            .read(exerciseRepositoryProvider)
+            .updateSession(
+              id: editing.id!,
+              type: type,
+              minutes: minutes,
+              calories: calories,
+              dayLabel: editing.dayLabel,
+            );
+      } else {
+        await ref
+            .read(exerciseRepositoryProvider)
+            .addSession(
+              type: type,
+              minutes: minutes,
+              calories: calories,
+              dayLabel: _weekdayLabels[DateTime.now().weekday - 1],
+            );
+      }
+      ref.invalidate(exerciseWeekProvider);
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(widget.isEdit ? '운동 기록이 수정됐어요' : '운동이 기록됐어요'),
+        ),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _saving = false);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('저장에 실패했어요. 잠시 후 다시 시도해 주세요')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +182,7 @@ class _ExerciseAddSheetState extends State<_ExerciseAddSheet> {
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    widget.edit ? '운동 기록 수정' : '운동 추가',
+                    widget.isEdit ? '운동 기록 수정' : '운동 추가',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -88,16 +191,7 @@ class _ExerciseAddSheetState extends State<_ExerciseAddSheet> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          widget.edit ? '운동 기록이 수정됐어요' : '운동이 기록됐어요',
-                        ),
-                      ),
-                    );
-                  },
+                  onPressed: _saving ? null : _save,
                   child: const Text(
                     '저장',
                     style: TextStyle(

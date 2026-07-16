@@ -201,14 +201,16 @@ class FigmaCircleButton extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
-          Material(
-            color: FigmaColors.softBlue,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: onTap,
-              child: Center(
-                child: Icon(icon, size: iconSize, color: FigmaColors.primary),
+          Positioned.fill(
+            child: Material(
+              color: FigmaColors.softBlue,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onTap,
+                child: Center(
+                  child: Icon(icon, size: iconSize, color: FigmaColors.primary),
+                ),
               ),
             ),
           ),

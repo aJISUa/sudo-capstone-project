@@ -47,10 +47,19 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Future<void> _send() async {
     final text = _input.text;
     if (text.trim().isEmpty) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(chatRepositoryProvider)
+          .sendTrainerMessage(clientId: widget.clientId, text: text);
+    } catch (_) {
+      // Keep the draft in the input and tell the user it didn't go out.
+      messenger.showSnackBar(
+        const SnackBar(content: Text('메시지 전송에 실패했어요. 다시 시도해 주세요')),
+      );
+      return;
+    }
     // Clear only after the insert succeeds so the text isn't lost on error.
-    await ref
-        .read(chatRepositoryProvider)
-        .sendTrainerMessage(clientId: widget.clientId, text: text);
     _input.clear();
     _scrollToBottom();
   }

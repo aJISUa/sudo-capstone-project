@@ -73,7 +73,7 @@ void main() {
 
       await tester.tap(find.text('스케줄'));
       await settle(tester);
-      expect(find.text('스케줄 화면은 곧 준비됩니다'), findsOneWidget);
+      expect(find.textContaining('온케어짐 신촌점'), findsOneWidget);
 
       await tester.tap(find.text('MY'));
       await settle(tester);

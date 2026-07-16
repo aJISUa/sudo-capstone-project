@@ -7,7 +7,17 @@ class AppRoutes {
   /// Trainer login screen (email/password + demo bypass).
   static const String signIn = '/auth/sign-in';
 
-  /// Trainer home — the 고객(clients) tab. Currently a placeholder
-  /// stand-in; the four-tab shell replaces it in a later issue.
-  static const String dashboard = '/dashboard';
+  // Main tabs (StatefulShellRoute branches).
+
+  /// 고객 관리 — client list (home tab).
+  static const String clients = '/clients';
+
+  /// 스케줄 — daily PT timeline.
+  static const String schedule = '/schedule';
+
+  /// AI 루틴 — AI routine generation.
+  static const String aiRoutine = '/ai-routine';
+
+  /// MY — trainer profile.
+  static const String my = '/my';
 }

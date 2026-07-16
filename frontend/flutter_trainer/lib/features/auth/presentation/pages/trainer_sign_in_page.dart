@@ -37,7 +37,7 @@ class _TrainerSignInPageState extends ConsumerState<TrainerSignInPage> {
 
   void _enterDemo() {
     ref.read(sessionControllerProvider.notifier).enterDemo();
-    context.go(AppRoutes.dashboard);
+    context.go(AppRoutes.clients);
   }
 
   Future<void> _login() async {
@@ -57,7 +57,7 @@ class _TrainerSignInPageState extends ConsumerState<TrainerSignInPage> {
           .read(sessionControllerProvider.notifier)
           .login(email: email, password: password);
       if (!mounted) return;
-      context.go(AppRoutes.dashboard);
+      context.go(AppRoutes.clients);
     } on AuthException catch (e) {
       if (mounted) setState(() => _loading = false);
       messenger.showSnackBar(SnackBar(content: Text(e.message)));

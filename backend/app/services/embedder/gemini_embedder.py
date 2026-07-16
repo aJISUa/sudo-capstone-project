@@ -1,8 +1,9 @@
 """
-Gemini 임베딩기 (text-embedding-004 등). 모델 교체 옵션.
+Gemini 임베딩기 (gemini-embedding-001). 모델 교체 옵션.
 
-주의: Gemini 임베딩 차원(보통 768)은 OpenAI(1536)와 다릅니다.
-이 임베더로 바꾸면 .env 의 EMBED_DIM 도 맞추고 재임베딩해야 합니다.
+gemini-embedding-001 은 기본 3072차원이지만 output_dimensionality 로 축소 가능(Matryoshka).
+EMBED_DIM(기본 768)에 맞춰 요청한다. rag 검색은 cosine 거리(스케일 불변)라 별도 정규화 불필요.
+차원을 바꾸면 coach_documents 재생성 + 재임베딩 필요.
 """
 from __future__ import annotations
 
@@ -18,8 +19,10 @@ class GeminiEmbedder(Embedder):
         if not s.gemini_api_key:
             raise RuntimeError("GEMINI_API_KEY 가 설정되지 않았습니다.")
         from google import genai
+        from google.genai import types
         self._client = genai.Client(api_key=s.gemini_api_key)
-        self._model = "text-embedding-004"
+        self._types = types
+        self._model = "gemini-embedding-001"
         self.dim = s.embed_dim
 
     def embed(self, texts: list[str]) -> list[list[float]]:
@@ -28,6 +31,9 @@ class GeminiEmbedder(Embedder):
         out: list[list[float]] = []
         # Gemini 임베딩 API 는 건별 호출이 단순(배치도 가능하나 호환 위해 건별)
         for t in texts:
-            r = self._client.models.embed_content(model=self._model, contents=t)
+            r = self._client.models.embed_content(
+                model=self._model, contents=t,
+                config=self._types.EmbedContentConfig(output_dimensionality=self.dim),
+            )
             out.append(list(r.embeddings[0].values))
         return out

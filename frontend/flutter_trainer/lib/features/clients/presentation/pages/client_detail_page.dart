@@ -10,7 +10,7 @@ import 'package:oncare_trainer/features/clients/data/repositories/client_reposit
 import 'package:oncare_trainer/app/router/routes.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/trainer_client.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/chat_view.dart';
-import 'package:oncare_trainer/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:oncare_trainer/shared/widgets/client_avatar.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/diet_view.dart';
 import 'package:oncare_trainer/features/clients/presentation/widgets/workout_view.dart';
 import 'package:oncare_trainer/shared/widgets/brand_header.dart';

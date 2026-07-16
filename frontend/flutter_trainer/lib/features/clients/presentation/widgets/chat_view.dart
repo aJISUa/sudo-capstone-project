@@ -6,7 +6,7 @@ import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
 import 'package:oncare_trainer/features/clients/data/repositories/chat_repository.dart';
 import 'package:oncare_trainer/features/clients/domain/entities/client_chat_message.dart';
-import 'package:oncare_trainer/features/clients/presentation/widgets/client_avatar.dart';
+import 'package:oncare_trainer/shared/widgets/client_avatar.dart';
 
 /// The 채팅 sub-tab: an AI-received system banner, the message thread
 /// (trainer right / client left), and an input bar that appends a

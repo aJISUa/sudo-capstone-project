@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oncare_trainer/core/storage/session_token_store.dart';
 import 'package:oncare_trainer/features/auth/data/repositories/mock_trainer_auth_repository.dart';
 import 'package:oncare_trainer/features/auth/domain/entities/session_state.dart';
-import 'package:oncare_trainer/features/auth/domain/entities/trainer_profile.dart';
+import 'package:oncare_trainer/shared/models/trainer_profile.dart';
 import 'package:oncare_trainer/features/auth/domain/repositories/trainer_auth_repository.dart';
 
 /// Owns the trainer session lifecycle: restore-on-launch, mock login,

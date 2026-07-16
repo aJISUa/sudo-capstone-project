@@ -127,6 +127,32 @@ void main() {
       expect(thread.last.id, 'chat-runtime-order');
     });
 
+    test('per-meal sums match each client\'s daily totals', () async {
+      // The diet summary tiles read the client row's totals while the
+      // meal cards read ClientDietEntries — the two sources must agree.
+      await seedIfEmpty(db);
+
+      final clients = await db.select(db.trainerClients).get();
+      expect(clients, isNotEmpty);
+      for (final client in clients) {
+        final meals = await (db.select(
+          db.clientDietEntries,
+        )..where((t) => t.clientId.equals(client.id))).get();
+        final sodiumSum = meals.fold<int>(0, (s, m) => s + m.sodiumMg);
+        final kcalSum = meals.fold<int>(0, (s, m) => s + m.calories);
+        expect(
+          sodiumSum,
+          client.sodiumMg,
+          reason: '${client.name}: meal sodium must sum to the daily total',
+        );
+        expect(
+          kcalSum,
+          client.caloriesToday,
+          reason: '${client.name}: meal calories must sum to the daily total',
+        );
+      }
+    });
+
     test('user-added (non-seed) chat messages survive a re-seed', () async {
       await seedIfEmpty(db);
 

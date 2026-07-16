@@ -107,6 +107,7 @@ class _MyPageState extends ConsumerState<MyPage> {
       _certs = List<String>.of(_draftCerts);
       _editing = false;
       _saveFlash = true;
+      _newCert.clear(); // same for save — a stale draft shouldn't linger
     });
     _flashTimer?.cancel();
     _flashTimer = Timer(const Duration(seconds: 2), () {
@@ -152,7 +153,12 @@ class _MyPageState extends ConsumerState<MyPage> {
                     label: '취소',
                     background: AppColors.inputBackground,
                     foreground: AppColors.subtleForeground,
-                    onTap: () => setState(() => _editing = false),
+                    onTap: () => setState(() {
+                      _editing = false;
+                      // Drop the un-added cert draft too — otherwise it
+                      // reappears on the next edit (PR review).
+                      _newCert.clear();
+                    }),
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   _ChipButton(

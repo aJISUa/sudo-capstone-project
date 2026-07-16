@@ -96,6 +96,38 @@ void main() {
       expect(find.text('레그프레스 5세트'), findsNothing);
     });
 
+    testWidgets('send reset also closes the add-exercise form', (
+      tester,
+    ) async {
+      await openTab(tester);
+
+      // Open the add form, then send with it still open.
+      await tester.scrollUntilVisible(find.text('＋ 운동 직접 추가'), 150);
+      await tester.ensureVisible(find.text('＋ 운동 직접 추가'));
+      await tester.pump();
+      await tester.tap(find.text('＋ 운동 직접 추가'));
+      await tester.pump();
+      expect(find.text('운동 추가'), findsOneWidget);
+
+      // The open form's TextField adds an inner Scrollable — target the
+      // page ListView explicitly.
+      await tester.scrollUntilVisible(
+        find.textContaining('님에게 전송'),
+        150,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.ensureVisible(find.textContaining('님에게 전송'));
+      await tester.pump();
+      await tester.tap(find.textContaining('님에게 전송'));
+      await tester.pump();
+
+      await tester.pump(const Duration(seconds: 4)); // reset window
+      // The add form must be closed again after the reset.
+      expect(find.text('운동 추가'), findsNothing);
+      await tester.scrollUntilVisible(find.text('＋ 운동 직접 추가'), 150);
+      expect(find.text('＋ 운동 직접 추가'), findsOneWidget);
+    });
+
     testWidgets('send shows confirmation then resets edits', (tester) async {
       await openTab(tester);
 

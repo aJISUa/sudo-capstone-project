@@ -26,8 +26,20 @@ Future<void> seedIfEmpty(AppDatabase db) async {
 
   if (await db.readValue('trainer_seeded_v1') == today) return;
 
-  // First boot, or the date rolled over — wipe seed rows and re-insert.
+  // A fixed, ancient anchor for seed chat timestamps. Using a constant
+  // (not DateTime.now()) keeps seed messages ordered before ANY reply
+  // added at runtime — including after a later-day re-seed, where a fresh
+  // `now()` base would otherwise sort new seed rows *after* a preserved
+  // runtime reply.
+  final chatEpoch = DateTime.utc(2000, 1, 1);
+
+  // First boot, or the date rolled over. Wipe + re-insert + flag all run
+  // in ONE transaction: if any insert fails, the whole thing rolls back
+  // to the prior state instead of leaving the old seed deleted with
+  // nothing to replace it (which would show an empty app until the next
+  // date rollover).
   await db.transaction(() async {
+    // ---- Wipe existing seed rows (seed-% only; user rows survive) ----
     await (db.delete(db.trainerClients)..where((t) => t.id.like('seed-%'))).go();
     await (db.delete(
       db.clientDietEntries,
@@ -44,11 +56,8 @@ Future<void> seedIfEmpty(AppDatabase db) async {
     await (db.delete(
       db.trainerScheduleEntries,
     )..where((t) => t.id.like('seed-%'))).go();
-  });
 
-  final base = DateTime.now();
-
-  await db.transaction(() async {
+    // ---- Re-insert clients + their nested data ----
     for (final client in _clients) {
       await db
           .into(db.trainerClients)
@@ -120,12 +129,10 @@ Future<void> seedIfEmpty(AppDatabase db) async {
               sender: client.chat[i].sender,
               body: client.chat[i].text,
               timeLabel: client.chat[i].timeLabel,
-              // Seed messages land in the PAST (oldest first, all before
-              // `base` ≈ now) and a minute apart, so a reply added at
-              // runtime — createdAt >= now — always sorts after them.
-              createdAt: base.subtract(
-                Duration(minutes: client.chat.length - i),
-              ),
+              // Anchored at the fixed ancient epoch (oldest first, a
+              // minute apart) so any runtime reply — and any preserved
+              // reply from a previous day — always sorts after the seed.
+              createdAt: chatEpoch.add(Duration(minutes: i)),
             ),
         ]);
       });
@@ -149,9 +156,10 @@ Future<void> seedIfEmpty(AppDatabase db) async {
           ),
       ]);
     });
-  });
 
-  await db.putValue('trainer_seeded_v1', today);
+    // ---- Mark seeded (inside the txn so it commits atomically) ----
+    await db.putValue('trainer_seeded_v1', today);
+  });
 }
 
 String _fmtDate(DateTime d) =>

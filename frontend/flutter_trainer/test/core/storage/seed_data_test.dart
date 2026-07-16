@@ -154,6 +154,14 @@ void main() {
         isTrue,
         reason: 'rows without a seed- prefix must never be wiped',
       );
+
+      // After the re-seed, the preserved runtime reply must STILL sort
+      // after the (re-inserted) seed messages — the fixed epoch anchor
+      // guarantees this even though the re-seed ran on a later day.
+      final thread =
+          chat.where((m) => m.clientId == 'seed-client-1').toList()
+            ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      expect(thread.last.id, 'chat-runtime-1');
     });
   });
 }

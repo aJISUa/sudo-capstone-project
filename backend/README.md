@@ -38,6 +38,11 @@ alembic downgrade -1          # 한 단계 롤백
 > 개발 편의를 위해 앱 기동 시 `create_all()` 로도 테이블을 만들지만(멱등), **운영은 `alembic upgrade head`** 를 정답으로 삼습니다.
 > (운영에서 `create_all` 을 끄려면 `AUTO_CREATE_TABLES=false` — 설정 항목은 이후 커밋에서 추가)
 
+## RAG (pgvector + Gemini)
+공공문서 적재 → pgvector 검색 → 근거 코칭까지의 로컬 셋업·재현 절차는 **[docs/rag_gemini_setup.md](docs/rag_gemini_setup.md)** 참고.
+임베딩 `gemini-embedding-001`(768) · 코치/인식 `gemini-flash-latest` · `.env`: `EMBEDDER=gemini`, `EMBED_DIM=768`.
+검증: `python -m scripts.check_gemini` · `/v1/ai-coach/chat` 응답의 `sources` 가 채워지면 RAG 가 실제로 동작(규칙 폴백 아님).
+
 ## 프론트 연동 (실서버 전환)
 프론트에서:
 ```bash

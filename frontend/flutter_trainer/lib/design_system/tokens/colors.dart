@@ -33,7 +33,6 @@ class AppColors {
   /// Deeper blue — second stop of the client-avatar gradient.
   static const Color accentDark = Color(0xFF2A8FBD);
 
-
   /// AI-summary card gradient (mock: `linear-gradient(135deg,#C8E8F6,
   /// #A8D8F0)` on the 고객 탭 "AI 요약" card).
   static const Color aiCardGradientStart = Color(0xFFC8E8F6);

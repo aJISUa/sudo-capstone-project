@@ -25,6 +25,8 @@ class SchedulePage extends ConsumerStatefulWidget {
 class _SchedulePageState extends ConsumerState<SchedulePage> {
   final Set<String> _expanded = <String>{};
   final Set<String> _sent = <String>{};
+  // 단일 플래시: 연속 전송 시 직전 카드의 확인 플래시는 새 플래시로
+  // 대체된다(의도된 단순화 — 전송 결과는 '전송됨' 칩으로 남는다).
   String? _flash;
   Timer? _flashTimer;
 

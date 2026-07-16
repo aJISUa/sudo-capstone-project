@@ -24,17 +24,16 @@ class MainShell extends StatelessWidget {
       // don't stretch lists/chat edge-to-edge.
       body: Center(
         child: ConstrainedBox(
-          constraints:
-              const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
+          constraints: const BoxConstraints(
+            maxWidth: AppLayout.contentMaxWidth,
+          ),
           child: navigationShell,
         ),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: AppColors.card,
-          border: Border(
-            top: BorderSide(color: AppColors.borderStrong),
-          ),
+          border: Border(top: BorderSide(color: AppColors.borderStrong)),
         ),
         child: SafeArea(
           top: false,
@@ -42,40 +41,41 @@ class MainShell extends StatelessWidget {
             height: 64,
             child: Center(
               child: ConstrainedBox(
-                constraints:
-                    const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
+                constraints: const BoxConstraints(
+                  maxWidth: AppLayout.contentMaxWidth,
+                ),
                 child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                _Destination(
-                  icon: Icons.people_outline,
-                  activeIcon: Icons.people,
-                  label: '고객',
-                  selected: navigationShell.currentIndex == 0,
-                  onTap: () => _onTap(0),
-                ),
-                _Destination(
-                  icon: Icons.calendar_today_outlined,
-                  activeIcon: Icons.calendar_today,
-                  label: '스케줄',
-                  selected: navigationShell.currentIndex == 1,
-                  onTap: () => _onTap(1),
-                ),
-                _Destination(
-                  icon: Icons.auto_awesome_outlined,
-                  activeIcon: Icons.auto_awesome,
-                  label: 'AI루틴',
-                  selected: navigationShell.currentIndex == 2,
-                  onTap: () => _onTap(2),
-                ),
-                _Destination(
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person,
-                  label: 'MY',
-                  selected: navigationShell.currentIndex == 3,
-                  onTap: () => _onTap(3),
-                ),
-              ],
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    _Destination(
+                      icon: Icons.people_outline,
+                      activeIcon: Icons.people,
+                      label: '고객',
+                      selected: navigationShell.currentIndex == 0,
+                      onTap: () => _onTap(0),
+                    ),
+                    _Destination(
+                      icon: Icons.calendar_today_outlined,
+                      activeIcon: Icons.calendar_today,
+                      label: '스케줄',
+                      selected: navigationShell.currentIndex == 1,
+                      onTap: () => _onTap(1),
+                    ),
+                    _Destination(
+                      icon: Icons.auto_awesome_outlined,
+                      activeIcon: Icons.auto_awesome,
+                      label: 'AI루틴',
+                      selected: navigationShell.currentIndex == 2,
+                      onTap: () => _onTap(2),
+                    ),
+                    _Destination(
+                      icon: Icons.person_outline,
+                      activeIcon: Icons.person,
+                      label: 'MY',
+                      selected: navigationShell.currentIndex == 3,
+                      onTap: () => _onTap(3),
+                    ),
+                  ],
                 ),
               ),
             ),

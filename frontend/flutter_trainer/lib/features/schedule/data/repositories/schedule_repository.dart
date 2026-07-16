@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare_trainer/core/storage/app_database.dart';
+import 'package:oncare_trainer/core/utils/date_format.dart';
 import 'package:oncare_trainer/features/schedule/domain/entities/schedule_session.dart';
 
 /// Reads the trainer's daily timeline from the local drift DB.
@@ -16,13 +17,11 @@ class ScheduleRepository {
   /// Today's slots in timeline order (including 공백 gaps).
   Stream<List<ScheduleSession>> watchToday() {
     final query = _db.select(_db.trainerScheduleEntries)
-      ..where((t) => t.date.equals(_todayString()))
+      ..where((t) => t.date.equals(ymd(DateTime.now())))
       ..orderBy(<OrderingTerm Function($TrainerScheduleEntriesTable)>[
         (t) => OrderingTerm(expression: t.sortOrder),
       ]);
-    return query.watch().map(
-      (rows) => rows.map(_toEntity).toList(),
-    );
+    return query.watch().map((rows) => rows.map(_toEntity).toList());
   }
 
   ScheduleSession _toEntity(TrainerScheduleRow row) {
@@ -47,13 +46,6 @@ class ScheduleRepository {
       note: row.note,
       program: program,
     );
-  }
-
-  static String _todayString() {
-    final now = DateTime.now();
-    return '${now.year.toString().padLeft(4, '0')}-'
-        '${now.month.toString().padLeft(2, '0')}-'
-        '${now.day.toString().padLeft(2, '0')}';
   }
 }
 

@@ -104,7 +104,13 @@ class _Header extends StatelessWidget {
   const _Header();
 
   static const List<String> _weekdays = <String>[
-    '월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일',
+    '월요일',
+    '화요일',
+    '수요일',
+    '목요일',
+    '금요일',
+    '토요일',
+    '일요일',
   ];
 
   @override
@@ -118,9 +124,9 @@ class _Header extends StatelessWidget {
       children: <Widget>[
         Text(
           '스케줄',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 2),
         Text(
@@ -334,8 +340,8 @@ class _SessionCard extends StatelessWidget {
           color: sent
               ? AppColors.success.withValues(alpha: 0.4)
               : s.isDone
-                  ? AppColors.border
-                  : AppColors.accent.withValues(alpha: 0.35),
+              ? AppColors.border
+              : AppColors.accent.withValues(alpha: 0.35),
         ),
       ),
       child: Column(
@@ -350,7 +356,14 @@ class _SessionCard extends StatelessWidget {
               ),
               child: Row(
                 children: <Widget>[
-                  ClientAvatar(label: s.clientName.characters.first, size: 32),
+                  ClientAvatar(
+                    // Guard: a non-gap row with an empty name must not
+                    // crash `.characters.first`.
+                    label: s.clientName.isEmpty
+                        ? '?'
+                        : s.clientName.characters.first,
+                    size: 32,
+                  ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
@@ -453,11 +466,14 @@ class _StatusChip extends StatelessWidget {
         : AppColors.accent;
     final Color bg = done
         ? (sent
-            ? AppColors.success.withValues(alpha: 0.1)
-            : AppColors.inputBackground)
+              ? AppColors.success.withValues(alpha: 0.1)
+              : AppColors.inputBackground)
         : AppColors.accentSurface;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: const BorderRadius.all(AppRadius.pill),
@@ -604,8 +620,8 @@ class _SendButton extends StatelessWidget {
     final String label = flashing
         ? '✓ 고객 앱으로 전송 완료!'
         : sent
-            ? '✓ $clientName님에게 전송됨'
-            : '📤 $clientName님에게 오늘 PT 프로그램 전송';
+        ? '✓ $clientName님에게 전송됨'
+        : '📤 $clientName님에게 오늘 PT 프로그램 전송';
     return Material(
       color: sent
           ? AppColors.success.withValues(alpha: 0.1)

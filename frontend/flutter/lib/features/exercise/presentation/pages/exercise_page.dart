@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:oncare/design_system/figma/figma_kit.dart';
 import 'package:oncare/features/exercise/domain/entities/exercise_week.dart';
+import 'package:oncare/features/exercise/domain/entities/gym.dart';
 import 'package:oncare/features/exercise/presentation/controllers/exercise_controller.dart';
 import 'package:oncare/features/exercise/presentation/widgets/exercise_flows.dart';
 import 'package:oncare/features/notification/presentation/widgets/notification_panel.dart';
@@ -1096,7 +1097,7 @@ class _LogCard extends StatelessWidget {
 
 // ───────────────────────────────────────────────────────── 헬스장 ──
 
-class _GymTab extends StatelessWidget {
+class _GymTab extends ConsumerWidget {
   const _GymTab({
     required this.selectedSlot,
     required this.onSlot,
@@ -1108,7 +1109,8 @@ class _GymTab extends StatelessWidget {
   final VoidCallback onFind;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<Gym?> gymAsync = ref.watch(myGymProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -1133,263 +1135,427 @@ class _GymTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: FigmaColors.hairline),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.09),
-                  blurRadius: 24,
-                  offset: const Offset(0, 4),
+          gymAsync.when(
+            loading: () => const _GymLoading(),
+            error: (Object e, StackTrace _) =>
+                _GymError(onRetry: () => ref.invalidate(myGymProvider)),
+            data: (Gym? gym) => gym == null
+                ? const _GymEmpty()
+                : _MyGymCard(
+                    gym: gym,
+                    selectedSlot: selectedSlot,
+                    onSlot: onSlot,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The "내 헬스장" card, driven by a real [Gym] from `myGymProvider` while
+/// keeping the Figma styling (white card, trainer row, AI 예약 배너, actions).
+class _MyGymCard extends StatelessWidget {
+  const _MyGymCard({
+    required this.gym,
+    required this.selectedSlot,
+    required this.onSlot,
+  });
+
+  final Gym gym;
+  final String? selectedSlot;
+  final ValueChanged<String> onSlot;
+
+  @override
+  Widget build(BuildContext context) {
+    final String trainer = gym.trainerName ?? '트레이너';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: FigmaColors.hairline),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.09),
+            blurRadius: 24,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Row(
+            children: <Widget>[
+              Icon(
+                Icons.place_outlined,
+                size: 15,
+                color: FigmaColors.primary,
+              ),
+              SizedBox(width: 6),
+              Text(
+                '내 헬스장',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: FigmaColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            gym.name,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: FigmaColors.ink,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '📍 ${gym.address} · ${gym.distanceKm.toStringAsFixed(1)}km',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: FigmaColors.textMuted,
+            ),
+          ),
+          if (gym.weekdayHours != null) ...<Widget>[
+            const SizedBox(height: 2),
+            Text(
+              '🕐 평일 ${gym.weekdayHours}'
+              '${gym.weekendHours != null ? ' · 주말 ${gym.weekendHours}' : ''}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: FigmaColors.textMuted,
+              ),
+            ),
+          ],
+          if (gym.phone != null) ...<Widget>[
+            const SizedBox(height: 2),
+            Text(
+              '📞 ${gym.phone}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: FigmaColors.textMuted,
+              ),
+            ),
+          ],
+          if (gym.trainerName != null) ...<Widget>[
+            const SizedBox(height: 14),
+            Row(
+              children: <Widget>[
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFEEF2F6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    size: 18,
+                    color: FigmaColors.textFaint,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      gym.trainerName!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: FigmaColors.ink,
+                      ),
+                    ),
+                    Text(
+                      gym.trainerRole ?? '전담 트레이너',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: FigmaColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ),
               ],
+            ),
+          ],
+          if (gym.tags.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final String t in gym.tags)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: FigmaColors.primaryA(0.10),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      t,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: FigmaColors.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[
+                  FigmaColors.bannerStart,
+                  FigmaColors.bannerEnd,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: FigmaColors.primaryA(0.18)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Row(
+                Row(
                   children: <Widget>[
-                    Icon(
-                      Icons.place_outlined,
-                      size: 15,
-                      color: FigmaColors.primary,
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      '내 헬스장',
+                    const Text(
+                      '✦ AI 추천 예약 시간',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: FigmaColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$trainer 빈 시간',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
                         color: FigmaColors.textMuted,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Text(
-                  '강남 피트니스 센터',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: FigmaColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  '📍 서울시 강남구 역삼동 123-45 · 0.8km',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: FigmaColors.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: <Widget>[
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEEF2F6),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.person_outline,
-                        size: 18,
-                        color: FigmaColors.textFaint,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          '김트레이너',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: FigmaColors.ink,
-                          ),
-                        ),
-                        Text(
-                          '전담 트레이너',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: FigmaColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: <Widget>[
-                    for (final String t in <String>['다이어트', '재활운동'])
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: FigmaColors.primaryA(0.10),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            t,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: FigmaColors.primary,
-                            ),
-                          ),
-                        ),
+                    for (final List<String> s in const <List<String>>[
+                      <String>['오늘 19:00', '잔여 1자리'],
+                      <String>['내일 07:30', '여유 있음'],
+                      <String>['내일 20:00', '잔여 2자리'],
+                    ])
+                      _SlotChip(
+                        label: s[0],
+                        sub: s[1],
+                        selected: selectedSlot == s[0],
+                        onTap: () => onSlot(s[0]),
                       ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: <Color>[
-                        FigmaColors.bannerStart,
-                        FigmaColors.bannerEnd,
-                      ],
+                if (selectedSlot != null) ...<Widget>[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '$selectedSlot · ${gym.name} 예약이 확정됐어요',
+                            ),
+                          ),
+                        );
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: FigmaColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        '$selectedSlot 예약 확정',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: FigmaColors.primaryA(0.18)),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const Row(
-                        children: <Widget>[
-                          Text(
-                            '✦ AI 추천 예약 시간',
-                            style: TextStyle(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: FigmaColors.primary,
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Text(
-                            '김트레이너 빈 시간',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              color: FigmaColors.textMuted,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: <Widget>[
-                          for (final List<String> s in const <List<String>>[
-                            <String>['오늘 19:00', '잔여 1자리'],
-                            <String>['내일 07:30', '여유 있음'],
-                            <String>['내일 20:00', '잔여 2자리'],
-                          ])
-                            _SlotChip(
-                              label: s[0],
-                              sub: s[1],
-                              selected: selectedSlot == s[0],
-                              onTap: () => onSlot(s[0]),
-                            ),
-                        ],
-                      ),
-                      if (selectedSlot != null) ...<Widget>[
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('$selectedSlot 예약이 확정됐어요'),
-                                ),
-                              );
-                            },
-                            style: FilledButton.styleFrom(
-                              backgroundColor: FigmaColors.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              '$selectedSlot 예약 확정',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Divider(height: 1, color: FigmaColors.hairline),
-                const SizedBox(height: 12),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => showGymInfoSheet(context),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: FigmaColors.primary,
-                          backgroundColor: FigmaColors.softBlue,
-                          side: BorderSide(color: FigmaColors.primaryA(0.18)),
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          '헬스장 정보',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () => showGymChatSheet(context),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: FigmaColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          '💬 1:1 상담',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: FigmaColors.hairline),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => showGymInfoSheet(context, gym),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: FigmaColors.primary,
+                    backgroundColor: FigmaColors.softBlue,
+                    side: BorderSide(color: FigmaColors.primaryA(0.18)),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '헬스장 정보',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => showGymChatSheet(context, gym: gym),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: FigmaColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '💬 1:1 상담',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Spinner shown while `myGymProvider` resolves.
+class _GymLoading extends StatelessWidget {
+  const _GymLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 48),
+      child: Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(strokeWidth: 3),
+        ),
+      ),
+    );
+  }
+}
+
+/// Retry state shown when `myGymProvider` fails.
+class _GymError extends StatelessWidget {
+  const _GymError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        children: <Widget>[
+          const Text(
+            '헬스장 정보를 불러오지 못했어요.',
+            style: TextStyle(fontSize: 13, color: FigmaColors.textMuted),
+          ),
+          const SizedBox(height: 14),
+          OutlinedButton(
+            onPressed: onRetry,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: FigmaColors.primary,
+              side: BorderSide(color: FigmaColors.primaryA(0.4)),
+            ),
+            child: const Text('다시 시도'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Empty state shown when the user has no registered gym.
+class _GymEmpty extends StatelessWidget {
+  const _GymEmpty();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: FigmaColors.hairline),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.09),
+            blurRadius: 24,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: <Widget>[
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: FigmaColors.primaryA(0.10),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.fitness_center,
+              size: 24,
+              color: FigmaColors.primary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            '등록된 헬스장이 없어요',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: FigmaColors.ink,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '헬스장 찾기로 주변 헬스장을 등록해 보세요',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: FigmaColors.textMuted,
             ),
           ),
         ],

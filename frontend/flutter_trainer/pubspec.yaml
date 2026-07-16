@@ -28,6 +28,14 @@ dependencies:
   # 뒤에 감춰둔다.
   shared_preferences: ^2.3.2
 
+  # drift(SQLite) 로컬 백엔드 — 백엔드 미연결 동안 고객/스케줄 등 mock
+  # 데이터를 영속 저장한다 (사용자 앱과 동일 스택, 코드는 공유하지 않음).
+  drift: ^2.20.3
+  drift_flutter: ^0.2.4
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -36,6 +44,10 @@ dev_dependencies:
 
   # 런처/파비콘 아이콘을 온케어 로고에서 생성 (dart run flutter_launcher_icons).
   flutter_launcher_icons: ^0.14.1
+
+  # --- Codegen (drift) ---
+  build_runner: ^2.4.13
+  drift_dev: ^2.20.3
 
 flutter:
   uses-material-design: true

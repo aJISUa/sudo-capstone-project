@@ -97,7 +97,8 @@ class _NutritionSummary extends StatelessWidget {
                 label: '당류',
                 value: client.sugarG,
                 unit: 'g',
-                color: AppColors.accentPurple,
+                // Blue base like the other tiles — orange only when over.
+                color: AppColors.accentDark,
                 warn: client.sugarG > sugarTargetG,
               ),
             ],

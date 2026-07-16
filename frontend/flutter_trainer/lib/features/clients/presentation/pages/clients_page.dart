@@ -137,7 +137,11 @@ class _AiSummaryCard extends StatelessWidget {
               shape: BoxShape.circle,
               color: AppColors.card,
             ),
-            child: const Text('🙂', style: TextStyle(fontSize: 20)),
+            child: const Icon(
+              Icons.auto_awesome,
+              size: 20,
+              color: AppColors.accent,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

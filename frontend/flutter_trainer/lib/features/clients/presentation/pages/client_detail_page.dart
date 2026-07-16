@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:oncare_trainer/design_system/tokens/colors.dart';
+import 'package:oncare_trainer/design_system/tokens/layout.dart';
 import 'package:oncare_trainer/design_system/tokens/radius.dart';
 import 'package:oncare_trainer/design_system/tokens/spacing.dart';
 import 'package:oncare_trainer/features/clients/data/repositories/client_repository.dart';
@@ -40,15 +41,23 @@ class _ClientDetailPageState extends ConsumerState<ClientDetailPage> {
       backgroundColor: AppColors.background,
       appBar: const BrandHeader(),
       body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _Header(client: client),
-            _SubTabs(
-              current: _tab,
-              onChanged: (i) => setState(() => _tab = i),
+        // Web-first: cap + center like the shell so the detail doesn't
+        // stretch edge-to-edge on wide viewports.
+        child: Center(
+          child: ConstrainedBox(
+            constraints:
+                const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
+            child: Column(
+              children: <Widget>[
+                _Header(client: client),
+                _SubTabs(
+                  current: _tab,
+                  onChanged: (i) => setState(() => _tab = i),
+                ),
+                Expanded(child: _body(client)),
+              ],
             ),
-            Expanded(child: _body(client)),
-          ],
+          ),
         ),
       ),
     );
